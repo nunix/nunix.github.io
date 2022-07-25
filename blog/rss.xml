@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<rss version="2.0" xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:content="http://purl.org/rss/1.0/modules/content/">
+    <channel>
+        <title>The Corsair's lost scrolls Blog</title>
+        <link>https://nunix.github.io/blog</link>
+        <description>The Corsair's lost scrolls Blog</description>
+        <lastBuildDate>Mon, 25 Jul 2022 00:00:00 GMT</lastBuildDate>
+        <docs>https://validator.w3.org/feed/docs/rss2.html</docs>
+        <generator>https://github.com/jpmonette/feed</generator>
+        <language>en</language>
+        <item>
+            <title><![CDATA[The Corsair's Logbook]]></title>
+            <link>https://nunix.github.io/blog/2022/07/25/welcome</link>
+            <guid>/2022/07/25/welcome</guid>
+            <pubDate>Mon, 25 Jul 2022 00:00:00 GMT</pubDate>
+            <description><![CDATA[I always like to write about the technologies I test/use as it gives me the opportunity of writing about "a thing" in my own way, telling a story.]]></description>
+            <content:encoded><![CDATA[<p>I always like to write about the technologies I test/use as it gives me the opportunity of writing about "a thing" in my own way, telling a story.
+That's how personally, I learn best. I mean, I look at a blog post and see the chapters, maybe I already know some of them and move ahead or tell myself "is there a detail I missed last time I read"?</p><p>So the question is: how does other relate to my technical blog posts? Do they relate to the story? Did they learn something?</p><p>While I can't be in the heads of the readers, I definitively can convey my own side of the story and what, as the Captain Corsair, I went through ... but not only.</p><p>So welcome to this more personal side of the Corsair, and if you found this Logbook, let me know on <a href="https://twitter.com/nunixtech" target="_blank" rel="noopener noreferrer">Twitter</a> what you thought.</p><p>The Captain Corsair</p>]]></content:encoded>
+        </item>
+    </channel>
+</rss>

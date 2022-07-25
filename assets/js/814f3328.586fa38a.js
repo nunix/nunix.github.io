@@ -1,0 +1,1 @@
+"use strict";(self.webpackChunknunix_github_io=self.webpackChunknunix_github_io||[]).push([[535],{5641:e=>{e.exports=JSON.parse('{"title":"Recent posts","items":[{"title":"The Corsair\'s Logbook","permalink":"/blog/2022/07/25/welcome"}]}')}}]);
