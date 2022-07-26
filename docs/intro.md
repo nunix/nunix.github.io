@@ -5,7 +5,7 @@ sidebar_position: 1
 
 # Welcome! you found a treasure trove
 
-While roaming the vast Cloud Native seas, I'm gathering lots of knowledge scrolls. Some are complete and can direct you to a treasure, and others are incomplete...
+While roaming the vast Cloud Native seas, I'm gathering lots of knowledge scrolls. Some are complete and can direct you to a treasure, and others are [incomplete](/incomplete_maps/intro-lost)...
 
 I'll be sure to separate both types of scrolls and if you think you can finish an incomplete scroll, then feel free to contribute. I'll be sure to add your name to list of Most Wanted 🏴‍☠️
 
