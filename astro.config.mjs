@@ -6,6 +6,9 @@ import mdx from '@astrojs/mdx';
 
 // https://astro.build/config
 export default defineConfig({
+    site: 'https://nunix.github.io',
+    output: 'static',
+    trailingSlash: 'always',
     integrations: [starlight({
         title: 'The Corsair',
         social: [{ icon: 'github', label: 'GitHub', href: 'https://github.com/nunix' }],
