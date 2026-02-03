@@ -15,7 +15,8 @@ categories:
   - Distros
 sidebar_position: -20200330
 ---
-# Introduction
+
+## Introduction
 
 During the Q&A of the first [WSLConf](https://www.wslconf.dev/), the Corsair took over for a last demo on LXD.
 
@@ -23,7 +24,7 @@ The setup was already done, so in this blog post we will check the setup and the
 
 Now it's time for you to have Fun too.
 
-# Prerequisites
+## Prerequisites
 
 By now, for the ones who read the blog, you should know the drill.
 
@@ -40,7 +41,7 @@ Here are the prerequisites to follow this blog post:
 
 ![](assets/wsl2-windows-store-terminal.png)
 
-# LXD: getting started
+## LXD: getting started
 
 Before we can start playing with LXD, we need to start it and run through the initial setup.
 
@@ -88,9 +89,7 @@ lxc list
 
 We are now ready to move to the next stage and create our first container.
 
-
-
-# LXC: containers without Docker
+## LXC: containers without Docker
 
 We can finally start and the goal is simple: create a container, configure it "WSL2 way" and import it as a new distro.
 
@@ -166,7 +165,7 @@ usermod -aG wheel <username>
 
 ![image-20200329220050026](assets/wsl2-lxc-container-visudo.png)
 
-## LXC file: adding content to containers
+### LXC file: adding content to containers
 
 Once everything has been setup inside the container, let's exit and add additional files:
 
@@ -183,7 +182,7 @@ lxc exec <container name> -- ls -l /etc/wsl.conf
 
 ![image-20200329222623593](assets/wsl2-lxc-container-push-wslconf.png)
 
-# LXC to WSL2: tiny container becomes big distro
+## LXC to WSL2: tiny container becomes big distro
 
 With our container fully configured, it's now time to save our work and import it as a WSL2 distro.
 
@@ -243,7 +242,7 @@ wsl.exe -d <WSL2 distro name>
 
 ![image-20200330170623954](assets/wsl2-lxc-import-distro.png)
 
-# Conclusion
+## Conclusion
 
 While reading through might take some long minutes, the demo lasted 10 minutes with all the loads.
 

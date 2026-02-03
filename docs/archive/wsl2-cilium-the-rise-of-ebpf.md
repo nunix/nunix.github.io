@@ -16,7 +16,7 @@ categories:
 sidebar_position: -20221228
 ---
 
-# Introduction
+## Introduction
 
 It's almost the end of the year 2022, and the [Isovalent](https://isovalent.com) Santa brought us a series of [Cilium badges](https://isovalent.com/blog/post/badges-for-cilium-labs-catch-em-over-the-holidays/) while we wait between Christmas and the New Year.
 
@@ -32,7 +32,7 @@ So let's jump into our spaceship (read: distro) and get our first badge of honor
 
 > Note: As this blog is like a game, for the first time there will be ratings for the different stages. It's totally subjective and the ratings will be on different topics for each stage.
 
-# Prerequisites
+## Prerequisites
 
 Here's the list of components I used for this blog post:
 
@@ -50,13 +50,13 @@ Here's the list of components I used for this blog post:
 * \[Optional] Terminal: [Windows Terminal](https://www.microsoft.com/en-us/p/windows-terminal/9n0dx20hk701)
   * Version: 1.15.3466.0
 
-# Stage 0: Mod the Kernel
+## Stage 0: Mod the Kernel
 
 While this is Stage 0, it's being written after a series of try and fails getting Cilium to run on WSL2.
 
 Still, in terms of reading flow, the goal is that we start with the right foot.
 
-## Build the Kernel
+### Build the Kernel
 
 As stated in the intro, Cilium relies on eBPF which uses Linux Kernel capabilities directly. Therefore, we need to ensure the right modules are enabled in the WSL2 Kernel and loaded in our distro.
 
@@ -134,7 +134,7 @@ CONFIG_CRYPTO_AES=m
 make KCONFIG_CONFIG=Microsoft/config-wsl
 ```
 
-## Configure WSL2
+### Configure WSL2
 
 Once the Kernel is built, we need to configure both the distro and WSL2 as follow:
 
@@ -178,7 +178,7 @@ code $env:USERPROFILE/.wslconfig
 kernel = c:\\wslkernel\\kernel-cilium
 ```
 
-## Load the modules
+### Load the modules
 
 With the new Kernel loaded, we can configure the modules to be loaded at each distro boot:
 
@@ -237,7 +237,7 @@ sudo lsmod
 
 We are now fully prepared to start our journey!
 
-## Checkpoint 0
+### Checkpoint 0
 
 Ok, that's a first deep dive into the WSL and Linux seas, and to be totally sincere this took quite some time to figure all out. Between the Kernel modules needed and not present in the stock Kernel, to the systemD behavior inside WSL2, the learnings were many and meaningful.
 
@@ -293,7 +293,7 @@ kubectl get nodes
 
 With the configuration file, we can create the local cluster on WSL.
 
-## Install KinD
+### Install KinD
 
 Based on the [KinD website](https://kind.sigs.k8s.io/), the easiest way to install KinD is as follow:
 
@@ -320,7 +320,7 @@ kind version
 
 ![WSL: Install KinD](assets/wsl2-cilium-install-kind.png)
 
-## Add the bpf mount
+### Add the bpf mount
 
 Before the cluster can be created, and to avoid redoing all the work as I did... we need to mount the `bpf` filesystem:
 
@@ -343,7 +343,7 @@ mount | grep bpf
 
 ![WSL: Mount BPF filesystem](assets/wsl2-cilium-mount-bpf.png)
 
-## Create the KinD cluster
+### Create the KinD cluster
 
 We're now ready to create the KinD cluster with the same configuration as in the Lab:
 
@@ -357,7 +357,7 @@ kubectl get nodes
 
 ![Create new KinD cluster with config file](assets/wsl2-cilium-kind-create-cluster.png)
 
-## Checkpoint 1
+### Checkpoint 1
 
 The first stage is probably one of the easiest, however on the local side we still had to perform some minor extra configuration.
 
@@ -372,11 +372,11 @@ The ratings for this stage are:
 * **Overall setup: 5/5**
   * From the KinD installation to creating the cluster, there wasn't any roadblock and we could follow the documentation without any issues.
 
-# Stage 2: Load the KinD cluster with Cilium
+## Stage 2: Load the KinD cluster with Cilium
 
 The second stage of the Lab will guide us on how to install Cilium in our cluster.
 
-## Install Cilium CLI
+### Install Cilium CLI
 
 First, we'll need to install the [cilium CLI](https://docs.cilium.io/en/v1.12/gettingstarted/k8s-install-default/#install-the-cilium-cli) as described in the docs:
 
@@ -393,7 +393,7 @@ rm cilium-linux-${CLI_ARCH}.tar.gz{,.sha256sum}
 
 ![Install Cilium CLI](assets/wsl2-cilium-install-binary.png)
 
-## Install Cilium
+### Install Cilium
 
 With the Cilium CLI installed and our KinD cluster running, we can install Cilium:
 
@@ -413,7 +413,7 @@ cilium status
 
 Cilium is now up and running! We can move to the next stage and install our first application.
 
-## Checkpoint 2
+### Checkpoint 2
 
 This stage, while shorter, is probably the most important one as it confirms if our environment is correctly configured and stable. As stated in [Stage 0](#stage-0-mod-the-kernel), before we could reach this point, a lot had to be discovered and implemented, so that's why completing this stage feels probably the most rewarding.
 
@@ -425,13 +425,13 @@ The ratings for this stage are:
 * **Overall setup: 5/5**
   * Nothing to say, just "it works as expected".
 
-# Stage 3: Deploy the microservices in a galaxy not so far away
+## Stage 3: Deploy the microservices in a galaxy not so far away
 
 This stage can be considered as an *interlude* (for the music fans out there). We'll install the microservices used to showcase the power of Cilium capabilities.
 
 And HUGE props to the Isovalent team for choosing the best scenario and make it easier to understand and relate: Star Wars on Kubernetes!
 
-## Discover the microservices
+### Discover the microservices
 
 While everything is explained in the Lab, and once again why you should do it, it's important to have a basic understanding of what we'll install:
 
@@ -444,7 +444,7 @@ While everything is explained in the Lab, and once again why you should do it, i
 
 * The Service will load-balance the traffic to pods with certain labels
 
-## Deploy the application
+### Deploy the application
 
 To deploy the application, we'll use the [manifest provided](https://raw.githubusercontent.com/cilium/cilium/HEAD/examples/minikube/http-sw-app.yaml) in the Lab:
 
@@ -466,7 +466,7 @@ kubectl get cep --all-namespaces
 
 The application is now deployed and it's time to see how Cilium can help us making it (way) more secure.
 
-## Checkpoint 3
+### Checkpoint 3
 
 As said above, this stage was short and the target was to install an application and see how Cilium's aware of the applications running in our cluster.
 
@@ -484,13 +484,13 @@ From this stage on, we can consider that we're starting the "Episode II" of our 
 
 To recap, on the previous stages, we built our environment and it ended with an application being deployed (what a cliffhanger, right?!). Next, we'll see what how the application currently behaves, its current problems and how Cilium will save the day for the Empire.
 
-## Understand the environment
+### Understand the environment
 
 While the Lab is based on a "fiction", the experience it's based on reality. In this case, the goal is to ensure that specific actions can only be performed by a limited set of resources.
 
 If we take the Star Wars context, the Deathstar access should be granted only to the Empire's fleet and if a Rebel's spaceship requests access, then it should be revoked.
 
-## Test the application's behavior
+### Test the application's behavior
 
 Let's see how the application behaves after the install, without any further configuration:
 
@@ -508,7 +508,7 @@ Well, we can see there's definitively a problem as the access request from a Reb
 
 In Kubernetes terms, this means a security policy is certainly missing and needs to be deployed.
 
-## Add a L3-L4 network policy
+### Add a L3-L4 network policy
 
 The first example referenced in the Lab is to create a L3-L4 policy which allows access to the port 80 of our Deathstar service only to the resources with a certain label.
 
@@ -547,7 +547,7 @@ Goodbye Deathstar! Hopefully for us, there's two replicas so the access to the D
 
 This example is great to show one of the limitation of the L3-L4 policy and why, in these modern times, we need a policy even more granular.
 
-## Add a L7 network policy
+### Add a L7 network policy
 
 The second example referenced in the Lab is to create a L7, or HTTP, network policy. This will complement our existing network policy limiting the Tiefighters to a limited set of actions.
 
@@ -570,7 +570,7 @@ kubectl exec tiefighter -- curl -s -XPUT deathstar.default.svc.cluster.local/v1/
 
 Access denied! As it should be. We have now a more secure Deathstar with proper accesses at the different layers. Come at us Rebels, we're ready!
 
-## Checkpoint 4
+### Checkpoint 4
 
 For the ones who didn't do the Lab, this stage is a compression of several steps for a better reading pace and also not recreate the Lab's exercises as is (read: rip-off). So one last time, run the [Lab](https://isovalent.com/labs/getting-started-with-cilium/), look at all the details missing from this blog post and earn a badge while doing so.
 
@@ -587,7 +587,7 @@ The ratings for this stage are:
 * Overall setup: 5/5
   * We learnt a lot, had fun doing so and the environment was stable all along.
 
-# Conclusion
+## Conclusion
 
 What a fun and rewarding way to end this quite crazy year 2022. And hopefully this will motivate you to learn more about Cilium and the overall Cloud Native ecosystem. There's plenty of trainings out there, given to us for free, and even if you're on Windows, you can follow along!
 
@@ -595,7 +595,7 @@ To all the readers, I personally want to thank you for your feedback on social m
 
 <NunixOut />
 
-# Bonus 1: The k3d fleet gets Cilium
+## Bonus 1: The k3d fleet gets Cilium
 
 [k3d](https://k3d.io) a tool that creates containerized K3s clusters, so the motivation to have Cilium running on it is very high.
 
@@ -603,7 +603,7 @@ However, the journey to find the right procedure to have a stabilized cluster wa
 
 Luckily, the Force showed the path and here's a semi-automated way to have a stable k3d cluster with Cilium.
 
-## Install k3d
+### Install k3d
 
 First we need to install k3d. The fastest way is to run the install script with either `curl` or `wget` as described in k3d's homepage:
 
@@ -622,7 +622,7 @@ k3d cluster list
 
 > Note: as stated already many times in the other blog posts, running a script directly from Internet is as secure as letting your door open. While we can trust the source, still be careful and check the script before running it.
 
-## Create the k3d cluster
+### Create the k3d cluster
 
 k3d evolved to be one of the best management tool when it comes to containerized Kubernetes clusters. So it's strongly recommended to have a look on the options as it with help us create more or less complex clusters.
 
@@ -658,7 +658,7 @@ The output can be somewhat confusing if it's the first time creating a cluster w
 
 This node is specific to k3d and can come very handy if our applications need extra ports to be opened. As for the cluster resources, K3s deploys by default CoreDNS, Traefik, local-path-provisioner and a metrics server.
 
-### [Optional] Create the k3d cluster with a blueprint
+#### [Optional] Create the k3d cluster with a blueprint
 
 Since the version 5, k3d can also create clusters with a config file.
 
@@ -738,7 +738,7 @@ kubectl get pods -A
 
 ![Check the cluster with k3d and kubectl](assets/wsl2-cilium-k3d-check-cluster-configfile.png)
 
-## Prepare the nodes
+### Prepare the nodes
 
 Before we can install Cilium on our k3d cluster, we need to perform a task on "containerized OS". This task is automatically done with KinD containers thanks to the OS base image used for by KinD.
 
@@ -760,7 +760,7 @@ kubectl get nodes -o custom-columns=NAME:.metadata.name --no-headers=true | xarg
 
 > Note: as described above, k3d deploys a load-balancer node for its own use, so to avoid listing it with `k3d node list`, `kubectl get nodes` seems more logic as it will get only the nodes Kubernetes "sees", and the output can be customized to only display the data we need.
 
-## Install cilium
+### Install cilium
 
 The nodes are now ready and we can install Cilium:
 
@@ -802,7 +802,7 @@ cilium status
 
 ![Check the status with Cilium](assets/wsl2-cilium-k3d-install-status.png)
 
-### Bonus-ception
+#### Bonus-ception
 
 In the first part with KinD, we didn't use the Cilium connectivity tool, so let's use it now and see the (very) good results:
 
@@ -812,7 +812,7 @@ cilium connectivity test
 
 ![Cilium connectivity test results](assets/wsl2-cilium-k3d-connectivity-test.png)
 
-## Checkpoint Bonus 1
+### Checkpoint Bonus 1
 
 Let's be honest, this solution feels a bit incomplete and even hard to automate due to the extra mounts and commands we need to run at a specific point in the installation process.
 

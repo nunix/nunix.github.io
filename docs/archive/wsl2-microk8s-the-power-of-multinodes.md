@@ -17,7 +17,8 @@ categories:
   - Kubernetes
 sidebar_position: -20200513
 ---
-# Introduction
+
+## Introduction
 
 During the first ever WSLConf, which went from an onsite to online event, I did showcase Canonical Kubernetes cluster [**Microk8s**](https://microk8s.io/) on WSL2
 
@@ -25,11 +26,11 @@ The demo told a *story* of going from the usual local one node k8s cluster to a 
 
 Now it's your turn and while in the demo the first parts were already done for a time management purpose, I will explain everything here so you can understand the "first half" also.
 
-# Prerequisites
+## Prerequisites
 
 Here is the list of components and software I used during the demo. Of course, please feel free to use your own preferred software when possible.
 
-## Host setup
+### Host setup
 
 The host was an Hyper-V Virtual Machine running [Windows Server 2019 Insider](https://www.microsoft.com/en-us/software-download/windowsinsiderpreviewserver) with 8Go RAM and 4vCPUs. And I can already tell that it was not enough power to run the final solution while sharing my screen.
 
@@ -43,9 +44,7 @@ Set-VMProcessor -VMName mk8s -ExposeVirtualizationExtensions $true
 
 ![image-20200316181857819](assets/win2019-enable-nested-virt.png)
 
-
-
-### Windows Features
+#### Windows Features
 
 Once Windows Server is installed, we can enable WSL2 and the Virtualization Platform features (in Powershell):
 
@@ -68,9 +67,7 @@ For the second feature, you will be asked to reboot the server, say yes:
 >
 > On the next reboot, enjoy your default new shell
 
-
-
-### WSL distro requirements
+#### WSL distro requirements
 
 Now that WSL(1/2) is enabled, we will need to get a base distro. Once again, based on the WSLConf demo, we will install Ubuntu 20.04 (Focal Fossa).
 
@@ -89,8 +86,6 @@ mkdir C:\wsldistros
 
 > Tip: both directories were created at a level all users can access. It will be very useful for a later use.
 
-
-
 With the directories created, let's download the `rootfs` from the link: https://cloud-images.ubuntu.com/focal/current/focal-server-cloudimg-amd64-wsl.rootfs.tar.gz (depending on your bandwidth, this might take some time)
 
 Finally, we can import the `rootfs` as a WSL2 custom distro:
@@ -107,9 +102,7 @@ wsl --import mk8s C:\wsldistros\mk8s C:\wslsources\focal.tar.gz --version 2
 wsl --set-default-version 2
 ```
 
-
-
-### WSL setup
+#### WSL setup
 
 With WSL2 installed and our first distro imported, we perform the basic configuration
 
@@ -156,8 +149,6 @@ visudo
 >
 > Tip2: if `nano` is not your favorite editor, once you have finished editing the the file, type CTRL+X to exit, then type "y" and finally press enter
 
-
-
 ```bash
 # Create the wsl.conf file
 vi /etc/wsl.conf
@@ -189,9 +180,7 @@ In the `[network]` section, the `generateHosts` is disabled so the `/etc/hosts` 
 
 Finally, in the `[user]` section, we set the default user to the one we created (`mk8s` in this example).
 
-
-
-### SystemD setup
+#### SystemD setup
 
 Here we have the first fun part and, for the time being, the part not supported by WSL officially. Which makes it even more cool, right.
 
@@ -222,15 +211,11 @@ fi
 
 > Tip: after few tests, I decided to go with the "old" solution. Feel free to use the new one based on two files and the edition of /etc/bash.bashrc
 
-
-
 SystemD is now setup and ready to be used. So let's exit and start a new session with our newly SystemD.
 
 ![image-20200317222037540](assets/win2019-wsl2-systemd.png)
 
-
-
-### Network setup
+#### Network setup
 
 With SystemD, we might have some glitches at the network level. One is the DNS resolver not working. To fix it, let's update the `resolved.conf` file to use a public DNS:
 
@@ -252,8 +237,6 @@ sudo apt update
 
 ![image-20200317225206935](assets/win2019-wsl2-systemd-resolved-updated.png)
 
-
-
 Another issue, is that we are "living" inside the WSL2 microVM and we need to forward the `localhost` ports to the default interface (eth0 in our case). This will be useful (read: needed) to reach the applications that we will install later.
 
 Here is the setting that will allow it:
@@ -267,9 +250,7 @@ sudo sysctl -p /etc/sysctl.conf
 
 Congratulations! We have now our custom distro with SystemD enabled. So it's now time to move to the next stage and install Microk8s.
 
-
-
-# Microk8s Single node
+## Microk8s Single node
 
 Thanks to SystemD, our distro actually gained another very nice feature: `snap`.
 
@@ -286,9 +267,7 @@ snap list
 
 The important snap, Core, is already installed.
 
-
-
-### [Optional] Add a modern font with CascadiaCode
+#### [Optional] Add a modern font with CascadiaCode
 
 As you can see, the `snap list` has a strange character after the name `canonical`. This simply means the default font used by the terminal does not have the character in its character list.
 
@@ -322,9 +301,7 @@ And now, let's run again the `snap list` command and enjoy new characters:
 
 ![image-20200318212429689](assets/win2019-cascadia-font-selected.png)
 
-
-
-## Installing Microk8s
+### Installing Microk8s
 
 Before installing Microk8s snap, we can (should) have a look on the available Kubernetes versions and make sure the "latest/stable" version is the one we want/need:
 
@@ -350,9 +327,7 @@ sudo microk8s.kubectl cluster-info
 
 ![image-20200318215446883](assets/win2019-wsl2-mk8s-snap-install.png)
 
-
-
-### [Optional] Snap channels
+#### [Optional] Snap channels
 
 Installing the default is maybe not the preferred route, specially when dealing with the different Kubernetes versions and the potential breaking changes a specific version introduced.
 
@@ -377,9 +352,7 @@ sudo microk8s.kubectl cluster-info
 
 Great, in almost no time we moved from one channel to another. Try doing the same "the Kubernetes way" and you will appreciate very much this easiness and speed.
 
-
-
-## Fixing the permissions
+### Fixing the permissions
 
 As you can see in the previous commands, `sudo` was used in order to launch the `microk8s` command. This is of course not ideal and can be fixed:
 
@@ -408,9 +381,7 @@ microk8s.status
 
 ![image-20200318223716190](assets/win2019-wsl2-mk8s-status-fixed.png)
 
-
-
-## Enable addons
+### Enable addons
 
 Now that we have our Microk8s one-node cluster running, let's have a look at the available "addons", which are Kubernetes services that are disabled by default.
 
@@ -434,9 +405,7 @@ microk8s.kubectl cluster-info
 
 ![image-20200319000905819](assets/win2019-wsl2-mk8s-services-check.png)
 
-
-
-### [Optional] Install a browser and access the Dashboard
+#### [Optional] Install a browser and access the Dashboard
 
 When we speak about dashboards, we think ... well visuals, not terminal based.
 
@@ -468,8 +437,6 @@ choco install brave
 >
 > Tip 3: to avoid going back and forth between Powershell and WSL, we can set the `$BROWSER` variable to the Brave path: `export BROWSER=/mnt/c/Users/mk8s/AppData/Local/BraveSoftware/Brave-Browser/Application/brave.exe"`
 > I recommend adding it to the `${HOME}/.bashrc`  file
-
-
 
 We have now a browser, so let's try to access the Kubernetes management URL (https://localhost:16443):
 
@@ -504,9 +471,7 @@ Once you click `Sign in` you will arrive at the "Overview" section of the Dashbo
 
 ![image-20200319213635472](assets/win2019-wsl2-mk8s-dashboard-overview.png)
 
-
-
-## Enable Metallb
+### Enable Metallb
 
 Having to manually forward every port for our applications is of course not optimal. In order to avoid doing it and instead have fully automated solution that will provide us with an external IP, let's install another module: [Metallb](https://metallb.universe.tf/).
 
@@ -524,8 +489,6 @@ microk8s.enable metallb
 ![image-20200319215134713](assets/win2019-wsl2-mk8s-metallb-install.png)
 
 > Tip: This address will refresh after each login. For a permanent solution, create a virtual interface with a static IP address as explained later in this blog post.
-
-
 
 We have now a LoadBalancer, so let's use it already by updating the Dashboard service to leverage it:
 
@@ -549,9 +512,7 @@ microk8s.kubectl get service/kubernetes-dashboard -n kube-system
 
 And here we have, the service was exported with an external port, and it allowed us to connect to the Dashboard.
 
-
-
-## Conclusion for the single node
+### Conclusion for the single node
 
 We have now a Microk8s one node cluster up and ready on Windows Server Core 2019. 
 
@@ -559,9 +520,7 @@ Thanks to some initial settings, we could install Microk8s and few addons withou
 
 Let's now continue and implement what I did during the WSLConf demo, by adding two more nodes to our Microk8s cluster
 
-
-
-# Microk8s multi-node
+## Microk8s multi-node
 
 Working with a Kubernetes single node cluster is, for the majority of us, quite enough as we are using it on our own laptops to develop Cloud Native applications and/or for learning how to use/manage Kubernetes.
 
@@ -569,9 +528,7 @@ However, for production systems, we will definitively be faced with Kubernetes m
 
 Let's see how we can have our (tiny) 3 nodes Microk8s cluster by "cheating" a bit the system and update our one node cluster configuration to welcome the 2 other nodes.
 
-
-
-## Windows setup
+### Windows setup
 
 The first question is: how can we have multiple nodes if every distro runs inside the WSL2 VM, which means IPs and ports will be shared.
 
@@ -622,8 +579,6 @@ runas /user:$user2 /savecred powershell.exe
 
 > Tip: by default, the two terminals have the "consolas" font, now that we have already imported the new fonts, we can select them from the fonts menu
 
-
-
 Once logged in, we can now import the distros for both users:
 
 ```powershell
@@ -648,15 +603,11 @@ ps -ef
 
 ![image-20200320233156131](assets/win2019-nodes-wsl2-check.png)
 
-
-
-### [IMPORTANT NOTICE]
+#### [IMPORTANT NOTICE]
 
 **DO NOT** add `localhostForwarding=true` inside the file `${HOME}\.wslconfig` on the worker nodes. This will cause the same ports to be forwarded to the host and when trying to access these ports on Windows side will result with an error.
 
-
-
-## Network setup
+### Network setup
 
 Ok, everything is working but we do want to add the worker nodes to our cluster and to be able to do that, we need some additional configuration change in order to have a stable cluster.
 
@@ -689,9 +640,7 @@ sudo chmod +x /usr/local/bin/addvnet.sh
 
 ![image-20200321005530440](assets/win2019-wsl2-addvnet.png)
 
-
-
-## WSL Setup
+### WSL Setup
 
 Second, we will need to change the hostname, because right now the three WSL instances have inherited the Windows hostname:
 
@@ -747,8 +696,6 @@ hostnamectl
 >
 > Tip2: after a shutdown of the WSL2 VM, the first login will display an error, just logout and login again
 
-
-
 Due to the WSL2 init system, we need to make a last change to make the hostname permanent by adding the `hostnamectl` command to a script running during the "boot".
 
 To avoid to many scripts, let's add the command to the same script creating the virtual interface:
@@ -767,9 +714,7 @@ hostnamectl set-hostname mk8snode2
 
 ![image-20200321010330933](assets/win2019-wsl2-addvnet-hostnamectl.png)
 
-
-
-## Creating the cluster
+### Creating the cluster
 
 Everything is now ready and we can finally create the cluster by joining the worker nodes to the master node.
 
@@ -816,9 +761,7 @@ microk8s.kubectl get pods -n ingress -o wide
 
 ![image-20200321183946879](assets/win2019-wsl2-mk8s-ingress-install.png)
 
-
-
-## Deploying our first app
+### Deploying our first app
 
 Our cluster is now running and stabilized, so it's time to deploy a "real" app and for that, let's see how our Microk8s cluster on WSL2 can compare to a deployment on a Linux Microk8s cluster (source: https://www.youtube.com/watch?v=OTBzaU1-thg):
 
@@ -846,9 +789,7 @@ microk8s.kubectl get services
 
 Our microbot deployment is a success!
 
-
-
-# Conclusion
+## Conclusion
 
 While the initial setup can be a little bit heavy, once done we could see that the Microk8s was acting as intended and the complete load on RAM (OS + three WSL instances + Microk8s three nodes) is around 9Go (~75% of the 12Go total):
 

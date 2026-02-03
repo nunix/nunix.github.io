@@ -15,7 +15,8 @@ categories:
   - Environments
 sidebar_position: -20190401
 ---
-# Introduction
+
+## Introduction
 
 Once upon a time, the giants molded earth. They created tools for their intensive labor and in their kindness they shared it with the tiny humans that wanted to copy what the giants where doing.
 
@@ -23,13 +24,13 @@ And for the mightiest of the tiny humans, the giants allowed them to stand on th
 
 As a tiny human, I do say Thank You to these Giants.
 
-## ⚠ Warning ⚠
+### ⚠ Warning ⚠
 
 This setup is highly experimental, so try it for "the fun of doing it". Even if it might be stable once everything is in place,  the different layers used might have an (big?) impact on the performances.
 
 Now that you've been warned, let's start.
 
-# The giants' tools
+## The giants' tools
 
 In order to craft this environment, the following tools will be needed:
 
@@ -43,7 +44,7 @@ As you might have guessed by now, the setup will be split in two parts:
 1. Ubuntu VM guest on Hyper-V where LXD will be running
 2. WSL on machine host where LXC and DevLx will be launched
 
-## Knowledge is power
+### Knowledge is power
 
 This solution is (heavily) inspired by the knowledge shared by two Giants: [Brian Ketelsen](https://twitter.com/bketelsen) and [Stéphane Graber](https://twitter.com/stgraber)
 
@@ -51,9 +52,9 @@ You can read more about LXD remote from [Stéphane's blog](https://stgraber.org/
 
 And now that we do have the tools and knowledge, it's time to create something on our own.
 
-# Server setup: Ubuntu and LXD goodiness
+## Server setup: Ubuntu and LXD goodiness
 
-## Virtual Machine creation
+### Virtual Machine creation
 
 The first action to do is, if not done already, to create a new Ubuntu VM with the quick create function:
 
@@ -81,7 +82,7 @@ The first action to do is, if not done already, to create a new Ubuntu VM with t
 
 ![Ubuntu VM running](assets/hyper-v_vmwindow-running.png)
 
-## Setup connection from WSL
+### Setup connection from WSL
 
 As we will be mainly working from WSL, then a nice (and optional) action to do is to setup the SSH connectivity to the VM.
 
@@ -121,7 +122,7 @@ ssh-copy-id `hvc.exe ip -4 devlxvm | tr -d '\r'`
 
 Bonus: the command `hvc.exe ssh` will also be impacted.
 
-## Install LXD on server
+### Install LXD on server
 
 Now that the connectivity is in place, we can install all the components.
 
@@ -149,7 +150,7 @@ Now we can create our first container:
 
 ![First container created](assets/ubuntu-lxd-first-container.png)
 
-## Enable remote connection for LXD on server
+### Enable remote connection for LXD on server
 
 Based on [Stéphane's blog](https://stgraber.org/2016/04/12/lxd-2-0-remote-hosts-and-container-migration-612/), in order to enable the remote connection to LXD, we need to run the following 2 commands:
 
@@ -160,7 +161,7 @@ Based on [Stéphane's blog](https://stgraber.org/2016/04/12/lxd-2-0-remote-hosts
 
 Our server is now fully configured, time to configure our WSL client.
 
-## Install LXC on WSL
+### Install LXC on WSL
 
 Due to the different distros available, please find the correct install method from this [blog](https://linuxcontainers.org/lxd/getting-started-cli/)
 
@@ -172,7 +173,7 @@ My (current) distro for dev is ClearLinux, and as it's not listed, here is the w
 
 ![Install LXC on WSL ClearLinux](assets/wsl-lxc-install.png)
 
-## Add the remote LXD server
+### Add the remote LXD server
 
 We will add the remote LXD server and also will set it as default, so every "local" command will actually be run on the remote server:
 
@@ -198,7 +199,7 @@ Finally, let's create a new container from WSL directly to the remote LXD server
 
 As shown in the screenshot, the first `lxc list` does not show any IP, this is because the container was still being created.
 
-# Conclusion
+## Conclusion
 
 While this blog might be long to read (and was definitively long to write), the hands-on will take you about 10-15 minutes and it's more due to all the downloads needed.
 

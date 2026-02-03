@@ -18,9 +18,10 @@ categories:
   - Docker
 sidebar_position: -20200501
 ---
+
 *Win10+Docker: Hybrid swarm on the Desktop*
 
-# Introduction
+## Introduction
 
 Windows 10 2004 brings possibilities ... lots of possibilities.
 
@@ -30,7 +31,7 @@ This blog is very much pushing some boundaries, mixing with some small "hacks", 
 
 So if you're not afraid of testing "impossible" scenarios, jump along and, of course, **DO NOT** try this at Work. Stay at Home, you should know it by now (ok, bad confinement pun)
 
-# Sources
+## Sources
 
 As I often stated: all ideas have an inspiration or are an alternative to something already done/existing.
 
@@ -44,7 +45,7 @@ Other references will be properly linked in the blog post.
 
 So to everyone who already took the time to create content: THANK YOU!
 
-# Prerequisites
+## Prerequisites
 
 The following list might be quite long, so I won't explain how to install it. However I will put the links that I used myself for this particular setup.
 
@@ -66,7 +67,7 @@ Here is the shopping list:
 
 Ok, once you have installed all the pieces above, let's setup them all and create "the Great Hybrid Swarm".
 
-# Docker Desktop: 2 daemons running wild
+## Docker Desktop: 2 daemons running wild
 
 For the first setup, well we will already be applying our first "hack": running **both** the Windows and Linux daemon.
 
@@ -99,7 +100,7 @@ And we're done on the first node. Please note that this won't remain upon restar
 
 So it's quite safe to do it and won't harm the "standard" setup of your computer. 
 
-# WSL2: Linux on the (Docker) Desktop
+## WSL2: Linux on the (Docker) Desktop
 
 For the WSL2 distro, let's take the "stable" distro in it's newest and shiny version:
 
@@ -124,7 +125,7 @@ And we've done the second node and as you can see (hopefully), Docker Desktop is
 
 Let's now move into our second Linux node.
 
-# Multipass: the Fossa is everywhere
+## Multipass: the Fossa is everywhere
 
 Canonical has this multi-platform tool for creating an Ubuntu VM from the command line called [Multipass](https://multipass.run/).
 
@@ -158,7 +159,7 @@ Ok, still here? good, let's create our new Multipass Ubuntu instance:
 
 One more node configured and ready to join the swarm. As the script from Docker (used by [Bret](https://twitter.com/BretFisher) in his video) is still not ready for Ubuntu 20.04 (a.k.a Focal Fossa), we had to install the package from the repository.
 
-# Win2019: Hyper-Vagrant
+## Win2019: Hyper-Vagrant
 
 To mix things a bit, let's use another deployment tool: [Vagrant](https://www.vagrantup.com/).
 
@@ -205,7 +206,7 @@ Congratulations! We have now our four nodes: 2 Windows (1 & 4) and 2 Linux (2 & 
 
 ![](assets/swarm-all-installs.png)
 
-# Docker Swarm: Hybrid is the new normal
+## Docker Swarm: Hybrid is the new normal
 
 Still with me, let's finally have some Swarm fun.
 
@@ -213,7 +214,7 @@ Out of the four nodes, we will have one as the manager (Windows) with three work
 
 It's small and really just for testing purpose, but it will be enough for us to have a view on how Swarm behaves and allocated resources.
 
-## Portainer: show me thy graphics
+### Portainer: show me thy graphics
 
 And when we speak about resources "visualization", what better than a Web UI?
 
@@ -240,7 +241,7 @@ Set a password for the admin account and you're in
 
 Let's come back to the interface once we have our swarm created.
 
-## Swarm: a Leader arises
+### Swarm: a Leader arises
 
 We are now ready to start our swarm and the first step is start it on the Manager node.
 
@@ -261,7 +262,7 @@ docker swarm init --advertise-addr $env:MainIP --listen-addr ${env:MainIP}:2377
 
 ![](assets/docker-swarm-init.png)
 
-## Swarm: hey ho hey ho off to work we go
+### Swarm: hey ho hey ho off to work we go
 
 Now that the Manager node is up and running, it's time to add the worker nodes to the swarm:
 
@@ -294,7 +295,7 @@ Let's have a look on Portainer what it looks like:
 
 ![](assets/portainer-swarm-dashboard.png)
 
-## Swarm: labeling is a good thing
+### Swarm: labeling is a good thing
 
 As we are in a mixed-os Swarm, docker needs to know to whom it should assign the creation of the containers based on the OS. While Linux containers can run on Windows, it's not the case for Windows containers on Linux (yet).
 
@@ -320,7 +321,7 @@ On Portainer, we can click on the link "Go to cluster visualizer" and enable the
 
 With the labels applied, we can now launch our "mixed application".
 
-## Swarm: building the foundations
+### Swarm: building the foundations
 
 We will deploy a (remixed) web app from the list of [Awesome Compose](https://github.com/docker/awesome-compose): [Asp.net (on Windows) and MS SQL (on Linux)](https://github.com/docker/awesome-compose/tree/master/aspnet-mssql).
 
@@ -387,7 +388,7 @@ Let's build the image:
 
 We have now all the components to deploy our application in a mixed environment.
 
-## Swarm: the "divide to conquer" deployment
+### Swarm: the "divide to conquer" deployment
 
 Let's deploy our application from the Manager node:
 
@@ -464,7 +465,7 @@ Let's deploy our application from the Manager node:
 
 And here we have, an application deployed in an hybrid infrastructure, and the whole thing running on a single computer and Windows 10.
 
-# Conclusion
+## Conclusion
 
 Like I said in the introduction, while the concept might help you, the mix of technologies was really to showcase the possibilities of Windows 10 and Docker Desktop.
 
@@ -474,7 +475,7 @@ I really hope you will have as much fun as me, and at the same time you learnt s
 
 <NunixOut />
 
-# Bonus 1: scaling one node at the time
+## Bonus 1: scaling one node at the time
 
 Well, in our setup, there is one Linux worker node that was not used, let remediate to that and scale the DB service to be replicated to two instances:
 

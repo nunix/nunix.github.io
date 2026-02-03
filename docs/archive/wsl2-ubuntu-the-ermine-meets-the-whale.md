@@ -13,13 +13,14 @@ categories:
   - Fast track
 sidebar_position: -20191024
 ---
-# Introduction
+
+## Introduction
 
 Do you want to install Docker on a brand new WSL2 19.10 distro? Make it available on "boot" via SystemD?
 
 Now it's possible and for the first time, it will be explained as a "fast track". A new series of mini-blogs with (very) few chat and lots of hands-on.
 
-# Prerequisites
+## Prerequisites
 
 As "usual", the prerequisites will be:
 
@@ -27,7 +28,7 @@ As "usual", the prerequisites will be:
 2. [WSL2 feature installed](https://docs.microsoft.com/en-us/windows/wsl/wsl2-install)
 3. [Ubuntu 19.10 WSL rootfs](https://wiki.ubuntu.com/WSL)
 
-# Ermine has a new home
+## Ermine has a new home
 
 The first step will be to create a new WSL distro.
 
@@ -43,7 +44,7 @@ PS> wsl.exe -d ermine
 
 ![Adding a new WSL2 Ubuntu 19.10 distro](assets/wsl-ermine-new-distro.png)
 
-## System configuration
+### System configuration
 
 Let's configure the system by adding our user and [systemD](https://forum.snapcraft.io/t/snapd-on-wsl2-insiders-only-for-now/13033):
 
@@ -73,7 +74,7 @@ $> ps -ef
 
 ![Displaying the SystemD processes](assets/wsl-ermine-systemd-processes.png)
 
-# The Whale is visiting
+## The Whale is visiting
 
 As the Docker package [does not exist](https://docs.docker.com/install/linux/docker-ce/ubuntu/#os-requirements) yet for Ubuntu 19.10 (mind the blog release date), the steps below are the "manual" approach:
 
@@ -106,7 +107,7 @@ $ docker version
 
 ![Running the first container](assets/wsl-ermine-docker-first-container.png)
 
-# Conclusion
+## Conclusion
 
 Ok I promised right, no chat -> pure hands-on.
 
@@ -116,7 +117,7 @@ I hope this shorter format will please you, as I might do some more between two 
 
 <NunixOut />
 
-# Bonus 1: a Snap and Microk8s appears
+## Bonus 1: a Snap and Microk8s appears
 
 Now that Docker is up and running, nowadays next step would be to add a Kubernetes context.
 
@@ -133,7 +134,7 @@ $ mk get services
 
 ![Installing Microk8s](assets/wsl-ermine-k8s-install.png)
 
-## But wait! There's more
+### But wait! There's more
 
 The goal is always to have a complete and integrated environment. To achieve that, some additional steps need to be performed.
 

@@ -15,7 +15,7 @@ categories:
 sidebar_position: -20231223
 ---
 
-# Introduction
+## Introduction
 
 2023 went by fast, very fast. And while there was no new blog posts in this site, I found out many persons that use this blog to solve potential issues on their daily work.
 
@@ -25,7 +25,7 @@ And I can already tell you that the January one will be a first: a reader sent m
 
 With all that said, let's focus on the topic we're all here for, the latest great project from my friend and the Owner of wsl.dev: [Brian Ketelsen](https://twitter.com/bketelsen). Let me introduce [Blincus](https://blincus.dev/).
 
-# Prerequisites
+## Prerequisites
 
 Here's the list of components I used for this blog post:
 
@@ -54,13 +54,13 @@ Here's the list of components I used for this blog post:
 
   * Version: 1.18.3181.0
 
-# Spell 1: Incus
+## Spell 1: Incus
 
 Like every wizard, before you cast the biggest and coolest spell (i.e. Patronus), you need to know your basic spells.
 
 In this case, the first spell to learn is [Incus](https://linuxcontainers.org/incus/), a fork of [LXD](https://github.com/canonical/lxd). If you want to know more about this fork and why it exists, you can read the [initial announcement](https://linuxcontainers.org/incus/announcement/) from the maintainers.
 
-## Installation
+### Installation
 
 The first task will be to install Incus on the WSL distro.
 
@@ -100,7 +100,7 @@ sudo apt install incus
 
 ![Install Incus](assets/wsl2-blincus-incus-install.png)
 
-## Configuration
+### Configuration
 
 Once the installation completed, before you can use Incus, you'll need to perform some configuration.
 
@@ -121,7 +121,7 @@ incus version
 
 ![Configure Incus](assets/wsl2-blincus-incus-config.png)
 
-## First instance
+### First instance
 
 With the configuration done, you can now run your first instance:
 
@@ -138,13 +138,13 @@ incus rm --force mycontainer
 
 ![Launch the first Incus container](assets/wsl2-blincus-incus-first-container.png)
 
-## Spell acquired
+### Spell acquired
 
 Congrats, you just learnt the first spell! If you need or want to discover a bit more about Incus, now it's a good time. Try to have a look on the container created, see what user is logged in, do you see any host data/moutpoints?
 
 Getting a feeling of what you have and the potential limitations for your workflow is exactly what will make you appreciate even more the next spell: Blincus!
 
-# Spell 2: Blincus
+## Spell 2: Blincus
 
 If you reached this part, then congrats on learning the first spell, as this second spell is a continuation of the first one and makes it even more powerful.
 
@@ -154,7 +154,7 @@ Like the first spell, you are strongly encouraged to go check the [original grim
 
 Ready?
 
-## Installation
+### Installation
 
 Blincus can be installed in different ways and with a set of options that you can use depending on your needs. You can find all the needed documentation in [the installation page](https://blincus.dev/guides/installing/).
 
@@ -179,7 +179,7 @@ sudo apt install -y x11-xserver-utils
 
 ![Install xhost](assets/wsl2-blincus-xhost-install.png)
 
-## Configuration
+### Configuration
 
 Before you can use Blincus, you'll need to apply the following configuration:
 
@@ -214,7 +214,7 @@ blincus
 
 ![image-20231222181207173](assets/wsl2-blincus-first-run.png)
 
-## First instance
+### First instance
 
 With all the configuration done, you can now start your first Blincus instance:
 
@@ -269,7 +269,7 @@ blincus launch --template ubuntux myubuntu
 blincus shell myubuntu
 ```
 
-## [Optional] See the power
+### [Optional] See the power
 
 If you followed along and picked a graphical template, such as `ubuntux`, then you can launch a graphical app and it will be displayed by WSLg:
 
@@ -283,7 +283,7 @@ xeyes
 
 ![Launch xeyes](assets/wsl2-blincus-xeyes.png)
 
-## [Optional] Hear the power
+### [Optional] Hear the power
 
 And if you want to really impress your friends, sound is also enabled via pulseaudio and you can play with something fun:
 
@@ -295,7 +295,7 @@ sudo apt install espeak
 espeak "Brian Ketelsen and the whole Incus team are the real stars of this show"
 ```
 
-# Conclusion
+## Conclusion
 
 As stated in the introduction, this is really just a glimpse of what both Incus and Blincus can do!
 

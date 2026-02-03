@@ -15,7 +15,8 @@ categories:
   - distro
 sidebar_position: -20221006
 ---
-# Introduction
+
+## Introduction
 
 Here's a personal confession: I'm really bad with security. I mean, I do care about it, however it's simply not my one of my "strong skills".
 
@@ -35,7 +36,7 @@ In addition, this (un)distro has a specificity that correlates a lot with WSL2 i
 
 So, as the WSL Corsair, I simply couldn't wait to "steal" this gem and now that's in the distro chest, here's how you can have it too.
 
-# Prerequisites
+## Prerequisites
 
 Here's the list of components I used for this blog post:
 
@@ -53,7 +54,7 @@ Here's the list of components I used for this blog post:
 
   * WSL distros path: C:\wsldistros
 
-# Finding Wolfi
+## Finding Wolfi
 
 As [stated in Wolfi github](https://github.com/wolfi-dev#can-i-use-wolfi-on-the-desktop), it's not made for Desktop. This means there won't(?) be an ISO. Still, in this Cloud Native age, our "OS source" is different, it's a container.
 
@@ -61,7 +62,7 @@ And as you guessed it, WolfiOS can be found as a container image in Chainguard's
 
 So now, you're ready to install it on WSL2.
 
-## [Optional] Testing Wolfi
+### [Optional] Testing Wolfi
 
 Before you install WolfiOS on WSL2, a good first step would be to test it as a container, and see by yourself what it contains:
 
@@ -92,7 +93,7 @@ On the other end, the packages available are "a mere 250", whereas Alpine has 49
 
 If you're developing in-house business applications, then in order to ship them with WolfiOS, I would suggest that you have a serious look on [melange and apko](https://www.chainguard.dev/unchained/secure-your-software-factory-with-melange-and-apko).
 
-# Installing WSL-Wolfi
+## Installing WSL-Wolfi
 
 Ok, the theory is nice and all, but I know you want to get started **now**. So without further due, let's install WolfiOS on WSL2:
 
@@ -122,7 +123,7 @@ And voilà, you have your first WSL2 (un)distro installed and ready to be used.
 
 > Fun fact: the first time I imported it, it was so fast that I thought the file was actually empty and I would get an error when running `wsl -d wolfios`.
 
-# Customizing Wolfi
+## Customizing Wolfi
 
 In order to really enjoy using Wolfi on WSL2, you can (read: should) customize it a bit.
 
@@ -182,7 +183,7 @@ hostname
 
 ![Change the hostname](assets/wsl2-wolfios-customization-hostname.png)
 
-# Conclusion
+## Conclusion
 
 In terms of "mindset", I really think WolfiOS and WSL2 are aligned, as both rely on external resources to make it "feel complete".
 
@@ -196,7 +197,7 @@ Last word, as usual, if there is any comments, feel free to send them to [@nunix
 
 <NunixOut />
 
-## Bonus 1: Using VS Code with WSL2-WolfiOS
+### Bonus 1: Using VS Code with WSL2-WolfiOS
 
 When using a WSL2 distro, one of the tools we might end up using (quite fast), is VS Code. From the simple edition of config files to actual programming, VS Code has become the main tool for WSL2.
 
@@ -235,7 +236,7 @@ You can finally launch VS Code from WolfiOS.
 
 ![VS Code launch successfully](assets/wsl2-wolfios-vscode-launch-success.png)
 
-## Bonus 2: adding some Rust coreutils
+### Bonus 2: adding some Rust coreutils
 
 As described in [Bonus1](#bonus-1-using-vs-code-with-wsl2-wolfios), WolfiOS comes with Busybox utils.
 

@@ -15,7 +15,7 @@ sidebar_position: -20211228
 
 *WSL2 init: emerging OpenRC*
 
-# Introduction
+## Introduction
 
 Since WSL2 has been released, the community has tried (quite successfully) to add SystemD to their distros.
 
@@ -32,7 +32,7 @@ However, in the Linux community, there's quite a [debate on SystemD](https://www
 
 So, "what if" you could run another init system instead of SystemD?
 
-# Sources
+## Sources
 
 As I often stated: all ideas have an inspiration or are an alternative to something already done/existing.
 
@@ -47,7 +47,7 @@ Other references will be properly linked in the blog post.
 
 So to everyone who already took the time to create content: THANK YOU!
 
-# Prerequisites
+## Prerequisites
 
 The following list might be quite long, so I won't explain how to install it. However I will put the links that I used my own setup.
 
@@ -63,7 +63,7 @@ Here is my setup:
 
 * [Optional] [Windows Terminal](https://devblogs.microsoft.com/commandline/windows-terminal-preview-v0-10-release/)
 
-# OpenRC: the challenger
+## OpenRC: the challenger
 
 [OpenRC](https://en.wikipedia.org/wiki/OpenRC) is the "other" very known init system, used by distros like Alpine, Gentoo and Devuan (just to name the few more known).
 
@@ -73,7 +73,7 @@ The [Rancher Desktop OS](https://github.com/rancher-sandbox/rancher-desktop-wsl-
 
 This is where you will "fork" it, and build an OpenRC init system with `PID1`, by copying what as been done with SystemD on WSL2.
 
-## Getting ready
+### Getting ready
 
 As stated, you'll use [Gentoo](https://www.gentoo.org/) as the distro for this example. And, as you might already know, Gentoo is not on the store, therefore you have to create a custom distro.
 
@@ -118,7 +118,7 @@ wsl.exe -d gentoo
 
 We have now a new WSL2 custom distro, so it's time to configure OpenRC.
 
-# Lightning fast configuration
+## Lightning fast configuration
 
 Before you configure anything, as the OS is brand new, you need to ensure it's up-to-date. If you also picked Gentoo, then the package manager is [Portage](https://wiki.gentoo.org/wiki/Handbook:AMD64/Working/Portage):
 
@@ -134,7 +134,7 @@ With the OS updated, you can install applications that you'll need later on:
 emerge vim sudo
 ```
 
-## Initial configuration
+### Initial configuration
 
 The first configuration file that you need to create, is `wsl.conf`. This file has several settings that will be applied to the current distro *only*. One of these settings is the `[boot]` setting, which runs a command when the distro is started.
 
@@ -174,7 +174,7 @@ rc-update
 
 ![OpenRC initial configuration](assets/wsl2inits-gentoo-openrc-boot-nopid1.png)
 
-## PID1 is the target
+### PID1 is the target
 
 While OpenRC is now running and you can list the services, the WSL2 `init` process is still the one running as `PID1`. Thanks to all the work done on WSL2 SystemD, you can leverage the knowledge and apply it to OpenRC:
 
@@ -231,7 +231,7 @@ ps -ef
 
 ![OpenRC with PID1](assets/wsl2inits-gentoo-openrc-boot-pid1.png)
 
-# Conclusion
+## Conclusion
 
 While SystemD is now as small as a one script, or has very advanced and useful installers, OpenRC implementation seems very simple in comparison.
 
@@ -241,7 +241,7 @@ I hope this will help you and as usual, if you do anything (cool or not) with it
 
 <NunixOut />
 
-# Bonus 1: Docker on WSL2, the service way
+## Bonus 1: Docker on WSL2, the service way
 
 I could not resist and add a Bonus section to show what OpenRC on WSL2 could do for us.
 
@@ -296,7 +296,7 @@ docker run --rm hello-world
 
 ![Create a Docker container](assets/wsl2inits-gentoo-create-docker-container.png)
 
-# Bonus 2: OpenRC loves Ketchup (K3sup)
+## Bonus 2: OpenRC loves Ketchup (K3sup)
 
 Ok, I must admit I'm really excited by all the opportunities we have with OpenRC (same goes for SystemD). So while we are in the containers/Cloud Native world, let's use two of the best tools I came across for deploying, very easily, a K3s node cluster ([K3sup](https://github.com/alexellis/k3sup)) and the needed tooling ([Arkade](https://github.com/alexellis/arkade))
 

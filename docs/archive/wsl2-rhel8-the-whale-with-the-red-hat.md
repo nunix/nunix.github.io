@@ -16,7 +16,8 @@ categories:
   - distro
 sidebar_position: -20210124
 ---
-# Introduction
+
+## Introduction
 
 When looking at the current WSL distributions in the Microsoft Store, anyone with even the smallest knowledge of Linux will remark a big absent from the list: Red Hat.
 
@@ -26,7 +27,7 @@ Still, this blog is really not about companies politics, so let's focus on the g
 
 So let our Corsair hearts run wild and "steal" this so precious gem.
 
-# Prerequisites
+## Prerequisites
 
 First and foremost, for keeping this blog to the "technology" aspect, it will not describe how to browse Red Hat customer portal.
 
@@ -49,7 +50,7 @@ That being said, here is the list of components needed to follow this blog:
 
   * Account type: free developer
 
-# A developer's Red Hat
+## A developer's Red Hat
 
 Before we start, as stated in the prerequisites, we will need a Red Hat subscription.
 
@@ -59,7 +60,7 @@ And while we will be using our subscription for development purposes, there's an
 
 Now we are ready to go.
 
-## Moby likes RHEL
+### Moby likes RHEL
 
 The easiest way to create a new WSL distro, is to import a container export file. In order to get the Red Hat Enterprise Linux (RHEL) container images, we need to pull it from [Red Hat's own registry](https://catalog.redhat.com/software/containers/explore)
 
@@ -97,7 +98,7 @@ ll /mnt/c/wslsources/rhel8.tar.gz
 
 We have now the file, containing an image of RHEL8, to be imported as a new WSL2 distro.
 
-## A new distro is born
+### A new distro is born
 
 If the terminal used is the Windows Terminal, we will open a new Powershell tab and import the RHEL8 container file into WSL:
 
@@ -127,7 +128,7 @@ cat /etc/os-release
 
 Once we have RHEL, it's time to start the configuration. But first, let's register it.
 
-## A registration to awesomeness
+### A registration to awesomeness
 
 In order to help us with the registration, Red Hat has the [Registration Assistant](https://access.redhat.com/labs/registrationassistant/). We will need to answer few questions and based on the answers, it will provide with the commands below:
 
@@ -168,7 +169,7 @@ dnf update
 
 And here we have, a full blown RHEL8 ready to be customized.
 
-# Customizing a distro the WSL way
+## Customizing a distro the WSL way
 
 At first glance, what we can tell is that the shell prompt is not "that pretty" and also the default user is `root`. So in order to have a more "Linux-y" experience, we will need to add applications and configuration files.
 
@@ -176,7 +177,7 @@ The main goal here is to ensure we enjoy our distro and can work in a way that i
 
 For the sake of clarity, we will perform the customization in three different phases. So let's start with the first phase.
 
-## Adding packages and a new User
+### Adding packages and a new User
 
 The first phase is all about the configuration needed to start using our own user and not `root`.
 
@@ -272,7 +273,7 @@ We have now a fully working user, no need of `root` account and, while optional,
 
 Which brings us to the next customization and if the default shell is still `bash`, simply skip it.
 
-## \[Optional] Enterprise Linux likes to look nice
+### \[Optional] Enterprise Linux likes to look nice
 
 When we speak about shell customization and `zsh`, almost by default we hear about [oh my zsh](https://github.com/ohmyzsh/ohmyzsh). Of course, there's other frameworks to configure/customize our shell prompt, however oh my zsh is one of (if not the) most famous one.
 
@@ -329,7 +330,7 @@ This is a "minimal" change in configuration, however it already feels more perso
 
 Now let's jump into a bigger change that will enhance our WSL distro greatly.
 
-## A distro needs a manager
+### A distro needs a manager
 
 When we look at the gaps of WSL distros compared to a full blown Linux distro is the lack of service manager. This is currently the default due to the customized `init` process that allows all the interoperability.
 
@@ -434,7 +435,7 @@ ps -ef
 
 Success! we have now our distro with SystemD. This will help us greatly for our last setup.
 
-# RHEL likes Moby
+## RHEL likes Moby
 
 As stated in the introduction, by default RHEL doesn't provide a repo containing Docker applications (both daemon and client).
 
@@ -525,7 +526,7 @@ docker run --name ubi8 -it registry.redhat.io/ubi8
 
 ![Create a Docker container](assets/rhel-docker-run-container.png)
 
-# Conclusion
+## Conclusion
 
 What a fun experience and if this blog needs to prove only one point, it is that WSL2 is a platform to run Linux and, thanks to some scripts, the experience is getting each time closer to a VM or Bare Metal one.
 

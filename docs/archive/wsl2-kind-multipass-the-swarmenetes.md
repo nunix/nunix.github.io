@@ -18,7 +18,8 @@ categories:
   - cloudnative
 sidebar_position: -20201116
 ---
-# Introduction
+
+## Introduction
 
 Local Kubernetes (K8s) single nodes cluster are so *before COVID* (read: 2019).
 The current "trend" is to create K8s multi-nodes clusters or, even better, High Availability (HA) clusters.
@@ -31,7 +32,7 @@ Starting to wonder how? is it even possible (specially the YAML part)?
 
 The Corsair welcomes you to his new boat: the Swarmenetes.
 
-# Prerequisites
+## Prerequisites
 
 This blog post is intended to be followed, locally, from any OS (reaching Cloud Native nirvana). Still, in order to give you a background, the following technologies are the ones being used in this blog post:
 
@@ -54,7 +55,7 @@ This blog post is intended to be followed, locally, from any OS (reaching Cloud 
 
   * Version: 1.3.2651.0
 
-# Building two nodes
+## Building two nodes
 
 Before we build our multi-nodes, multi-hosts KinD cluster, we need ... well ... at least two hosts.
 
@@ -64,7 +65,7 @@ We will **not** leverage Docker Desktop (see below: lessons learned).
 
 The second host, as seen in the prerequisites, we will be using Canonical Multipass. This will allow us to run the exact same commands, independent of the OS running beneath. And same as for the first node, we will install all the components needed (Docker, KinD, Kubernetes tools)
 
-## Preparing the Swarm leader
+### Preparing the Swarm leader
 
 The first step is to prepare the main host where, once the cluster will be created, we will run the commands to manage the cluster from there.
 
@@ -72,7 +73,7 @@ If the prerequisites are installed (it won't  be explain in this blog), then we 
 
 ![WSL2 Docker integrated](assets/wsl-docker-version.png)
 
-### \[Optional] Docker is not starting?
+#### \[Optional] Docker is not starting?
 
 If the command `sudo service docker status` shows that Docker is not running, it might be due to an issue with iptables.
 
@@ -91,7 +92,7 @@ sudo service docker status
 
 ![WSL2 update iptables command](assets/wsl2-docker-iptables-update.png)
 
-### Install KinD and Kubernetes tools
+#### Install KinD and Kubernetes tools
 
 With Docker installed, we can now install KinD and the Kubernetes tools:
 
@@ -168,7 +169,7 @@ kubeadm version
 
 Our first host is now ready, so time to prepare the second one.
 
-## Preparing the Swarm co-leader
+### Preparing the Swarm co-leader
 
 The second step will be to create and launch a new Virtual Machine (VM), and in order to ensure we are not limited, we will tweak the options:
 
@@ -297,7 +298,7 @@ kubeadm version
 
 At this point, we have everything ready on the *second host*, and before you create our cluster, we need to setup the network in a "very special" way.
 
-# WSL finally meets Hyper-V
+## WSL finally meets Hyper-V
 
 Since the launch of WSL2, there was a "small but painful" limitation: it could not see or connect to the Hyper-V networks. This means that the WSL2 distros and the Hyper-V VMs could simply not communicate.
 
@@ -353,13 +354,13 @@ Success! our WSL2 distro can now connect to the Hyper-V VMs which use the "Defau
 
 Now it's time to setup the network that will be used for our KinD multi-nodes cluster.
 
-# A Swarm-y network
+## A Swarm-y network
 
 Right now, even if WSL2 sees the Hyper-V VMs, both of them have their own Docker network setup, which are private to the host. So what we need, is a common network which our containers will use in order to be able to communicate "easily" between them.
 
 If only we had something to help us making it simple, right? Well we do have this technology at hand since quite a long time (Cloud Native years): [Docker Swarm overlay network](https://docs.docker.com/network/overlay/)!
 
-## The Swarm creation
+### The Swarm creation
 
 With the connectivity enabled between WSL2 and Hyper-V, we can create a Docker Swarm cluster between the two nodes.
 
@@ -396,7 +397,7 @@ docker node ls
 
 The two nodes Swarm cluster is now created. We can create our network.
 
-## A KinD and attachable network
+### A KinD and attachable network
 
 Now that we have our nodes connected, we still need to use a common network. By default, Docker Swarm creates two networks as described in the [official documentation](https://docs.docker.com/network/overlay/) and cited here:
 
@@ -431,13 +432,13 @@ docker network ls
 
 We have now configured all the components and can create our multi-nodes KinD cluster.
 
-# Swarmenetes: full sail!
+## Swarmenetes: full sail!
 
 The first step will be to create our two KinD clusters and then we will *reset* the one on the second `manager node` and will have it join the KinD cluster on the primary `manager node`.
 
 Once again, this section has been made possible thanks to a great human being: the KinD Super Hero and CNCF Ambassador [Duffie Cooley](https://twitter.com/mauilion). He took time over his schedule to answer silly Corsair's questions and help unlocking the Pandora box.
 
-## A single node to start slowly
+### A single node to start slowly
 
 Before we create the multi-nodes cluster, let us understand how KinD works and what could be an issue when going multi-nodes. And we will see what workaround/solution will be used to avoid the said issues.
 
@@ -478,7 +479,7 @@ And if we try to run this command in our `worker node` then it will fail as it w
 
 Well, this actually not the full history. Let us have a deeper look into the container running the K8s cluster.
 
-### KinDly show the config
+#### KinDly show the config
 
 When we create a K8s cluster with KinD, it generates an "external" config to be used outside the container. If we follow the rabbit (read: the `server connection string` in the `.kube/config` file), we will see the local IP with a random port. This port is actually bound to the standard [K8s defaut API server port 6443](https://kubernetes.io/docs/concepts/security/controlling-access/#api-server-ports-and-ips):
 
@@ -513,7 +514,7 @@ As expected, the `join` command has the DNS name seen in the `server connection 
 
 It's time to put everything together and build our multi-nodes on multi-hosts KinD cluster.
 
-### Cleaning before the grand finale
+#### Cleaning before the grand finale
 
 Let us delete this cluster as it is not using the right network:
 
@@ -528,11 +529,11 @@ kind get clusters
 
 ![KinD cluster delete](assets/wsl2-kind-cluster-delete.png)
 
-## A multi-nodes on multi-hosts
+### A multi-nodes on multi-hosts
 
 Finally here and we will directly create a two nodes cluster on our `manager nodes`. And let us have a look on the last remaining part that will help us: attaching to a specific network when creating a KinD cluster.
 
-### KinD network: dancing with Dragons
+#### KinD network: dancing with Dragons
 
 Before we can create our new cluster, we need to see how we can use our Swarm network we created earlier.
 
@@ -560,7 +561,7 @@ export KIND_EXPERIMENTAL_DOCKER_NETWORK="kindnet"
 
 ![image-20201116154325547](assets/multipass-kind-cluster-network-variable.png)
 
-### Creating two KinD clusters
+#### Creating two KinD clusters
 
 We can finally create our KinD clusters using our Swarm network. And for an easier management "later on", we will also set a specific name to each one:
 
@@ -615,7 +616,7 @@ curl -k https://10.0.1.4:6443
 
 With the confirmation both clusters can communicate, we can reset our second node and join it to our cluster on the primary node.
 
-### What is the address name?
+#### What is the address name?
 
 While our clusters can communicate using their respective IP addresses, they do not have "name resolving" to these specific addresses.
 
@@ -641,7 +642,7 @@ docker exec swarmenetes-mate-control-plane bash -c "echo '10.0.1.2        swarme
 
 ![image-20201116165954554](assets/multipass-kind-cluster-multinode-hostname-add.png)
 
-### Reset before joining
+#### Reset before joining
 
 Before we can run the `join` command against our cluster on the second node, we need to, literally, reset its configuration.
 
@@ -658,7 +659,7 @@ docker exec swarmenetes-mate-control-plane kubeadm reset -f
 
 Now that our cluster is reset, we can get the `join` command from the cluster on the primary node and create our multi-nodes cluster.
 
-### And in the Swarm bind them
+#### And in the Swarm bind them
 
 As seen during our tests on the single node cluster, we will need to run the `join` command within the containers hosting both `manager nodes`.
 
@@ -713,7 +714,7 @@ kubectl get pods --all-namespaces -o wide
 
 And that concludes this (very?) lengthy but oh so fun blog.
 
-# Conclusion
+## Conclusion
 
 When blogging about WSL and/or simply being part of this incredible community, we quickly learn we are now living in a world where "AND" is more powerful than "OR".
 
@@ -725,11 +726,11 @@ And even if this blog is really not meant to be run elsewhere than on our own co
 
 ---
 
-# Bonus 1: Lessons learned "the Kelsey way"
+## Bonus 1: Lessons learned "the Kelsey way"
 
 Normally, as bonus sections we have additional steps for configuring or enable features. However, due to the (very) improbable setup we just did, there was its good share of lessons learned the (very) hard way and which are a perfect follow-up for this unusual blog post.
 
-## Lesson 1: reading the manual always comes too late
+### Lesson 1: reading the manual always comes too late
 
 Let us start with what we could think about a "no brainer": every time we want to implement something we first read the manual right? ... right??
 
@@ -743,7 +744,7 @@ If we look at the blog, this starts at "A Swarm-y network" and is about the midd
 
 And the local install, on both nodes, lead to the second lesson.
 
-## Lesson 2: SNAP, I should use APT
+### Lesson 2: SNAP, I should use APT
 
 If we look back at the prerequisites, we are using Ubuntu 20.04 as our WSL distro. Due to the current, and modified, init system used by WSL2, the default/standard install of a WSL distro does not load SystemD. That is why we went for a "normal" install using `apt` and not `snap`.
 
@@ -759,7 +760,7 @@ Once done, everything worked as intended and a full subsection on installing Doc
 
 Finally, all roadblocks were lifted and we could complete our cluster ... or?
 
-## Lesson 3: Inception, which "dream" level are we on?
+### Lesson 3: Inception, which "dream" level are we on?
 
 The last lesson learned while writing this blog came, once again, at a late stage when the need to join the second node. Thanks to Duffie, the join process was clear: reset the second node and run the join command with the `kubeadm` command.
 

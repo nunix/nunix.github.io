@@ -16,13 +16,14 @@ categories:
   - Kubernetes
 sidebar_position: -20200511
 ---
-# Introduction
+
+## Introduction
 
 Let's play a fast paced arcade game where masters are keeping their castle with guards and they need to build as fast as possible new parts in their castle.
 
 Now you're thinking the confinement finally got me and I'm loosing it... Well my friends, while true, let's have fun with the latest [K3d version 3.0](http://k3d.io/) and [Arkade](https://get-arkade.dev/) where we will actually "play" the game above.
 
-# Prerequisites
+## Prerequisites
 
 As usual, we all have different starting points, so I will list below the prerequisites with their respective links.
 
@@ -45,7 +46,7 @@ You might wonder why I do not install Docker Desktop and go for a "local" instal
 
 This might evolve, but for the time being let's have docker installed "locally" inside the WSL2 distro of your choice.
 
-# Stage 1: let's build a castle
+## Stage 1: let's build a castle
 
 The first step, is to install and run [K3d](http://k3d.io/). However, we will be using the latest version: 3.0 (in beta at the time of this writing) which will allow us to create an [High Availability (HA) cluster](https://rancher.com/docs/k3s/latest/en/installation/ha-embedded/).
 
@@ -105,13 +106,13 @@ kubectl cluster-info
 
 Congratulations! The first stage is now clear, let's jump into the second stage.
 
-# Stage 2: let's build a BIG castle
+## Stage 2: let's build a BIG castle
 
 Our first cluster was created with a single master node, but in this game we want more. So let's create a new cluster with three masters and three workers:
 
 And before we start, I strongly recommend you to see the [commands page](http://k3d.io/usage/commands/) for K3d. There might options that you would like to use or try.
 
-Let's build our big castle, and for fun, we will create it with the latest Kubernetes version supported in K3s (1.18.2 at the time of this writing) and we will open an extra port that will be used for the Ingress connections (see below [LoadBalancer: Access from Windows with Ingress](#stage3lb)):
+Let's build our big castle, and for fun, we will create it with the latest Kubernetes version supported in K3s (1.18.2 at the time of this writing) and we will open an extra port that will be used for the Ingress connections (see below [LoadBalancer: Access from Windows with Ingress](#loadbalancer-access-from-windows-with-ingress)):
 
 ```bash
 # Create the cluster with 2 masters and 3 workers with the latest K3s image
@@ -132,7 +133,7 @@ k3d get nodes
 
 Congratulations! The second stage is now cleared and we can attack the third stage.
 
-# Stage 3: let's build a watchtower
+## Stage 3: let's build a watchtower
 
 Ok, we have a big castle but quite empty for now. Let's remediate to that and deploy our first application that will also help us to "see better" (read: web interface) what we have currently deployed.
 
@@ -175,13 +176,13 @@ kubectl port-forward -n portainer svc/portainer 9000:9000 &
 
 ![](assets/wsl2-arkade-portainer-install.png)
 
-## Stage 3 - Bonus stage: The many doors of the Watchtower
+### Stage 3 - Bonus stage: The many doors of the Watchtower
 
 In order to access our Watchtower (read: Portainer service), we had to expose the port "again". This works great for this Kubernetes inside Docker inside WSL2 and accessing it from the Windows browser. But is not really optimal, specially when K3d comes with a pre-installed loadbalancer.
 
 So here are three other "doors" that require a bit more work, but hey, bonus stages are meant to be as challenging as the reward we get.
 
-### NodePort: Access from WSL2
+#### NodePort: Access from WSL2
 
 If we want to access via NodePort "Linux style", then the easiest way is to start a Xwindow application (i.e. https://x410.dev/) on Windows. Then we install a browser on WSL2 (i.e. [Firefox](https://www.mozilla.org/en-US/firefox/new/)) and we access the service via NodePort and the (already) exposed port:
 
@@ -207,7 +208,7 @@ kubectl get service --all-namespaces
 
 ![image-20200509183228799](assets/wsl2-portainer-nodeport-loadbalancer.png)
 
-### NodePort: Access from Windows
+#### NodePort: Access from Windows
 
 Let's say that the previous access was nice, but you want to keep a WSL2 distro "clean" and prefer to use the Windows browser.
 
@@ -238,7 +239,7 @@ ping <master IP> -n 1
 
 ![image-20200506144328950](assets/wsl2-portainer-nodeport-windows.png)
 
-### NodePort: Access from Windows with Inlets
+#### NodePort: Access from Windows with Inlets
 
 Let's say that the previous accesses were nice, but you want to keep a WSL2 distro "clean", prefer to use the Windows browser while not creating any route.
 
@@ -278,7 +279,7 @@ inlets client --remote=127.0.0.1:<Inlets server port> --upstream=<master IP>:<se
 
 ![image-20200506153722092](assets/wsl2-portainer-nodeport-inlets.png)
 
-### <a name="stage3lb"></a>LoadBalancer: Access from Windows with Ingress
+#### LoadBalancer: Access from Windows with Ingress
 
 Let's say that the previous accesses were nice, but you want to keep a WSL2 distro "clean", prefer to use the Windows browser while not creating any route and you don't want/can't use an extra tool.
 
@@ -321,7 +322,7 @@ Once created, open your Windows browser and enter the url http://\<master IP\>:\
 
 Congratulations! The third stage is now cleared and we can attack the final stage: the Castle defense.
 
-# Stage 4: let's defend the BIG castle
+## Stage 4: let's defend the BIG castle
 
 Ok, it's an arcade game and we meet the the final boss, but he has a special attack: remove one master.
 
@@ -369,7 +370,7 @@ docker ps
 
 ![image-20200511180146919](assets/wsl2-k3d-cluster-defense-back-status.png)
 
-# Conclusion
+## Conclusion
 
 First of all, I really hope you had fun reading this post, and even more trying/testing the new K3d v3.
 

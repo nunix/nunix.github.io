@@ -14,7 +14,8 @@ categories:
   - edge tech
 sidebar_position: -20200322
 ---
-# Introduction
+
+## Introduction
 
 WSL and ZFS in the same sentence? Clickbait! ... well, if it was just few months ago I would have said: totally.
 
@@ -24,7 +25,7 @@ Should I go on or it's enough that you want me to shut-up and just show the how-
 
 Follow the Corsair into this brand new Ocean.
 
-# Prerequisites
+## Prerequisites
 
 As usual, here is the full list of the prerequisites:
 
@@ -36,7 +37,7 @@ As usual, here is the full list of the prerequisites:
 
 ![image-20200322150708721](assets/wsl2-kernel-prereqs.png)
 
-# Kernel 5.x: WSL is Linux
+## Kernel 5.x: WSL is Linux
 
 In order to be able to use ZFS, we first need to build a Kernel containing the module. So before continuing, ensure you have downloaded the prerequisites.
 
@@ -50,7 +51,7 @@ If you do not see it or you are using another distro, then type `uname -a` to se
 
 Before we build the Kernel, we need first to add the ZFS module.
 
-## ZFS: building the zeta module
+### ZFS: building the zeta module
 
 Before we can build the module, we need, well, build tools and the potential dependencies.
 
@@ -150,7 +151,7 @@ zfs version
 
 And an error appeared, but that's OK. This is "good" error and we will fix it in the next section.
 
-## Kernel: build the future
+### Kernel: build the future
 
 We are finally back on the "kernel building track", and before we can run the so much wanted `make` (and have a more or less long pause), let's first change the `config` file and add the reference to the ZFS build:
 
@@ -185,11 +186,9 @@ Before we move on, let's install the modules:
 sudo make modules_install
 ```
 
-
-
 Now the last piece, we need to use it for our WSL2 distros.
 
-## WSL2: The future is now
+### WSL2: The future is now
 
 Ok, let's setup our custom Kernel:
 
@@ -224,9 +223,7 @@ zfs version
 
 ![image-20200322174934661](assets/wsl2-kernel-zfs-installed.png)
 
-
-
-# Conclusion
+## Conclusion
 
 For the ones still doubting: WSL2 is growing at a (crazy) fast pace. And all the build work was made inside WSL2, without any need of a VM or bare metal Linux.
 
@@ -234,15 +231,11 @@ Having the possibility to use the latest kernel, to had modules is something tha
 
 I hope you enjoyed this new gem from the Corsair's chest and see you soon in the vast Linux Ocean ... I simply have different ship.
 
-
-
 <NunixOut />
-
-
 
 ---
 
-# Bonus: one Kernel to rule them all
+## Bonus: one Kernel to rule them all
 
 oh sorry, you thought I was done? well almost, but I wanted to share one last trick.
 

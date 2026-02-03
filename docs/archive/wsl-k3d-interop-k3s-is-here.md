@@ -14,7 +14,8 @@ categories:
   - Kubernetes
 sidebar_position: -20190530
 ---
-# Introduction
+
+## Introduction
 
 This year, I had the chance to participate to KubeCon europe and one of the (huge) takeaways was: [K3d](https://github.com/rancher/k3d)
 
@@ -24,7 +25,7 @@ While this could be "yet another" Kubernetes (K8s) cluster creator for **develop
 2. While it creates a one-node master, à la minikube, it actually allows us to directly add workers, and this is dope!
 3. The options to create a cluster allow us to change ports both for the API and the cluster, meaning that with a basic script we could spun several clusters for different needs.
 
-# Pre-requesites
+## Pre-requesites
 
 Here is the list of the pre-requisites to make `k3d` run in WSL:
 
@@ -33,7 +34,7 @@ Here is the list of the pre-requisites to make `k3d` run in WSL:
 * [Install npiperelay.exe](https://github.com/jstarks/npiperelay)
 * [Install kubectl on WSL](https://kubernetes.io/docs/tasks/tools/install-kubectl/)
 
-## \[Optional] Pengwin: the easy setup
+### \[Optional] Pengwin: the easy setup
 
 If you own the [Pengwin distro](https://www.microsoft.com/en-us/p/pengwin/9nv1gv1pxz6p), you can install the "Docker bridge" as follow:
 
@@ -46,7 +47,7 @@ If you own the [Pengwin distro](https://www.microsoft.com/en-us/p/pengwin/9nv1gv
 * Type `docker version`
   ![](assets/pengwin-setup-3-docker-version.png "Docker version")
 
-# Install K3d
+## Install K3d
 
 Now that the base is installed, the installation of `k3d` is actually very basic.
 
@@ -62,13 +63,13 @@ curl -s https://raw.githubusercontent.com/rancher/k3d/master/install.sh | bash
 
 ![](assets/k3d-install-wget.png "K3d install")
 
-### **Important**:
+#### **Important**:
 
 when running scripts from Internet, please **always review** them first.
 
 And concerning this script, as you may have noticed, do **not** run it as root, as it will only need root access in order to add it to the `/usr/local/bin` path.
 
-## Have fun creating K3s clusters ...
+### Have fun creating K3s clusters ...
 
 Everything is now set, so it's time to test the environment:
 
@@ -93,7 +94,7 @@ kubectl get services --all-namespaces
 
 ![](assets/k3d-create-cluster.png "K3d cluster creation")
 
-## ... and cleanup the resources
+### ... and cleanup the resources
 
 If creating a cluster is fast and quite easy, deleting it is even easier:
 
@@ -111,7 +112,7 @@ kubectl cluster-info
 
 ![](assets/k3d-delete-cluster.png "K3d cluster deletion")
 
-# Conclusion
+## Conclusion
 
 During the whole KubeCon I was creating and deleting clusters for the different workshops and/or demos.
 

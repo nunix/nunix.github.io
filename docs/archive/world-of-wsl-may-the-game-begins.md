@@ -10,13 +10,14 @@ categories:
   - Story
 sidebar_position: -20190325
 ---
-# WoWSL: Level 1
+
+## WoWSL: Level 1
 
 Welcome to the new [wsl.dev](https://wsl.dev) site. This blog will be used to share the (very) crazy ideas from WSL fans who like to test and adapt existing solutions to WSL.
 
 So be ready to read about crazy, and potentially see some "world firsts".
 
-# Giving thanks
+## Giving thanks
 
 And before I write anything else, I truly want to Thank a person that simply is one of the most incredibly amazing I ever knew: [Monsieur Brian](https://twitter.com/bketelsen)!
 
@@ -24,7 +25,7 @@ Words cannot tell how much he does for the communities he's involved with and ho
 
  **_Merci infiniment mon Ami!_** 
 
-# Back to the blog
+## Back to the blog
 
 Now that the most important message is shared, I welcome you again to this blog that will host mainly proof of concepts around WSL and will also link to other blogs/resources.
 

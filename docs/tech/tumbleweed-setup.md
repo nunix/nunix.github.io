@@ -1,6 +1,7 @@
 ---
 title: Tumbleweed System Initialization
 sidebar_label: 🦎 Tumbleweed Setup
+slug: /
 ---
 
 ## Repository Sync
