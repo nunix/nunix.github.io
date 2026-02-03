@@ -3,6 +3,8 @@
  * bundles Infima by default. Infima is a CSS framework designed to
  * work well for content-centric websites.
  */
+ 
+ @import url('https://fonts.googleapis.com/css2?family=Share+Tech+Mono&display=swap');
 
 /* You can override the default Infima variables here. */
 :root {
@@ -16,12 +18,13 @@
   --ifm-code-font-size: 95%;
   --docusaurus-highlighted-code-line-bg: rgba(0, 0, 0, 0.1);
   --nunix-banner: url('/img/nunix-banner-light.png');
-  --nunix-navbar-text: #1a1a1a; /* Darker for light mode */
-  --nunix-glass-bg: rgba(255, 255, 255, 0.4); /* Light glass */
-  --neon-blue: #00d4ff;
+  --nunix-navbar-text: #1a1a1a;
+  --nunix-glass-bg: rgba(255, 255, 255, 0.4);
+  --neon-blue: #007fff;
+  --neon-blue-glow: rgba(0, 127, 255, 0.5);
+  --vintage-mono: 'Share Tech Mono', monospace;
 }
 
-/* For readability concerns, you should choose a lighter palette in dark mode. */
 [data-theme='dark'] {
   --ifm-color-primary: #25c2a0;
   --ifm-color-primary-dark: #21af90;
@@ -34,6 +37,18 @@
   --nunix-banner: url('/img/nunix-banner.png');
   --nunix-navbar-text: #ffffff;
   --nunix-glass-bg: rgba(10, 13, 11, 0.6);
+}
+
+[data-theme='light'] {
+  --ifm-background-color: #f1f5f9;
+  --ifm-contents-background-color: #ffffff;
+  --ifm-secondary-background-color: #e2e8f0;
+  --ifm-font-color-base: #1e293b;
+}
+
+[data-theme='light'] .prism-code {
+  background-color: #f8fafc !important;
+  border: 1px solid rgba(0, 0, 0, 0.05);
 }
 
 .navbar {
@@ -58,7 +73,8 @@
   background-position: center 20%;
   
   /* --- TWEAK THIS VALUE --- */
-  filter: blur(2px); 
+  filter: blur(6px) saturate(40%) brightness(0.8);
+  opacity: 0.9;
   /* ------------------------ */
   
   transform: scale(1.1); 
@@ -67,30 +83,53 @@
 .navbar__brand,
 .navbar__item,
 .navbar__link {
-  color: var(--nunix-navbar-text) !important;
-  font-weight: 600;
-  letter-spacing: 0.02em;
-  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.2); 
-  transition: all 0.2s ease;
+  position: relative;
+  overflow: hidden; /* Clips the ripple to the button size */
+  transition: all 0.3s ease-out;
+  border-radius: 4px;
+  margin: 0 2px;
+  padding: 0.4rem 0.8rem !important;
 }
 
-/* Hover: Neon Blue */
 .navbar__item:hover,
 .navbar__link:hover {
   color: var(--neon-blue) !important;
-  text-shadow: 0 0 12px rgba(0, 212, 255, 0.6);
-  background: rgba(0, 212, 255, 0.05); /* Subtle hover highlight */
-  border-radius: 4px;
+  z-index: 1;
 }
 
-/* Active: SUSE Green */
+.navbar__item:not(.navbar__link--active):hover::before,
+.navbar__link:not(.navbar__link--active):hover::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 250%; /* Large expansion for the 'wave' look */
+  height: 400%;
+  background: radial-gradient(circle, rgba(0, 127, 255, 0.2) 0%, transparent 70%);
+  transform: translate(-50%, -50%);
+  transition: width 0.4s ease-out, height 0.4s ease-out;
+  pointer-events: none;
+  z-index: 0;
+}
+
 .navbar__link--active {
-  color: var(--ifm-color-primary) !important;
-  text-shadow: 0 0 12px rgba(48, 186, 120, 0.6);
-  border-bottom: 2px solid var(--ifm-color-primary);
+  /* 1. Typography: Bold and Caps to match the Sidebar */
+  font-weight: 700 !important;
+  text-transform: uppercase !important;
+  letter-spacing: 0.05em !important;
+  color: var(--ifm-color-primary) !important; /* SUSE Green */
+
+  /* 2. Visual Separation */
+  background-color: rgba(48, 186, 120, 0.12) !important;
+  border-bottom: 2px solid var(--ifm-color-primary) !important;
+  
+  /* 3. Subtle Glow */
+  text-shadow: 0 0 8px rgba(48, 186, 120, 0.4);
+  
+  /* Resetting radius for that "Tab" look */
+  border-radius: 4px 4px 0 0 !important;
 }
 
-/* Simplified Toggle & Icons */
 .navbar button[class*='colorModeToggle'] svg {
   fill: var(--nunix-navbar-text);
   filter: drop-shadow(0 1px 2px rgba(0,0,0,0.2));
@@ -98,18 +137,171 @@
 
 .navbar button[class*='colorModeToggle']:hover svg {
   fill: var(--neon-blue);
-  filter: drop-shadow(0 0 5px var(--neon-blue));
+  filter: drop-shadow(0 0 8px var(--neon-blue));
 }
 
-.tabs {
-  border: 1px solid #30ba78;
+.navbar__brand:hover {
+  background: rgba(0, 127, 255, 0.05);
   border-radius: 8px;
-  overflow: hidden;
 }
 
+.theme-doc-sidebar-item-link {
+  position: relative;
+  overflow: hidden;
+  transition: all 0.3s ease;
+  border-radius: 6px;
+  margin: 2px 4px;
+}
+
+.theme-doc-sidebar-item-link::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 0;
+  height: 0;
+  background: radial-gradient(circle, rgba(0, 127, 255, 0.2) 0%, transparent 70%);
+  transform: translate(-50%, -50%);
+  transition: width 0.4s ease-out, height 0.4s ease-out;
+  pointer-events: none;
+}
+
+.theme-doc-sidebar-item-link:hover {
+  color: var(--neon-blue) !important;
+  background-color: rgba(0, 127, 255, 0.05);
+  padding-left: 1.25rem;
+}
+
+.theme-doc-sidebar-item-link:hover::before {
+  width: 250%;
+  height: 400%;
+}
+
+.menu__list-item .menu__link--active {
+  font-weight: 600 !important;
+  text-transform: uppercase !important;
+  letter-spacing: 0.05em !important;
+  color: var(--ifm-color-primary) !important;
+
+  background-color: rgba(48, 186, 120, 0.08) !important;
+  backdrop-filter: blur(4px);
+  
+  border-left: 3px solid var(--ifm-color-primary) !important;
+  border-radius: 0 4px 4px 0 !important;
+  
+  text-shadow: 0 0 8px rgba(48, 186, 120, 0.3);
+  box-shadow: inset 8px 0 12px -10px rgba(48, 186, 120, 0.2) !important;
+  
+  margin-left: 0 !important;
+}
+
+.menu__list-item .menu__link--active:hover {
+  background-color: rgba(48, 186, 120, 0.12) !important;
+  color: var(--neon-blue) !important;
+  text-shadow: 0 0 8px rgba(0, 127, 255, 0.4);
+}
+
+.tabs__item {
+  position: relative;
+  overflow: hidden; /* Essential for the ripple clip */
+  transition: all 0.3s ease;
+  border: 1px solid transparent;
+  margin: 0 4px;
+  padding: 0.5rem 1.25rem;
+  font-weight: 600;
+  color: var(--ifm-font-color-base);
+}
+
+/* --- 2. The Hover Ripple (Non-Active Tabs) --- */
+.tabs__item:not(.tabs__item--active):hover {
+  color: var(--neon-blue) !important;
+  background-color: rgba(0, 127, 255, 0.05);
+  border-bottom: 1px solid var(--neon-blue);
+}
+
+.tabs__item:not(.tabs__item--active)::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 0;
+  height: 0;
+  background: radial-gradient(circle, rgba(0, 127, 255, 0.15) 0%, transparent 70%);
+  transform: translate(-50%, -50%);
+  transition: width 0.4s ease-out, height 0.4s ease-out;
+  pointer-events: none;
+}
+
+.tabs__item:not(.tabs__item--active):hover::before {
+  width: 200%;
+  height: 300%;
+}
+
+/* --- 3. Active Tab (SUSE Green) --- */
 .tabs__item--active {
-  background-color: rgba(48, 186, 120, 0.1);
-  color: #30ba78 !important;
+  color: var(--ifm-color-primary) !important;
+  background-color: rgba(48, 186, 120, 0.1) !important;
+  border-bottom: 3px solid var(--ifm-color-primary) !important;
+  text-shadow: 0 0 10px rgba(48, 186, 120, 0.3);
+}
+
+/* --- 4. The Tab Container "Glass" --- */
+.tabs {
+  background: rgba(0, 0, 0, 0.03);
+  border-radius: 8px 8px 0 0;
+  padding: 4px;
+  border-bottom: 1px solid rgba(48, 186, 120, 0.2);
+}
+
+[data-theme='dark'] .tabs {
+  background: rgba(255, 255, 255, 0.03);
+}
+
+.code-line-number {
+  color: rgba(48, 186, 120, 0.4) !important; /* Muted SUSE Green */
+  font-family: var(--ifm-font-family-monospace);
+  font-size: 0.85em;
+  padding-right: 1rem;
+  border-right: 1px solid rgba(48, 186, 120, 0.2);
+}
+
+/* When a line is highlighted, make the number glow */
+.docusaurus-highlight-code-line .code-line-number {
+  color: var(--ifm-color-primary) !important; /* Full SUSE Green */
+  text-shadow: 0 0 5px rgba(48, 186, 120, 0.6);
+}
+
+.code-line-number {
+  font-family: var(--vintage-mono) !important;
+  font-size: 1.1rem !important;
+  opacity: 0.6;
+}
+
+.prism-code .token-line {
+  font-family: var(--vintage-mono) !important;
+  font-size: 1rem !important; /* Vintage fonts need more scale */
+  line-height: 1.2 !important;
+  letter-spacing: 0.05rem;
+}
+
+.prism-code .token-line:hover {
+  /* Using 10% opacity of SUSE Green for a universal "Electric" feel */
+  background-color: rgba(48, 186, 120, 0.1) !important;
+  
+  /* Adds a subtle 'active terminal' marker on the left */
+  border-left: 2px solid var(--ifm-color-primary);
+  
+  /* Subtle text lift */
+  filter: brightness(1.1);
+}
+
+.docusaurus-highlight-code-line {
+  background-color: rgba(48, 186, 120, 0.15) !important;
+  border-left: 3px solid var(--ifm-color-primary) !important;
+}
+
+.docusaurus-highlight-code-line:hover {
+  background-color: rgba(48, 186, 120, 0.25) !important;
 }
 
 .footer {

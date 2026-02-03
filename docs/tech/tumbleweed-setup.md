@@ -9,7 +9,7 @@ Use the following commands to sync with the Tumbleweed rolling mirrors.
 
 <Tabs groupId="package-manager">
   <TabItem value="zypper" label="Zypper (CLI)">
-    ```bash
+    ```bash showLineNumbers
     sudo zypper ref && sudo zypper dup
     ```
   </TabItem>
