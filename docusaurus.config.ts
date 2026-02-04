@@ -74,7 +74,8 @@ const config: Config = {
       title: '',
       logo: {
         alt: 'Nunix Universe',
-        src: 'img/nunix-banner.png',
+        src: 'img/nunix-banner-light.png',
+        srcDark: 'img/nunix-banner.png',
       },
       items: [
         {

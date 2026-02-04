@@ -903,10 +903,9 @@ code:not(pre code) {
 }
 
 /* ==========================================================================
-   14. LOCALIZED CRT EFFECT (Banner Only)
+   14. LOCALIZED CRT EFFECT (Standardized)
    ========================================================================== */
 
-/* This targets the container holding your nunix-banner.png */
 .navbar__brand {
   position: relative;
   display: flex;
@@ -914,7 +913,7 @@ code:not(pre code) {
   overflow: hidden;
 }
 
-/* Pseudo-element for the scanline texture over the banner */
+/* Pseudo-element for the scanline texture */
 .navbar__brand::after {
   content: "";
   position: absolute;
@@ -922,7 +921,6 @@ code:not(pre code) {
   left: 0;
   width: 100%;
   height: 100%;
-  /* Horizontal scanline texture */
   background: linear-gradient(
     rgba(18, 16, 16, 0) 50%, 
     rgba(0, 0, 0, 0.15) 50%
@@ -930,27 +928,34 @@ code:not(pre code) {
   background-size: 100% 3px;
   z-index: 2;
   pointer-events: none;
-  opacity: 0.4;
+  transition: opacity 0.3s ease;
+}
+
+/* Softer scanlines for Light Mode */
+[data-theme='light'] .navbar__brand::after {
+  opacity: 0.2;
+  background: linear-gradient(
+    rgba(26, 77, 50, 0) 50%, 
+    rgba(26, 77, 50, 0.1) 50%
+  );
 }
 
 /* ==========================================================================
-   15. HARDWARE HICCUP (Nav Image Flicker)
+   15. HARDWARE HICCUP (Glitch Animation)
    ========================================================================== */
 
 @keyframes hardware-hiccup {
   0%   { opacity: 1; filter: brightness(1); }
   92%  { opacity: 1; filter: brightness(1); }
-  /* Sudden glitch: slight shift and bright flash */
   93%  { opacity: 0.8; filter: brightness(1.4) contrast(1.2); transform: translateX(1px); }
   94%  { opacity: 1; filter: brightness(1); transform: translateX(0); }
-  /* Brief dimming */
   95%  { opacity: 0.7; filter: brightness(0.8); transform: translateX(-1px); }
   96%  { opacity: 1; filter: brightness(1); transform: translateX(0); }
   100% { opacity: 1; filter: brightness(1); }
 }
 
-/* Apply exclusively to the banner image */
+/* Targets both logo versions within the navbar */
 .navbar__brand img {
-  animation: hardware-hiccup 7s infinite; /* Longer pause for better UX */
+  animation: hardware-hiccup 7s infinite;
   display: block;
 }
