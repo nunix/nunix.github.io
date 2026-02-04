@@ -27,6 +27,9 @@ jobs:
       - name: Install Dependencies 📦
         run: bun install --frozen-lockfile
 
+      - name: Sync SSL Metadata
+        run: bun run scripts/check-ssl.ts
+
       - name: Build Docusaurus Site 🏗️
         run: bun run build
 

@@ -820,7 +820,7 @@ code:not(pre code) {
 }
 
 /* ==========================================================================
-   13. SYSTEM STATUS BAR (Structural Fix)
+   13. SYSTEM STATUS BAR (Triple-Section Layout)
    ========================================================================== */
 
 .nunix-status-bar {
@@ -830,6 +830,7 @@ code:not(pre code) {
   width: 100%;
   height: 28px;
   display: flex;
+  justify-content: space-between; /* Spaced sections */
   align-items: center;
   padding: 0 15px;
   font-family: var(--vintage-mono);
@@ -839,55 +840,34 @@ code:not(pre code) {
   letter-spacing: 1px;
   text-transform: uppercase;
   border-top: 1px solid rgba(48, 186, 120, 0.3);
-  pointer-events: auto; /* Ensure clicks register */
 }
 
-/* The Data Area */
-.status-content {
+/* Section Logic */
+.status-section {
   display: flex;
-  width: 100%;
-  justify-content: flex-start;
-  gap: 30px; /* Space between nodes */
-  padding-right: 100px; /* Buffer for the toggle button */
+  align-items: center;
+  flex: 1; /* Side sections grow equally */
 }
 
-/* Toggle Button - Specific Positioning */
-.status-toggle {
-  position: absolute;
-  right: 15px;
-  background: transparent;
-  border: none;
-  color: inherit;
-  font-family: inherit;
-  font-size: 0.6rem;
-  font-weight: bold;
-  cursor: pointer;
-  opacity: 0.7;
-  transition: opacity 0.2s;
+.section-center {
+  justify-content: center;
+  flex: 0 0 auto; /* Center doesn't grow, stays in middle */
 }
 
-.status-toggle:hover {
-  opacity: 1;
-  text-shadow: 0 0 5px var(--ifm-color-primary);
+.section-right {
+  justify-content: flex-end;
+  gap: 20px;
 }
 
-/* Collapsed State Adjustment */
-.nunix-status-bar.is-collapsed {
-  height: 6px;
-  background: var(--ifm-color-primary) !important;
-  cursor: pointer;
+/* Node Styling */
+.status-node {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  white-space: nowrap;
 }
 
-.nunix-status-bar.is-collapsed .status-toggle {
-  top: -20px; /* Float above the sliver */
-  background: var(--ifm-background-color);
-  border: 1px solid var(--ifm-color-primary);
-  border-radius: 4px 4px 0 0;
-  padding: 2px 8px;
-  opacity: 1;
-}
-
-/* THEME SPECIFICS */
+/* Theme Colors */
 [data-theme='dark'] .nunix-status-bar {
   background: rgba(10, 15, 20, 0.95);
   color: var(--ifm-color-primary);
@@ -897,4 +877,80 @@ code:not(pre code) {
   background: rgba(245, 247, 250, 0.9);
   color: #1a4d32;
   border-top: 1px solid rgba(26, 77, 50, 0.2);
+}
+
+.status-active-value {
+  color: var(--ifm-color-primary);
+  font-weight: bold;
+}
+
+/* Toggle Interaction */
+.status-toggle {
+  background: transparent;
+  border: none;
+  color: inherit;
+  font-family: inherit;
+  font-size: 0.6rem;
+  font-weight: bold;
+  cursor: pointer;
+  padding: 2px 8px;
+}
+
+/* Collapsed State */
+.nunix-status-bar.is-collapsed {
+  height: 6px;
+  background: var(--ifm-color-primary) !important;
+}
+
+/* ==========================================================================
+   14. LOCALIZED CRT EFFECT (Banner Only)
+   ========================================================================== */
+
+/* This targets the container holding your nunix-banner.png */
+.navbar__brand {
+  position: relative;
+  display: flex;
+  align-items: center;
+  overflow: hidden;
+}
+
+/* Pseudo-element for the scanline texture over the banner */
+.navbar__brand::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  /* Horizontal scanline texture */
+  background: linear-gradient(
+    rgba(18, 16, 16, 0) 50%, 
+    rgba(0, 0, 0, 0.15) 50%
+  );
+  background-size: 100% 3px;
+  z-index: 2;
+  pointer-events: none;
+  opacity: 0.4;
+}
+
+/* ==========================================================================
+   15. HARDWARE HICCUP (Nav Image Flicker)
+   ========================================================================== */
+
+@keyframes hardware-hiccup {
+  0%   { opacity: 1; filter: brightness(1); }
+  92%  { opacity: 1; filter: brightness(1); }
+  /* Sudden glitch: slight shift and bright flash */
+  93%  { opacity: 0.8; filter: brightness(1.4) contrast(1.2); transform: translateX(1px); }
+  94%  { opacity: 1; filter: brightness(1); transform: translateX(0); }
+  /* Brief dimming */
+  95%  { opacity: 0.7; filter: brightness(0.8); transform: translateX(-1px); }
+  96%  { opacity: 1; filter: brightness(1); transform: translateX(0); }
+  100% { opacity: 1; filter: brightness(1); }
+}
+
+/* Apply exclusively to the banner image */
+.navbar__brand img {
+  animation: hardware-hiccup 7s infinite; /* Longer pause for better UX */
+  display: block;
 }

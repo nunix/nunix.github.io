@@ -3,23 +3,41 @@ import { useLocation } from '@docusaurus/router';
 
 export default function Root({ children }: { children: React.ReactNode }) {
   const location = useLocation();
+  
+  // --- STATE SECTIONS ---
   const [isVisible, setIsVisible] = useState<boolean>(true);
+  const [readingTime, setReadingTime] = useState<number>(0);
+  // Using the new status object for binary state and date string
+  const [sslStatus, setSslStatus] = useState<{secure: boolean, expiry: string} | null>(null);
+  const [lastUpdated, setLastUpdated] = useState<string | null>(null);
 
-  // EFFECT: System Clock
   useEffect(() => {
-    const updateClock = () => {
-      const now = new Date();
-      const formatted = now.toISOString()
-        .replace(/-/g, '.')
-        .replace('T', ' | ')
-        .substring(0, 19);
-    };
-    updateClock();
-    const timer = setInterval(updateClock, 1000);
-    return () => clearInterval(timer);
+    fetch('/ssl-info.json')
+      .then(res => res.ok ? res.json() : null)
+      .then(data => {
+        if (data) {
+          setSslStatus({ secure: data.is_secure, expiry: data.expiry_date });
+          setLastUpdated(data.last_updated); // Map to our JSON key
+        }
+      });
   }, []);
 
-  // EFFECT 1: Handle Global Clicks and Keyboard (Existing Logic)
+  // --- SECTION 2: READING TIME LOGIC ---
+  const calculateReadTime = () => {
+    const content = document.querySelector('.markdown');
+    if (content) {
+      const text = content.textContent || "";
+      const words = text.split(/\s+/).length;
+      const minutes = Math.ceil(words / 200); 
+      setReadingTime(minutes);
+    }
+  };
+
+  useEffect(() => {
+    setTimeout(calculateReadTime, 500);
+  }, [location.pathname]);
+
+  // --- SECTION 3: GLOBAL UI INTERACTION (Clicks/Zoom/Copy) ---
   useEffect(() => {
     const closeZoom = () => {
       const overlay = document.querySelector('.img-zoom-overlay');
@@ -32,9 +50,8 @@ export default function Root({ children }: { children: React.ReactNode }) {
     const handleGlobalClick = (e: MouseEvent) => {
       const target = e.target as HTMLElement;
 
-      // --- 1. INLINE CODE COPY LOGIC ---
-      const isInlineCode = target.tagName === 'CODE' && !target.closest('pre');
-      if (isInlineCode) {
+      // Inline Code Copy
+      if (target.tagName === 'CODE' && !target.closest('pre')) {
         const text = target.textContent || '';
         navigator.clipboard.writeText(text);
         target.classList.add('inline-copied-flash');
@@ -54,18 +71,15 @@ export default function Root({ children }: { children: React.ReactNode }) {
         return;
       }
 
-      // --- 2. IMAGE ZOOM LOGIC ---
-      const isBlogImg = target.tagName === 'IMG' && target.closest('.markdown');
-      if (isBlogImg) {
+      // Image Zoom
+      if (target.tagName === 'IMG' && target.closest('.markdown')) {
         const imgTarget = target as HTMLImageElement;
         const overlay = document.createElement('div');
         overlay.className = 'img-zoom-overlay';
-        
         overlay.innerHTML = `
           <div class="zoom-hud-exit">ESC: EXIT | CLICK: ZOOM</div>
           <img src="${imgTarget.src}" class="zoomable-content" />
         `;
-        
         document.body.appendChild(overlay);
         setTimeout(() => overlay.classList.add('active'), 10);
 
@@ -87,14 +101,13 @@ export default function Root({ children }: { children: React.ReactNode }) {
 
     document.addEventListener('click', handleGlobalClick);
     document.addEventListener('keydown', handleKeyDown);
-
     return () => {
       document.removeEventListener('click', handleGlobalClick);
       document.removeEventListener('keydown', handleKeyDown);
     };
   }, []);
 
-  // EFFECT 2: Inject HUD hints above images (Existing Logic)
+  // --- SECTION 4: HUD INJECTION (Image Hints) ---
   useEffect(() => {
     const injectImageHints = () => {
       setTimeout(() => {
@@ -103,11 +116,9 @@ export default function Root({ children }: { children: React.ReactNode }) {
           if (!img.parentElement?.classList.contains('nunix-img-wrapper')) {
             const wrapper = document.createElement('div');
             wrapper.className = 'nunix-img-wrapper';
-            
             const hint = document.createElement('div');
             hint.className = 'nunix-image-hint';
             hint.innerHTML = `<span class="hint-pulse">●</span> CLICK TO ENLARGE`;
-            
             img.parentNode?.insertBefore(wrapper, img);
             wrapper.appendChild(hint);
             wrapper.appendChild(img);
@@ -115,43 +126,48 @@ export default function Root({ children }: { children: React.ReactNode }) {
         });
       }, 100);
     };
-
     injectImageHints();
   }, [location.pathname]);
 
+  // --- SECTION 5: RENDER ---
   return (
     <>
+      {/* CRT OVERLAY REMOVED FROM HERE TO KEEP SITE CLEAR */}
       {children}
       
-      {/* STATUS BAR CONTAINER */}
       <div className={`nunix-status-bar ${!isVisible ? 'is-collapsed' : ''}`}>
-        
-        {isVisible && (
-          <div className="status-content">
+        <div className="status-section section-left">
+          {isVisible && (
             <div className="status-node">
               <span className="status-pulse"></span>
-              <span className="status-label">AUTHORED_BY:</span> GEMINIX
+              <span className="status-label">SSL:</span> 
+              <span className="status-active-value">
+                {sslStatus?.secure ? `SECURE | ${sslStatus.expiry}` : 'UNVERIFIED'}
+              </span>
             </div>
-            
-            <div className="status-node hide-mobile">
-              <span className="status-label">ENVIRONMENT:</span> PRODUCTION_STABLE
-            </div>
+          )}
+        </div>
 
+        <div className="status-section section-center">
+          {isVisible && (
             <div className="status-node">
-              <span className="status-label">ENCRYPTION:</span> 
-              <span className="status-active-value">SECURE_SSL</span>
+              <span className="status-label">READ_TIME:</span> 
+              {readingTime} MIN
             </div>
-          </div>
-        )}
+          )}
+        </div>
 
-        {/* Toggle Button - Locked to Right side */}
-        <button 
-          className="status-toggle" 
-          onClick={() => setIsVisible(!isVisible)}
-          title={isVisible ? "Collapse HUD" : "Expand HUD"}
-        >
-          {isVisible ? '[ HIDE ]' : '[ SHOW HUD ]'}
-        </button>
+        <div className="status-section section-right">
+          {isVisible && (
+            <div className="status-node hide-mobile">
+              <span className="status-label">LAST_UPDATED:</span> 
+              <span className="status-active-value">{lastUpdated || 'SYNCING...'}</span>
+            </div>
+          )}
+          <button className="status-toggle" onClick={() => setIsVisible(!isVisible)}>
+            {isVisible ? '[ HIDE ]' : '[ SHOW HUD ]'}
+          </button>
+        </div>
       </div>
     </>
   );
