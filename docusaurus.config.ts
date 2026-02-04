@@ -110,6 +110,12 @@ const config: Config = {
       style: 'dark',
       copyright: `Copyright © ${new Date().getFullYear()} Nunix Universe. Built with Bun.`,
     },
+    scripts: [
+      {
+        src: 'https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js', // If you use jQuery, otherwise use vanilla
+        async: true,
+      },
+    ],
     prism: {
       theme: prismThemes.github,
       darkTheme: prismThemes.dracula,

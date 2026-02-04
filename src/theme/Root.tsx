@@ -1,10 +1,25 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useLocation } from '@docusaurus/router';
 
-export default function Root({ children }) {
+export default function Root({ children }: { children: React.ReactNode }) {
   const location = useLocation();
+  const [isVisible, setIsVisible] = useState<boolean>(true);
 
-  // EFFECT 1: Handle Global Clicks and Keyboard
+  // EFFECT: System Clock
+  useEffect(() => {
+    const updateClock = () => {
+      const now = new Date();
+      const formatted = now.toISOString()
+        .replace(/-/g, '.')
+        .replace('T', ' | ')
+        .substring(0, 19);
+    };
+    updateClock();
+    const timer = setInterval(updateClock, 1000);
+    return () => clearInterval(timer);
+  }, []);
+
+  // EFFECT 1: Handle Global Clicks and Keyboard (Existing Logic)
   useEffect(() => {
     const closeZoom = () => {
       const overlay = document.querySelector('.img-zoom-overlay');
@@ -14,7 +29,7 @@ export default function Root({ children }) {
       }
     };
 
-    const handleGlobalClick = (e) => {
+    const handleGlobalClick = (e: MouseEvent) => {
       const target = e.target as HTMLElement;
 
       // --- 1. INLINE CODE COPY LOGIC ---
@@ -54,7 +69,7 @@ export default function Root({ children }) {
         document.body.appendChild(overlay);
         setTimeout(() => overlay.classList.add('active'), 10);
 
-        overlay.onclick = (event) => {
+        overlay.onclick = (event: MouseEvent) => {
           const clickTarget = event.target as HTMLElement;
           if (clickTarget.tagName === 'IMG') {
             event.stopPropagation();
@@ -77,12 +92,11 @@ export default function Root({ children }) {
       document.removeEventListener('click', handleGlobalClick);
       document.removeEventListener('keydown', handleKeyDown);
     };
-  }, []); // Only runs once on mount
+  }, []);
 
-  // EFFECT 2: Inject HUD hints above images
+  // EFFECT 2: Inject HUD hints above images (Existing Logic)
   useEffect(() => {
     const injectImageHints = () => {
-      // Small timeout to ensure Docusaurus has finished rendering the MD
       setTimeout(() => {
         const images = document.querySelectorAll('.markdown p > img');
         images.forEach((img) => {
@@ -103,7 +117,42 @@ export default function Root({ children }) {
     };
 
     injectImageHints();
-  }, [location.pathname]); // Re-runs on every page navigation
+  }, [location.pathname]);
 
-  return <>{children}</>;
+  return (
+    <>
+      {children}
+      
+      {/* STATUS BAR CONTAINER */}
+      <div className={`nunix-status-bar ${!isVisible ? 'is-collapsed' : ''}`}>
+        
+        {isVisible && (
+          <div className="status-content">
+            <div className="status-node">
+              <span className="status-pulse"></span>
+              <span className="status-label">AUTHORED_BY:</span> GEMINIX
+            </div>
+            
+            <div className="status-node hide-mobile">
+              <span className="status-label">ENVIRONMENT:</span> PRODUCTION_STABLE
+            </div>
+
+            <div className="status-node">
+              <span className="status-label">ENCRYPTION:</span> 
+              <span className="status-active-value">SECURE_SSL</span>
+            </div>
+          </div>
+        )}
+
+        {/* Toggle Button - Locked to Right side */}
+        <button 
+          className="status-toggle" 
+          onClick={() => setIsVisible(!isVisible)}
+          title={isVisible ? "Collapse HUD" : "Expand HUD"}
+        >
+          {isVisible ? '[ HIDE ]' : '[ SHOW HUD ]'}
+        </button>
+      </div>
+    </>
+  );
 }

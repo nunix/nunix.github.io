@@ -818,3 +818,83 @@ code:not(pre code) {
   background: rgba(0, 127, 255, 0.1) !important; 
   border: 1px solid rgba(0, 127, 255, 0.3) !important;
 }
+
+/* ==========================================================================
+   13. SYSTEM STATUS BAR (Structural Fix)
+   ========================================================================== */
+
+.nunix-status-bar {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  height: 28px;
+  display: flex;
+  align-items: center;
+  padding: 0 15px;
+  font-family: var(--vintage-mono);
+  font-size: 0.65rem;
+  z-index: 10000;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  border-top: 1px solid rgba(48, 186, 120, 0.3);
+  pointer-events: auto; /* Ensure clicks register */
+}
+
+/* The Data Area */
+.status-content {
+  display: flex;
+  width: 100%;
+  justify-content: flex-start;
+  gap: 30px; /* Space between nodes */
+  padding-right: 100px; /* Buffer for the toggle button */
+}
+
+/* Toggle Button - Specific Positioning */
+.status-toggle {
+  position: absolute;
+  right: 15px;
+  background: transparent;
+  border: none;
+  color: inherit;
+  font-family: inherit;
+  font-size: 0.6rem;
+  font-weight: bold;
+  cursor: pointer;
+  opacity: 0.7;
+  transition: opacity 0.2s;
+}
+
+.status-toggle:hover {
+  opacity: 1;
+  text-shadow: 0 0 5px var(--ifm-color-primary);
+}
+
+/* Collapsed State Adjustment */
+.nunix-status-bar.is-collapsed {
+  height: 6px;
+  background: var(--ifm-color-primary) !important;
+  cursor: pointer;
+}
+
+.nunix-status-bar.is-collapsed .status-toggle {
+  top: -20px; /* Float above the sliver */
+  background: var(--ifm-background-color);
+  border: 1px solid var(--ifm-color-primary);
+  border-radius: 4px 4px 0 0;
+  padding: 2px 8px;
+  opacity: 1;
+}
+
+/* THEME SPECIFICS */
+[data-theme='dark'] .nunix-status-bar {
+  background: rgba(10, 15, 20, 0.95);
+  color: var(--ifm-color-primary);
+}
+
+[data-theme='light'] .nunix-status-bar {
+  background: rgba(245, 247, 250, 0.9);
+  color: #1a4d32;
+  border-top: 1px solid rgba(26, 77, 50, 0.2);
+}
