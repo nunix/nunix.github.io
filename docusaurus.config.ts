@@ -53,10 +53,22 @@ const config: Config = {
     ],
   ],
 
+  plugins: [
+    'docusaurus-plugin-image-zoom',
+  ],
+
   themeConfig: {
     colorMode: {
       respectPrefersColorScheme: true,
       defaultMode: 'dark',
+    },
+    imageZoom: {
+      selector: '.markdown img', 
+      options: {
+        margin: 24,
+        background: 'rgba(0, 0, 0, 0.8)',
+        scrollOffset: 0,
+      },
     },
     navbar: {
       title: '',
