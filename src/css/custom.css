@@ -282,6 +282,7 @@
   font-size: 1rem !important; /* Vintage fonts need more scale */
   line-height: 1.2 !important;
   letter-spacing: 0.05rem;
+  cursor: copy;
 }
 
 .prism-code .token-line:hover {
@@ -293,6 +294,114 @@
   
   /* Subtle text lift */
   filter: brightness(1.1);
+}
+
+.prism-code .token-line:hover::after {
+  content: 'CLICK TO COPY LINE';
+  position: absolute;
+  right: 1rem;
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 0.6rem;
+  color: var(--neon-blue);
+  opacity: 0.5;
+}
+
+::selection {
+  background: rgba(0, 127, 255, 0.3); /* Electric Blue */
+  color: #ffffff;
+  text-shadow: 0 0 5px rgba(0, 127, 255, 0.5);
+}
+
+.block-copied-flash {
+  outline: 2px solid var(--neon-blue) !important;
+  box-shadow: 0 0 20px rgba(0, 127, 255, 0.4) !important;
+  transition: all 0.2s ease;
+}
+
+/* Specific selection for code blocks to keep it legible */
+.prism-code ::selection {
+  background: rgba(48, 186, 120, 0.3); /* SUSE Green tint */
+  color: #fff;
+}
+
+.nunix-terminal-hint {
+  position: absolute;
+  top: -25px;
+  left: 0;
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 0.7rem;
+  color: var(--neon-blue);
+  letter-spacing: 1px;
+  opacity: 0.7;
+  animation: hint-fade-in 0.5s ease-out;
+  pointer-events: none;
+  white-space: nowrap;
+}
+
+.hint-pulse {
+  color: var(--ifm-color-primary);
+  margin-right: 5px;
+  animation: neon-blink 1.5s infinite;
+}
+
+@keyframes hint-fade-in {
+  from { opacity: 0; transform: translateY(5px); }
+  to { opacity: 0.7; transform: translateY(0); }
+}
+
+@keyframes neon-blink {
+  0%, 100% { opacity: 1; text-shadow: 0 0 5px var(--ifm-color-primary); }
+  50% { opacity: 0.3; text-shadow: none; }
+}
+
+/* Ensure the wrapper has enough top margin if a hint is present */
+.nunix-code-wrapper {
+  margin-top: 30px;
+}
+
+.nunix-code-wrapper {
+  position: relative;
+}
+
+/* The Global Status Badge */
+.nunix-copy-status {
+  position: absolute;
+  top: 12px;
+  right: 55px; /* Avoiding the default Docusaurus copy button */
+  z-index: 20;
+  
+  background: var(--ifm-color-primary); /* SUSE Green */
+  color: #000;
+  font-family: 'Share Tech Mono', monospace;
+  font-weight: 800;
+  font-size: 0.7rem;
+  padding: 3px 10px;
+  border-radius: 2px;
+  
+  /* Initial State (Hidden) */
+  opacity: 0;
+  transform: scale(0.9) translateX(10px);
+  transition: all 0.15s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  pointer-events: none;
+  box-shadow: 0 0 15px rgba(48, 186, 120, 0.5);
+}
+
+/* Active State (Triggered immediately on click) */
+.alert-active .nunix-copy-status {
+  opacity: 1;
+  transform: scale(1) translateX(0);
+}
+
+/* Subtler line highlight since the main alert is now on top */
+.line-copied-hint {
+  background-color: rgba(48, 186, 120, 0.15) !important;
+  transition: background-color 0.2s ease;
+}
+
+/* Block Flash for Selections */
+.block-copied-flash {
+  box-shadow: inset 0 0 20px rgba(0, 127, 255, 0.2) !important;
+  outline: 1px solid var(--neon-blue) !important;
 }
 
 .docusaurus-highlight-code-line {
@@ -320,10 +429,78 @@
   color: var(--ifm-color-primary); /* Use your SUSE Green */
 }
 
-/* Optional: Change the # symbol to a Link Icon (SVG) */
 .hash-link {
   opacity: 0;
   transition: opacity 0.2s ease-in-out;
   padding-left: 0.4rem;
   text-decoration: none !important;
+}
+
+[class*='admonition_'] {
+  border-radius: 4px !important;
+  border: 1px solid rgba(255, 255, 255, 0.1) !important;
+  background-color: var(--nunix-glass-bg) !important;
+  backdrop-filter: blur(12px) saturate(150%) !important;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2) !important;
+  margin-bottom: 1.5rem !important;
+  border-left: 6px solid var(--ifm-alert-border-color) !important;
+}
+
+[class*='admonition_'] {
+  border-radius: 4px !important;
+  border: 1px solid var(--nunix-admonition-border) !important;
+  background-color: var(--nunix-glass-bg) !important;
+  backdrop-filter: blur(12px) !important;
+  padding: 1rem 1.25rem !important;
+  margin-bottom: 1.6rem !important;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2) !important;
+  border-left: 6px solid var(--nunix-admonition-color) !important;
+}
+
+[data-theme='dark'] [class*='admonition_'] {
+  --ifm-alert-background-color: transparent !important;
+  --ifm-alert-background-color-highlight: transparent !important;
+}
+
+[class*='admonitionHeading_'] {
+  font-family: 'Share Tech Mono', monospace !important;
+  text-transform: uppercase !important;
+  letter-spacing: 0.12em !important;
+  font-weight: 700 !important;
+  color: var(--nunix-admonition-color) !important;
+  text-shadow: 0 0 8px var(--nunix-admonition-glow);
+  margin-bottom: 0.6rem !important;
+}
+
+.alert--info,
+[class*='admonition-info'] {
+  --nunix-admonition-color: #007fff;
+  --nunix-admonition-border: rgba(0, 127, 255, 0.25);
+  --nunix-admonition-glow: rgba(0, 127, 255, 0.4);
+}
+
+.alert--success,
+[class*='admonition-tip'] {
+  --nunix-admonition-color: var(--ifm-color-primary);
+  --nunix-admonition-border: rgba(48, 186, 120, 0.25);
+  --nunix-admonition-glow: rgba(48, 186, 120, 0.4);
+}
+
+.alert--warning,
+[class*='admonition-warning'] {
+  --nunix-admonition-color: #ffaa00;
+  --nunix-admonition-border: rgba(255, 170, 0, 0.25);
+  --nunix-admonition-glow: rgba(255, 170, 0, 0.4);
+}
+
+.alert--danger,
+[class*='admonition-danger'] {
+  --nunix-admonition-color: #ff3e3e;
+  --nunix-admonition-border: rgba(255, 62, 62, 0.3);
+  --nunix-admonition-glow: rgba(255, 62, 62, 0.5);
+}
+
+[class*='admonitionIcon_'] svg {
+  fill: var(--nunix-admonition-color) !important;
+  filter: drop-shadow(0 0 4px var(--nunix-admonition-glow));
 }
