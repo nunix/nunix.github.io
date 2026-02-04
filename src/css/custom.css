@@ -98,6 +98,48 @@
   border-radius: 4px 4px 0 0 !important;
 }
 
+.navbar__item:hover, 
+.navbar__link:hover {
+  color: var(--neon-blue) !important;
+  background: rgba(0, 127, 255, 0.1) !important; 
+  backdrop-filter: blur(4px);
+  padding: 0.4rem 0.8rem !important; /* Matches your existing navbar padding */
+  border-radius: 3px;
+  border: 1px solid rgba(0, 127, 255, 0.3) !important;
+  box-shadow: 0 0 10px rgba(0, 127, 255, 0.2);
+  text-shadow: 0 0 5px var(--neon-blue-glow);
+}
+
+/* Ensure the active navbar link stays Green and doesn't get the Blue HUD box */
+.navbar__link--active:hover {
+  background-color: rgba(48, 186, 120, 0.15) !important;
+  border-color: var(--ifm-color-primary) !important;
+  color: var(--ifm-color-primary) !important;
+  text-shadow: 0 0 8px rgba(48, 186, 120, 0.4);
+}
+
+.markdown a:hover {
+  color: var(--neon-blue) !important;
+  text-decoration: none !important;
+  
+  /* Create the Glass HUD Box */
+  background: rgba(0, 127, 255, 0.1); 
+  backdrop-filter: blur(4px);
+  padding: 2px 6px;
+  border-radius: 3px;
+  border: 1px solid rgba(0, 127, 255, 0.3);
+  box-shadow: 0 0 10px rgba(0, 127, 255, 0.2);
+  
+  /* Slight text lift */
+  text-shadow: 0 0 5px var(--neon-blue-glow);
+}
+
+/* Keep the sidebar and navbar active states as Green (the "Active" signal) */
+.navbar__link--active,
+.menu__link--active {
+  color: var(--ifm-color-primary) !important;
+}
+
 /* ==========================================================================
    3. SIDEBAR & MENU
    ========================================================================== */
@@ -107,12 +149,33 @@
   transition: all 0.3s ease;
   border-radius: 6px;
   margin: 2px 4px;
+  z-index: 1; /* Ensure parent has a stacking context */
+}
+
+/* The Ripple (Wave) Effect */
+.theme-doc-sidebar-item-link::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 0;
+  height: 0;
+  background: radial-gradient(circle, rgba(0, 127, 255, 0.25) 0%, transparent 70%);
+  transform: translate(-50%, -50%);
+  transition: width 0.5s ease-out, height 0.5s ease-out;
+  pointer-events: none;
+  z-index: -1; /* Sits behind the text but above the background */
 }
 
 .theme-doc-sidebar-item-link:hover {
   color: var(--neon-blue) !important;
-  background-color: rgba(0, 127, 255, 0.05);
+  background-color: rgba(0, 127, 255, 0.08) !important;
   padding-left: 1.25rem;
+}
+
+.theme-doc-sidebar-item-link:hover::before {
+  width: 300%;
+  height: 500%;
 }
 
 .menu__list-item .menu__link--active {
@@ -535,4 +598,47 @@ code:not(pre code) {
   border-color: var(--ifm-color-primary);
   box-shadow: 0 0 20px rgba(48, 186, 120, 0.3);
   transform: translateY(-3px);
+}
+
+/* ==========================================================================
+   10. TACTICAL INDEX (Table of Contents)
+   ========================================================================== */
+
+.table-of-contents__link {
+  transition: all 0.2s ease;
+  border-left: 1px solid rgba(48, 186, 120, 0.1); 
+  padding-left: 10px !important;
+}
+
+/* Standardization: EXACT Navbar Hover Effect */
+.table-of-contents__link:not(.table-of-contents__link--active):hover {
+  color: var(--neon-blue) !important;
+  text-decoration: none !important;
+  
+  /* Matches Navbar Section 2 exactly */
+  background: rgba(0, 127, 255, 0.1) !important; 
+  backdrop-filter: blur(4px);
+  border-radius: 3px;
+  border: 1px solid rgba(0, 127, 255, 0.3) !important;
+  box-shadow: 0 0 10px rgba(0, 127, 255, 0.2);
+  
+  padding: 2px 10px !important;
+  margin-left: -5px;
+  text-shadow: 0 0 5px var(--neon-blue-glow);
+}
+
+/* The Active Link - Stays Green */
+.table-of-contents__link--active {
+  color: var(--ifm-color-primary) !important;
+  border-left: 2.5px solid var(--ifm-color-primary) !important;
+  font-weight: bold;
+  text-shadow: 0 0 8px rgba(48, 186, 120, 0.3);
+}
+
+/* Active Hover - Stays Green but gets the Navbar-style Glass Box */
+.table-of-contents__link--active:hover {
+  color: var(--ifm-color-primary) !important;
+  background: rgba(0, 127, 255, 0.1) !important; 
+  border: 1px solid rgba(0, 127, 255, 0.3) !important;
+  backdrop-filter: blur(4px);
 }
