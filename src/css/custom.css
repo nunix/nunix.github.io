@@ -39,6 +39,9 @@
   --nunix-banner: url('/img/nunix-banner.png');
   --nunix-navbar-text: #ffffff;
   --nunix-glass-bg: rgba(10, 13, 11, 0.6);
+  --cursor-primary: #ffffff;
+  --cursor-accent: #007fff;
+  --cursor-selection: #ffcc33;
 }
 
 [data-theme='light'] {
@@ -215,7 +218,7 @@
   font-size: 1rem !important;
   line-height: 1.2 !important;
   letter-spacing: 0.05rem;
-  cursor: copy;
+  cursor: text !important;
 }
 
 .code-line-number {
@@ -246,9 +249,27 @@
 
 .nunix-code-wrapper {
   position: relative;
-  /* Reset margin-top since we are moving the hint inside */
   margin-top: 20px !important; 
-  overflow: visible !important;
+  border: 1px solid rgba(48, 186, 120, 0.2); /* Keep your steady border */
+  background: var(--nunix-glass-bg);
+  cursor: text !important;
+}
+
+.nunix-code-wrapper:hover {
+  background: var(--nunix-glass-bg) !important;
+  border-color: rgba(48, 186, 120, 0.2) !important;
+  box-shadow: none !important;
+}
+
+.nunix-code-wrapper:hover .nunix-terminal-hint {
+  opacity: 0.05 !important; /* Extremely faint */
+  pointer-events: none !important; /* Mouse passes through to select code below */
+  transition: opacity 0.1s ease !important;
+}
+
+.prism-code:hover {
+  background: transparent !important;
+  box-shadow: none !important;
 }
 
 .nunix-terminal-hint {
@@ -256,20 +277,16 @@
   top: 8px;
   right: 12px; 
   z-index: 10;
-  
   font-family: var(--vintage-mono);
   font-size: 0.65rem;
   font-weight: bold;
   color: var(--neon-blue);
-  
-  /* High-Visibility Glass Theme */
   background: rgba(0, 0, 0, 0.75); 
   backdrop-filter: blur(4px);
   padding: 4px 10px;
   border-radius: 3px;
   border: 1px solid rgba(0, 127, 255, 0.3);
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.4);
-  
   letter-spacing: 1px;
   pointer-events: none;
   white-space: nowrap;
@@ -278,7 +295,8 @@
 }
 
 .prism-code:hover .nunix-terminal-hint {
-  opacity: 0.3;
+  opacity: 0.2; 
+  transition: opacity 0.3s ease;
 }
 
 /* Ensure the language tab and hint don't collide */
@@ -641,4 +659,162 @@ code:not(pre code) {
   background: rgba(0, 127, 255, 0.1) !important; 
   border: 1px solid rgba(0, 127, 255, 0.3) !important;
   backdrop-filter: blur(4px);
+}
+
+/* ==========================================================================
+   11. PAGINATION & TAGS (Access Modules)
+   ========================================================================== */
+
+/* 1. Pagination Buttons (Next / Previous) */
+.pagination-nav__link {
+  border-radius: 4px !important;
+  border: 1px solid rgba(48, 186, 120, 0.2) !important;
+  background-color: var(--nunix-glass-bg) !important;
+  backdrop-filter: blur(12px);
+  transition: all 0.3s ease;
+  padding: 1rem !important;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+}
+
+.pagination-nav__link:hover {
+  text-decoration: none !important;
+  /* Applying Standardized Navbar/TOC Hover HUD */
+  background: rgba(0, 127, 255, 0.1) !important;
+  border-color: rgba(0, 127, 255, 0.3) !important;
+  box-shadow: 0 0 15px rgba(0, 127, 255, 0.2);
+}
+
+.pagination-nav__link:hover .pagination-nav__label {
+  color: var(--neon-blue);
+  text-shadow: 0 0 8px var(--neon-blue-glow);
+}
+
+/* 2. Blog Tags - The Sharp Edge Experiment */
+.tag, 
+[class*='tag_'],
+.margin-vert--md .margin-horiz--sm a {
+  /* Force sharp corners by overriding the theme variable and the property */
+  --ifm-tag-border-radius: 0px !important;
+  border-radius: 0px !important; 
+  
+  /* Keep it minimal */
+  transition: all 0.2s ease !important;
+  text-decoration: none !important;
+  border: 1px solid transparent !important; /* Invisible border to prevent jumping on hover */
+}
+
+/* The "Clean HUD" Hover you liked */
+.tag:hover, 
+[class*='tag_']:hover,
+.margin-vert--md .margin-horiz--sm a:hover {
+  color: var(--neon-blue) !important;
+  background: rgba(0, 127, 255, 0.1) !important;
+  box-shadow: 0 0 10px rgba(0, 127, 255, 0.2);
+  text-shadow: 0 0 5px var(--neon-blue-glow);
+  backdrop-filter: blur(4px);
+}
+
+/* ==========================================================================
+   12. FILE-PATH BREADCRUMBS (Terminal Navigation - Final Stability)
+   ========================================================================== */
+
+/* 1. THE TOTAL PURGE: Kill all default theme decorations */
+.breadcrumbs__separator,
+.breadcrumbs__item--separator,
+[class*='separator'],
+.breadcrumbs li::before,
+.breadcrumbs li::after,
+.breadcrumbs svg {
+  display: none !important;
+  content: none !important;
+}
+
+/* 2. Container: Terminal Baseline */
+.breadcrumbs {
+  font-family: var(--vintage-mono);
+  font-size: 0.85rem;
+  padding: 1rem 0;
+  background: transparent !important;
+  display: flex !important;
+  align-items: center !important;
+  list-style: none !important;
+  margin: 0 !important;
+}
+
+/* 3. The Breadcrumb Item */
+.breadcrumbs__item {
+  display: inline-flex !important;
+  align-items: center !important;
+}
+
+/* 4. THE SEPARATOR (Forced Unix Slash) */
+/* This inserts a green slash between every breadcrumb item */
+.breadcrumbs__item + .breadcrumbs__item::before {
+  display: inline-block !important;
+  content: "/" !important;
+  margin: 0 12px !important;
+  font-size: 1.1rem !important;
+  font-weight: bold !important;
+  color: var(--ifm-color-primary) !important;
+  opacity: 0.6;
+  visibility: visible !important;
+}
+
+/* 5. Global Link Styling */
+.breadcrumbs__link {
+  display: inline-flex;
+  align-items: center;
+  border: 1px solid transparent !important;
+  padding: 4px 10px !important;
+  border-radius: 3px;
+  line-height: 1 !important;
+  color: inherit;
+  transition: all 0.2s ease;
+}
+
+/* 6. Terminal Prefix (RESTING: SUSE Green) */
+.breadcrumbs__item:first-child .breadcrumbs__link::before {
+  content: "nunix@os:~$";
+  font-weight: bold;
+  color: var(--ifm-color-primary);
+  margin-right: 4px;
+}
+
+/* 7. THE GLOWING CURSOR (RESTING: SUSE Green) */
+.breadcrumbs__item:first-child .breadcrumbs__link::after {
+  content: "_";
+  color: var(--ifm-color-primary);
+  animation: neon-blink 1.2s infinite ease-in-out;
+  text-shadow: 0 0 8px var(--ifm-color-primary);
+  font-weight: bold;
+}
+
+/* 8. THE HOVER FIX: Force First Item to Blue */
+.breadcrumbs__item:first-child .breadcrumbs__link:hover {
+  background: rgba(0, 127, 255, 0.1) !important; 
+  border: 1px solid rgba(0, 127, 255, 0.3) !important;
+}
+
+.breadcrumbs__item:first-child .breadcrumbs__link:hover::before,
+.breadcrumbs__item:first-child .breadcrumbs__link:hover::after {
+  color: var(--neon-blue) !important;
+  text-shadow: 0 0 5px var(--neon-blue-glow) !important;
+}
+
+/* 9. ACTIVE LINK: Industrial Caps & Green Glow */
+.breadcrumbs__item--active .breadcrumbs__link {
+  color: var(--ifm-color-primary) !important;
+  font-weight: 700 !important;
+  text-transform: uppercase !important;
+  background-color: rgba(48, 186, 120, 0.12) !important;
+  backdrop-filter: blur(8px);
+  border: 1px solid rgba(48, 186, 120, 0.2) !important;
+}
+
+/* 10. HUD HOVER: Standard Blue for Parent Directories */
+.breadcrumbs__link:not(.breadcrumbs__item--active .breadcrumbs__link):hover {
+  color: var(--neon-blue) !important;
+  text-decoration: none !important;
+  background: rgba(0, 127, 255, 0.1) !important; 
+  border: 1px solid rgba(0, 127, 255, 0.3) !important;
 }
