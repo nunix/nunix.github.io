@@ -1,5 +1,5 @@
 /**
- * NUNIX ALPHA - Global Stylesheet
+ * NUNIX ALPHA - Global Stylesheet (Finalized)
  * Optimized for: Core, Layout, Navigation, Codeblocks, & Admonitions
  */
 
@@ -106,14 +106,13 @@
   color: var(--neon-blue) !important;
   background: rgba(0, 127, 255, 0.1) !important; 
   backdrop-filter: blur(4px);
-  padding: 0.4rem 0.8rem !important; /* Matches your existing navbar padding */
+  padding: 0.4rem 0.8rem !important;
   border-radius: 3px;
   border: 1px solid rgba(0, 127, 255, 0.3) !important;
   box-shadow: 0 0 10px rgba(0, 127, 255, 0.2);
   text-shadow: 0 0 5px var(--neon-blue-glow);
 }
 
-/* Ensure the active navbar link stays Green and doesn't get the Blue HUD box */
 .navbar__link--active:hover {
   background-color: rgba(48, 186, 120, 0.15) !important;
   border-color: var(--ifm-color-primary) !important;
@@ -124,20 +123,15 @@
 .markdown a:hover {
   color: var(--neon-blue) !important;
   text-decoration: none !important;
-  
-  /* Create the Glass HUD Box */
   background: rgba(0, 127, 255, 0.1); 
   backdrop-filter: blur(4px);
   padding: 2px 6px;
   border-radius: 3px;
   border: 1px solid rgba(0, 127, 255, 0.3);
   box-shadow: 0 0 10px rgba(0, 127, 255, 0.2);
-  
-  /* Slight text lift */
   text-shadow: 0 0 5px var(--neon-blue-glow);
 }
 
-/* Keep the sidebar and navbar active states as Green (the "Active" signal) */
 .navbar__link--active,
 .menu__link--active {
   color: var(--ifm-color-primary) !important;
@@ -152,10 +146,9 @@
   transition: all 0.3s ease;
   border-radius: 6px;
   margin: 2px 4px;
-  z-index: 1; /* Ensure parent has a stacking context */
+  z-index: 1; 
 }
 
-/* The Ripple (Wave) Effect */
 .theme-doc-sidebar-item-link::before {
   content: '';
   position: absolute;
@@ -167,7 +160,7 @@
   transform: translate(-50%, -50%);
   transition: width 0.5s ease-out, height 0.5s ease-out;
   pointer-events: none;
-  z-index: -1; /* Sits behind the text but above the background */
+  z-index: -1; 
 }
 
 .theme-doc-sidebar-item-link:hover {
@@ -194,155 +187,271 @@
 }
 
 /* ==========================================================================
-   4. TABS
+   4. TABS (Elegant, 4-Sided & Anti-Clip)
    ========================================================================== */
 .tabs {
-  background: rgba(0, 0, 0, 0.03);
-  border-radius: 8px 8px 0 0;
-  padding: 4px;
-  border-bottom: 1px solid rgba(48, 186, 120, 0.2);
+  border-bottom: 1px solid rgba(128, 128, 128, 0.2);
+  margin-bottom: 20px;
+  background: transparent;
+  /* Top padding brings items "down" so borders show */
+  padding: 6px 0 10px 0; 
+  gap: 8px; 
 }
 
+.tabs__item {
+  font-family: var(--vintage-mono);
+  font-weight: bold;
+  font-size: 0.8rem;
+  text-transform: uppercase;
+  
+  /* Elegant Dimensions */
+  padding: 6px 24px; 
+  border-radius: 6px; 
+  border: 1px solid transparent; 
+  background: transparent !important;
+  transition: all 0.2s ease;
+  opacity: 0.7;
+  position: relative; 
+}
+
+/* --- HOVER STATE --- */
+.tabs__item:not(.tabs__item--active):hover {
+  opacity: 1;
+  color: var(--neon-blue) !important;
+  background: rgba(0, 127, 255, 0.08) !important; 
+  backdrop-filter: blur(4px);
+  border: 1px solid rgba(0, 127, 255, 0.4) !important; 
+  box-shadow: 0 0 10px rgba(0, 127, 255, 0.15);
+  text-shadow: 0 0 5px var(--neon-blue-glow);
+  text-decoration: none !important;
+  transform: translateY(-1px);
+  z-index: 10;
+}
+
+/* --- ACTIVE STATE --- */
 .tabs__item--active {
+  opacity: 1;
+  font-weight: 700 !important;
   color: var(--ifm-color-primary) !important;
-  background-color: rgba(48, 186, 120, 0.1) !important;
-  border-bottom: 3px solid var(--ifm-color-primary) !important;
-  text-shadow: 0 0 10px rgba(48, 186, 120, 0.3);
+  background-color: rgba(48, 186, 120, 0.08) !important;
+  border: 1px solid rgba(48, 186, 120, 0.3) !important; 
+  animation: tab-pulse 3s infinite ease-in-out;
+  z-index: 5;
+}
+
+.tabs__item--active:hover {
+  color: var(--ifm-color-primary) !important;
+  background-color: rgba(48, 186, 120, 0.12) !important;
+  animation-play-state: paused;
+  border-color: var(--ifm-color-primary) !important;
+  box-shadow: 0 0 12px rgba(48, 186, 120, 0.3);
+}
+
+@keyframes tab-pulse {
+  0% { border-color: rgba(48, 186, 120, 0.3); box-shadow: 0 0 0px rgba(48, 186, 120, 0); }
+  50% { border-color: var(--ifm-color-primary); box-shadow: 0 0 10px rgba(48, 186, 120, 0.3); }
+  100% { border-color: rgba(48, 186, 120, 0.3); box-shadow: 0 0 0px rgba(48, 186, 120, 0); }
 }
 
 /* ==========================================================================
-   5. CODEBLOCKS & INTERACTIVE COPY
+   5. CODEBLOCKS (Terminal, Header & Pulse)
    ========================================================================== */
+
+/* 1. THE OUTER SHELL (Ghost Anchor) */
+.nunix-code-wrapper {
+  position: relative;
+  margin-top: 15px !important;
+  margin-bottom: 15px !important;
+  background: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
+  padding: 0 !important; 
+  cursor: text !important;
+}
+
+/* 2. THE INNER BOX (Compact Terminal) */
+.nunix-code-wrapper .prism-code,
+.nunix-code-wrapper pre {
+  background: var(--nunix-glass-bg) !important;
+  border: 1px solid rgba(48, 186, 120, 0.2) !important;
+  border-radius: 4px !important;
+  padding: 0.2rem 0.5rem !important; 
+  margin: 0 !important;
+  display: block;
+  vertical-align: top;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+  overflow: hidden;
+}
+
+/* 3. TERMINAL HEADER & HUD (Grouped) */
+
+/* Left Side: Language Label */
+.prism-code::before {
+  content: "CODE"; 
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 0%;
+  z-index: 10;
+  
+  font-family: var(--vintage-mono);
+  font-size: 0.65rem; 
+  font-weight: bold;
+  color: var(--neon-blue);
+  background: rgba(0, 0, 0, 0.85); 
+  backdrop-filter: blur(4px);
+  padding: 0px 8px;
+  
+  border-radius: 2px 0 2px 0; 
+  border-right: 1px solid rgba(0, 127, 255, 0.3);
+  border-bottom: 1px solid rgba(0, 127, 255, 0.3);
+  
+  letter-spacing: 0.5px;
+  pointer-events: none;
+  text-transform: uppercase;
+}
+
+/* Right Side: Hint/Status Box */
+.nunix-terminal-hint {
+  position: absolute;
+  top: 0;
+  right: 0;
+  height: 17px;
+  width: 100%;
+  z-index: 10;
+  
+  font-family: var(--vintage-mono);
+  font-size: 0.65rem;
+  font-weight: bold;
+  color: var(--neon-blue);
+  background: rgba(0, 0, 0, 0.85); 
+  backdrop-filter: blur(4px);
+  padding: 0px 8px; 
+  
+  border-radius: 0 2px 0 2px; 
+  border-left: 1px solid rgba(0, 127, 255, 0.3);
+  border-bottom: 1px solid rgba(0, 127, 255, 0.3);
+  
+  letter-spacing: 0.5px;
+  pointer-events: none;
+  text-transform: uppercase;
+  text-align: right;
+  transition: opacity 0.3s ease;
+}
+
+/* Copy Status Feedback */
+.nunix-copy-status {
+  position: absolute;
+  top: 20px;
+  right: 8px;
+  z-index: 30;
+  background: var(--ifm-color-primary);
+  color: #000;
+  font-family: var(--vintage-mono);
+  font-weight: 800;
+  font-size: 0.65rem;
+  padding: 2px 8px;
+  border-radius: 2px;
+  opacity: 0;
+  transform: scale(0.9) translateX(10px);
+  transition: all 0.15s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  pointer-events: none;
+  box-shadow: 0 0 10px rgba(48, 186, 120, 0.5);
+}
+
+.alert-active .nunix-copy-status { opacity: 1; transform: scale(1) translateX(0); }
+.hint-pulse { color: var(--ifm-color-primary); margin-right: 4px; animation: neon-blink 2s infinite ease-in-out; }
+
+/* Language Mappings */
+.prism-code.language-bash::before, .prism-code.language-sh::before { content: "BASH"; }
+.prism-code.language-ts::before, .prism-code.language-typescript::before { content: "TYPESCRIPT"; }
+.prism-code.language-js::before, .prism-code.language-javascript::before { content: "JAVASCRIPT"; }
+.prism-code.language-css::before { content: "CSS"; }
+.prism-code.language-scss::before { content: "SCSS"; }
+.prism-code.language-json::before { content: "JSON"; }
+.prism-code.language-yaml::before, .prism-code.language-yml::before { content: "YAML"; }
+.prism-code.language-html::before { content: "HTML"; }
+.prism-code.language-tsx::before { content: "TSX"; }
+.prism-code.language-jsx::before { content: "JSX"; }
+.prism-code.language-python::before, .prism-code.language-py::before { content: "PYTHON"; }
+.prism-code.language-docker::before, .prism-code.language-dockerfile::before { content: "DOCKER"; }
+.prism-code.language-go::before { content: "GO"; }
+.prism-code.language-rust::before { content: "RUST"; }
+.prism-code.language-csharp::before, .prism-code.language-cs::before { content: "C#"; }
+.prism-code.language-cpp::before { content: "C++"; }
+.prism-code.language-sql::before { content: "SQL"; }
+.prism-code.language-powershell::before, .prism-code.language-ps1::before { content: "POWERSHELL"; }
+
+/* 4. ANIMATIONS & INTERACTIONS */
+
+/* Container Hover Glow */
+.nunix-code-wrapper:hover .prism-code,
+.nunix-code-wrapper:hover pre {
+  animation: code-border-pulse 0.5s infinite ease-in-out;
+  border-color: var(--neon-blue) !important;
+  box-shadow: 0 0 15px var(--neon-blue) !important;
+}
+
+/* Header Highlight on Hover */
+.nunix-code-wrapper:hover .prism-code::before,
+.nunix-code-wrapper:hover .nunix-terminal-hint {
+  border-bottom-color: var(--neon-blue);
+  color: #fff;
+  text-shadow: 0 0 5px var(--neon-blue-glow);
+}
+
+@keyframes thick-pulse {
+  0% { box-shadow: 0 0 0 0px var(--neon-blue) , 0 0 0px var(--neon-blue-glow); }
+  50% { box-shadow: 0 0 0 1.5px var(--neon-blue) , 0 0 20px var(--neon-blue); }
+  100% { box-shadow: 0 0 0 0px var(--neon-blue) , 0 0 0px var(--neon-blue-glow); }
+}
+
+/* 5. CODE CONTENT STYLING */
 .prism-code .token-line {
   font-family: var(--vintage-mono) !important;
-  font-size: 1rem !important;
-  line-height: 1.2 !important;
-  letter-spacing: 0.05rem;
-  cursor: text !important;
+  font-size: 0.95rem !important; 
+  line-height: 1.1 !important;    
+  letter-spacing: 0.03rem;
+  min-height: 1.1rem; 
 }
 
 .code-line-number {
   color: rgba(48, 186, 120, 0.4) !important;
   font-family: var(--vintage-mono) !important;
-  font-size: 1.1rem !important;
-  padding-right: 1rem;
+  font-size: 0.95rem !important; 
+  padding-right: 0.8rem;
+  margin-right: 0.8rem;
   border-right: 1px solid rgba(48, 186, 120, 0.2);
   opacity: 0.6;
 }
 
 .prism-code .token-line:hover {
   background-color: rgba(48, 186, 120, 0.1) !important;
-  border-left: 2px solid var(--ifm-color-primary);
+  box-shadow: -1rem 0 0 rgba(48, 186, 120, 0.1), 1rem 0 0 rgba(48, 186, 120, 0.1);
   filter: brightness(1.1);
+  z-index: 5;
+  position: relative;
 }
 
-/* The "CLICK TO COPY" hover hint */
 .prism-code .token-line:hover::after {
-  content: 'CLICK TO COPY LINE';
+  content: 'COPY'; 
   position: absolute;
-  right: 1rem;
+  right: 0;
   font-family: var(--vintage-mono);
   font-size: 0.6rem;
-  color: var(--neon-blue);
-  opacity: 0.5;
-}
-
-.nunix-code-wrapper {
-  position: relative;
-  margin-top: 20px !important; 
-  border: 1px solid rgba(48, 186, 120, 0.2); /* Keep your steady border */
-  background: var(--nunix-glass-bg);
-  cursor: text !important;
-}
-
-.nunix-code-wrapper:hover {
-  background: var(--nunix-glass-bg) !important;
-  border-color: rgba(48, 186, 120, 0.2) !important;
-  box-shadow: none !important;
-}
-
-.nunix-code-wrapper:hover .nunix-terminal-hint {
-  opacity: 0.05 !important; /* Extremely faint */
-  pointer-events: none !important; /* Mouse passes through to select code below */
-  transition: opacity 0.1s ease !important;
-}
-
-.prism-code:hover {
-  background: transparent !important;
-  box-shadow: none !important;
-}
-
-.nunix-terminal-hint {
-  position: absolute;
-  top: 8px;
-  right: 12px; 
-  z-index: 10;
-  font-family: var(--vintage-mono);
-  font-size: 0.65rem;
   font-weight: bold;
   color: var(--neon-blue);
-  background: rgba(0, 0, 0, 0.75); 
-  backdrop-filter: blur(4px);
-  padding: 4px 10px;
-  border-radius: 3px;
-  border: 1px solid rgba(0, 127, 255, 0.3);
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.4);
-  letter-spacing: 1px;
+  opacity: 0.6;
   pointer-events: none;
-  white-space: nowrap;
-  text-transform: uppercase;
-  transition: opacity 0.3s ease;
+  margin-top: 2px; 
 }
 
-.prism-code:hover .nunix-terminal-hint {
-  opacity: 0.2; 
-  transition: opacity 0.3s ease;
-}
-
-/* Ensure the language tab and hint don't collide */
-.nunix-code-header {
-  margin-right: 120px; /* Leaves space for the hint on the right */
-}
-
-.hint-pulse {
-  color: var(--ifm-color-primary);
-  margin-right: 6px;
-  /* Keep the subtle blink to make the "terminal" feel alive */
-  animation: neon-blink 2s infinite ease-in-out;
-}
-
-/* --- The Global Status Badge (Top Right) --- */
-.nunix-copy-status {
-  position: absolute;
-  top: 12px;
-  right: 55px;
-  z-index: 20;
-  background: var(--ifm-color-primary);
-  color: #000;
-  font-family: var(--vintage-mono);
-  font-weight: 800;
-  font-size: 0.7rem;
-  padding: 3px 10px;
-  border-radius: 2px;
-  opacity: 0;
-  transform: scale(0.9) translateX(10px);
-  transition: all 0.15s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-  pointer-events: none;
-  box-shadow: 0 0 15px rgba(48, 186, 120, 0.5);
-}
-
-.alert-active .nunix-copy-status {
-  opacity: 1;
-  transform: scale(1) translateX(0);
-}
-
-/* --- Selection & Flashes --- */
 ::selection { background: rgba(0, 127, 255, 0.3); color: #ffffff; }
 .prism-code ::selection { background: rgba(48, 186, 120, 0.3); }
 
 .block-copied-flash {
-  outline: 2px solid var(--neon-blue) !important;
-  box-shadow: 0 0 20px rgba(0, 127, 255, 0.4) !important;
+  outline: 1px solid var(--neon-blue) !important;
+  box-shadow: 0 0 15px rgba(0, 127, 255, 0.4) !important;
   transition: all 0.2s ease;
 }
 
@@ -422,17 +531,15 @@ code:not(pre code) {
 }
 
 /* ==========================================================================
-   8. ANIMATIONS & KEYFRAMES
+   8. GLOBAL ANIMATIONS
    ========================================================================== */
 @keyframes hint-fade-in { from { opacity: 0; transform: translateY(5px); } to { opacity: 0.7; transform: translateY(0); } }
 @keyframes neon-blink { 0%, 100% { opacity: 1; text-shadow: 0 0 5px var(--ifm-color-primary); } 50% { opacity: 0.3; text-shadow: none; } }
 @keyframes float-up { from { opacity: 1; transform: translateY(0); } to { opacity: 0; transform: translateY(-15px); } }
 
 /* ==========================================================================
-   9. IMAGES & CSS LIGHTBOX
+   9. IMAGES & LIGHTBOX
    ========================================================================== */
-
-/* 1. The Image Container & Halo Effect */
 [class*='blog-post'] .markdown p > img,
 .blog-wrapper .markdown p > img {
   cursor: pointer;
@@ -443,14 +550,12 @@ code:not(pre code) {
   margin: 2rem auto;
 }
 
-/* The Neon Halo on Hover */
 [class*='blog-post'] .markdown p:has(img):hover img {
   border-color: var(--ifm-color-primary);
   box-shadow: 0 0 20px rgba(48, 186, 120, 0.4);
   transform: translateY(-5px);
 }
 
-/* 2. The HUD "Zoom" Label (Pseudo-element) */
 [class*='blog-post'] .markdown p:has(img)::after {
   content: '⛶ CLICK TO ENLARGE';
   display: block;
@@ -464,11 +569,8 @@ code:not(pre code) {
   padding-bottom: 1.5rem;
 }
 
-[class*='blog-post'] .markdown p:has(img):hover::after {
-  opacity: 1;
-}
+[class*='blog-post'] .markdown p:has(img):hover::after { opacity: 1; }
 
-/* 3. The Full-Screen Zoom Layer (CSS-Only Modal) */
 .img-zoom-overlay {
   position: fixed;
   top: 0; left: 0;
@@ -483,13 +585,10 @@ code:not(pre code) {
   opacity: 0;
   transition: all 0.3s ease;
   cursor: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cline x1='18' y1='6' x2='6' y2='18'%3E%3C/line%3E%3Cline x1='6' y1='6' x2='18' y2='18'%3E%3C/line%3E%3C/svg%3E"), auto;
-  overflow: auto; /* Allow scrolling when zoomed in */
+  overflow: auto; 
 }
 
-.img-zoom-overlay.active {
-  visibility: visible;
-  opacity: 1;
-}
+.img-zoom-overlay.active { visibility: visible; opacity: 1; }
 
 .img-zoom-overlay img {
   max-width: 90%;
@@ -500,31 +599,25 @@ code:not(pre code) {
   transition: transform 0.3s ease;
 }
 
-.img-zoom-overlay.active img {
-  transform: scale(1);
-}
+.img-zoom-overlay.active img { transform: scale(1); }
 
 .zoom-hud-exit {
   position: fixed; 
   top: 2rem;
-  right: 2rem; /* Moved to lower right */
+  right: 2rem;
   left: auto;
   transform: none;
-  
   font-family: var(--vintage-mono);
   font-size: 0.75rem;
   font-weight: bold;
-  color: var(--ifm-color-primary); /* SUSE Green */
+  color: var(--ifm-color-primary);
   letter-spacing: 1.5px;
-  
-  /* High-Contrast Dark Glass */
   background: rgba(0, 0, 0, 0.8); 
   backdrop-filter: blur(10px);
   padding: 8px 16px;
   border-radius: 4px;
   border: 1px solid rgba(48, 186, 120, 0.4);
   box-shadow: 0 4px 15px rgba(0, 0, 0, 0.5);
-  
   z-index: 10000;
   pointer-events: none;
   display: flex;
@@ -549,24 +642,16 @@ code:not(pre code) {
               max-height 0.3s ease !important;
 }
 
-/* The "Magnified" state */
 .zoomable-content.is-magnified {
   cursor: zoom-out;
   max-width: none !important;
   max-height: none !important;
-  transform: scale(1) !important; /* Reset the 0.9 scale from the overlay */
+  transform: scale(1) !important; 
 }
 
-/* Optional: Slight pulse to make it feel "active" */
-.img-zoom-overlay.active .zoom-hud-exit {
-  animation: hud-glow-pulse 2s infinite ease-in-out;
-}
+.img-zoom-overlay.active .zoom-hud-exit { animation: hud-glow-pulse 2s infinite ease-in-out; }
 
-@keyframes hud-flicker {
-  0%, 100% { opacity: 0.6; }
-  50% { opacity: 0.3; }
-}
-
+@keyframes hud-flicker { 0%, 100% { opacity: 0.6; } 50% { opacity: 0.3; } }
 @keyframes hud-glow-pulse {
   0%, 100% { border-color: rgba(48, 186, 120, 0.4); box-shadow: 0 4px 15px rgba(0, 0, 0, 0.5); }
   50% { border-color: var(--ifm-color-primary); box-shadow: 0 0 10px rgba(48, 186, 120, 0.3); }
@@ -574,7 +659,6 @@ code:not(pre code) {
 
 .nunix-img-wrapper {
   position: relative;
-  /* Reset margin since hint is now internal */
   margin-top: 10px !important; 
   display: block;
 }
@@ -584,34 +668,28 @@ code:not(pre code) {
   top: 12px;
   right: 12px;
   z-index: 10;
-  
   font-family: var(--vintage-mono);
   font-size: 0.65rem;
   font-weight: bold;
   color: var(--neon-blue);
-  
-  /* Standardized Glass Theme */
   background: rgba(0, 0, 0, 0.75);
   backdrop-filter: blur(6px);
   padding: 4px 10px;
   border-radius: 3px;
   border: 1px solid rgba(0, 127, 255, 0.3);
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
-  
   letter-spacing: 1px;
   pointer-events: none;
   white-space: nowrap;
   text-transform: uppercase;
 }
 
-/* Reusing the pulse from the codeblock hint logic */
 .nunix-image-hint .hint-pulse {
   color: var(--ifm-color-primary);
   margin-right: 6px;
   animation: neon-blink 2s infinite ease-in-out;
 }
 
-/* Halo Effect Fix: Update the hover to target the wrapper */
 .nunix-img-wrapper:hover img {
   border-color: var(--ifm-color-primary);
   box-shadow: 0 0 20px rgba(48, 186, 120, 0.3);
@@ -619,33 +697,27 @@ code:not(pre code) {
 }
 
 /* ==========================================================================
-   10. TACTICAL INDEX (Table of Contents)
+   10. TABLE OF CONTENTS
    ========================================================================== */
-
 .table-of-contents__link {
   transition: all 0.2s ease;
   border-left: 1px solid rgba(48, 186, 120, 0.1); 
   padding-left: 10px !important;
 }
 
-/* Standardization: EXACT Navbar Hover Effect */
 .table-of-contents__link:not(.table-of-contents__link--active):hover {
   color: var(--neon-blue) !important;
   text-decoration: none !important;
-  
-  /* Matches Navbar Section 2 exactly */
   background: rgba(0, 127, 255, 0.1) !important; 
   backdrop-filter: blur(4px);
   border-radius: 3px;
   border: 1px solid rgba(0, 127, 255, 0.3) !important;
   box-shadow: 0 0 10px rgba(0, 127, 255, 0.2);
-  
   padding: 2px 10px !important;
   margin-left: -5px;
   text-shadow: 0 0 5px var(--neon-blue-glow);
 }
 
-/* The Active Link - Stays Green */
 .table-of-contents__link--active {
   color: var(--ifm-color-primary) !important;
   border-left: 2.5px solid var(--ifm-color-primary) !important;
@@ -653,7 +725,6 @@ code:not(pre code) {
   text-shadow: 0 0 8px rgba(48, 186, 120, 0.3);
 }
 
-/* Active Hover - Stays Green but gets the Navbar-style Glass Box */
 .table-of-contents__link--active:hover {
   color: var(--ifm-color-primary) !important;
   background: rgba(0, 127, 255, 0.1) !important; 
@@ -662,10 +733,8 @@ code:not(pre code) {
 }
 
 /* ==========================================================================
-   11. PAGINATION & TAGS (Access Modules)
+   11. PAGINATION & TAGS
    ========================================================================== */
-
-/* 1. Pagination Buttons (Next / Previous) */
 .pagination-nav__link {
   border-radius: 4px !important;
   border: 1px solid rgba(48, 186, 120, 0.2) !important;
@@ -678,7 +747,6 @@ code:not(pre code) {
 
 .pagination-nav__link:hover {
   text-decoration: none !important;
-  /* Applying Standardized Navbar/TOC Hover HUD */
   background: rgba(0, 127, 255, 0.1) !important;
   border-color: rgba(0, 127, 255, 0.3) !important;
   box-shadow: 0 0 15px rgba(0, 127, 255, 0.2);
@@ -689,24 +757,15 @@ code:not(pre code) {
   text-shadow: 0 0 8px var(--neon-blue-glow);
 }
 
-/* 2. Blog Tags - The Sharp Edge Experiment */
-.tag, 
-[class*='tag_'],
-.margin-vert--md .margin-horiz--sm a {
-  /* Force sharp corners by overriding the theme variable and the property */
+.tag, [class*='tag_'], .margin-vert--md .margin-horiz--sm a {
   --ifm-tag-border-radius: 0px !important;
   border-radius: 0px !important; 
-  
-  /* Keep it minimal */
   transition: all 0.2s ease !important;
   text-decoration: none !important;
-  border: 1px solid transparent !important; /* Invisible border to prevent jumping on hover */
+  border: 1px solid transparent !important;
 }
 
-/* The "Clean HUD" Hover you liked */
-.tag:hover, 
-[class*='tag_']:hover,
-.margin-vert--md .margin-horiz--sm a:hover {
+.tag:hover, [class*='tag_']:hover, .margin-vert--md .margin-horiz--sm a:hover {
   color: var(--neon-blue) !important;
   background: rgba(0, 127, 255, 0.1) !important;
   box-shadow: 0 0 10px rgba(0, 127, 255, 0.2);
@@ -715,21 +774,14 @@ code:not(pre code) {
 }
 
 /* ==========================================================================
-   12. FILE-PATH BREADCRUMBS (Terminal Navigation - Final Stability)
+   12. FILE-PATH BREADCRUMBS
    ========================================================================== */
-
-/* 1. THE TOTAL PURGE: Kill all default theme decorations */
-.breadcrumbs__separator,
-.breadcrumbs__item--separator,
-[class*='separator'],
-.breadcrumbs li::before,
-.breadcrumbs li::after,
-.breadcrumbs svg {
+.breadcrumbs__separator, .breadcrumbs__item--separator, [class*='separator'],
+.breadcrumbs li::before, .breadcrumbs li::after, .breadcrumbs svg {
   display: none !important;
   content: none !important;
 }
 
-/* 2. Container: Terminal Baseline */
 .breadcrumbs {
   font-family: var(--vintage-mono);
   font-size: 0.85rem;
@@ -741,14 +793,8 @@ code:not(pre code) {
   margin: 0 !important;
 }
 
-/* 3. The Breadcrumb Item */
-.breadcrumbs__item {
-  display: inline-flex !important;
-  align-items: center !important;
-}
+.breadcrumbs__item { display: inline-flex !important; align-items: center !important; }
 
-/* 4. THE SEPARATOR (Forced Unix Slash) */
-/* This inserts a green slash between every breadcrumb item */
 .breadcrumbs__item + .breadcrumbs__item::before {
   display: inline-block !important;
   content: "/" !important;
@@ -760,7 +806,6 @@ code:not(pre code) {
   visibility: visible !important;
 }
 
-/* 5. Global Link Styling */
 .breadcrumbs__link {
   display: inline-flex;
   align-items: center;
@@ -772,7 +817,6 @@ code:not(pre code) {
   transition: all 0.2s ease;
 }
 
-/* 6. Terminal Prefix (RESTING: SUSE Green) */
 .breadcrumbs__item:first-child .breadcrumbs__link::before {
   content: "nunix@os:~$";
   font-weight: bold;
@@ -780,7 +824,6 @@ code:not(pre code) {
   margin-right: 4px;
 }
 
-/* 7. THE GLOWING CURSOR (RESTING: SUSE Green) */
 .breadcrumbs__item:first-child .breadcrumbs__link::after {
   content: "_";
   color: var(--ifm-color-primary);
@@ -789,7 +832,6 @@ code:not(pre code) {
   font-weight: bold;
 }
 
-/* 8. THE HOVER FIX: Force First Item to Blue */
 .breadcrumbs__item:first-child .breadcrumbs__link:hover {
   background: rgba(0, 127, 255, 0.1) !important; 
   border: 1px solid rgba(0, 127, 255, 0.3) !important;
@@ -801,7 +843,6 @@ code:not(pre code) {
   text-shadow: 0 0 5px var(--neon-blue-glow) !important;
 }
 
-/* 9. ACTIVE LINK: Industrial Caps & Green Glow */
 .breadcrumbs__item--active .breadcrumbs__link {
   color: var(--ifm-color-primary) !important;
   font-weight: 700 !important;
@@ -811,7 +852,6 @@ code:not(pre code) {
   border: 1px solid rgba(48, 186, 120, 0.2) !important;
 }
 
-/* 10. HUD HOVER: Standard Blue for Parent Directories */
 .breadcrumbs__link:not(.breadcrumbs__item--active .breadcrumbs__link):hover {
   color: var(--neon-blue) !important;
   text-decoration: none !important;
@@ -820,9 +860,8 @@ code:not(pre code) {
 }
 
 /* ==========================================================================
-   13. SYSTEM STATUS BAR (Triple-Section Layout)
+   13. SYSTEM STATUS BAR
    ========================================================================== */
-
 .nunix-status-bar {
   position: fixed;
   bottom: 0;
@@ -830,7 +869,7 @@ code:not(pre code) {
   width: 100%;
   height: 28px;
   display: flex;
-  justify-content: space-between; /* Spaced sections */
+  justify-content: space-between; 
   align-items: center;
   padding: 0 15px;
   font-family: var(--vintage-mono);
@@ -842,128 +881,83 @@ code:not(pre code) {
   border-top: 1px solid rgba(48, 186, 120, 0.3);
 }
 
-/* Section Logic */
-.status-section {
-  display: flex;
-  align-items: center;
-  flex: 1; /* Side sections grow equally */
-}
+.status-section { display: flex; align-items: center; flex: 1; }
+.section-center { justify-content: center; flex: 0 0 auto; }
+.section-right { justify-content: flex-end; gap: 20px; }
+.status-node { display: flex; align-items: center; gap: 8px; white-space: nowrap; }
 
-.section-center {
-  justify-content: center;
-  flex: 0 0 auto; /* Center doesn't grow, stays in middle */
-}
+[data-theme='dark'] .nunix-status-bar { background: rgba(10, 15, 20, 0.95); color: var(--ifm-color-primary); }
+[data-theme='light'] .nunix-status-bar { background: rgba(245, 247, 250, 0.9); color: #1a4d32; border-top: 1px solid rgba(26, 77, 50, 0.2); }
 
-.section-right {
-  justify-content: flex-end;
-  gap: 20px;
-}
+.status-active-value { color: var(--ifm-color-primary); font-weight: bold; }
+.status-toggle { background: transparent; border: none; color: inherit; font-family: inherit; font-size: 0.6rem; font-weight: bold; cursor: pointer; padding: 2px 8px; }
 
-/* Node Styling */
-.status-node {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  white-space: nowrap;
-}
+.nunix-status-bar.is-collapsed { height: 6px; background: var(--ifm-color-primary) !important; }
 
-/* Theme Colors */
-[data-theme='dark'] .nunix-status-bar {
-  background: rgba(10, 15, 20, 0.95);
-  color: var(--ifm-color-primary);
-}
-
-[data-theme='light'] .nunix-status-bar {
-  background: rgba(245, 247, 250, 0.9);
-  color: #1a4d32;
-  border-top: 1px solid rgba(26, 77, 50, 0.2);
-}
-
-.status-active-value {
-  color: var(--ifm-color-primary);
-  font-weight: bold;
-}
-
-/* Toggle Interaction */
-.status-toggle {
-  background: transparent;
-  border: none;
-  color: inherit;
-  font-family: inherit;
-  font-size: 0.6rem;
-  font-weight: bold;
-  cursor: pointer;
-  padding: 2px 8px;
-}
-
-/* Collapsed State */
-.nunix-status-bar.is-collapsed {
-  height: 6px;
+/* HUD Toggle Button (Collapsed State) */
+.status-toggle.is-collapsed-btn {
+  position: fixed;
+  bottom: 0 !important;
+  right: 30px; 
+  height: 22px; 
+  padding: 0 10px;
   background: var(--ifm-color-primary) !important;
+  color: #000 !important;
+  border: none;
+  border-radius: 3px 3px 0 0;
+  font-family: var(--vintage-mono);
+  font-weight: 500; 
+  font-size: 0.55rem; 
+  z-index: 12000;
+  cursor: pointer;
+  box-shadow: 0 -2px 8px rgba(0, 0, 0, 0.4);
+  opacity: 0.8;
+  transition: all 0.2s ease;
+  letter-spacing: 0.5px;
 }
+
+.status-toggle.is-collapsed-btn:hover { opacity: 1; height: 24px; filter: brightness(1.2); }
+[data-theme='light'] .status-toggle.is-collapsed-btn { background: #1a4d32 !important; color: #fff !important; opacity: 0.9; }
 
 /* ==========================================================================
-   14. LOCALIZED CRT EFFECT (Standardized)
+   14. LOCALIZED CRT EFFECT
    ========================================================================== */
+.navbar__brand { position: relative; display: flex; align-items: center; overflow: hidden; }
 
-.navbar__brand {
-  position: relative;
-  display: flex;
-  align-items: center;
-  overflow: hidden;
-}
-
-/* Pseudo-element for the scanline texture */
 .navbar__brand::after {
   content: "";
   position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background: linear-gradient(
-    rgba(18, 16, 16, 0) 50%, 
-    rgba(0, 0, 0, 0.15) 50%
-  );
+  top: 0; left: 0; width: 100%; height: 100%;
+  background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.15) 50%);
   background-size: 100% 3px;
   z-index: 2;
   pointer-events: none;
   transition: opacity 0.3s ease;
 }
 
-/* Softer scanlines for Light Mode */
 [data-theme='light'] .navbar__brand::after {
   opacity: 0.2;
-  background: linear-gradient(
-    rgba(26, 77, 50, 0) 50%, 
-    rgba(26, 77, 50, 0.1) 50%
-  );
+  background: linear-gradient(rgba(26, 77, 50, 0) 50%, rgba(26, 77, 50, 0.1) 50%);
 }
 
 /* ==========================================================================
-   15. HARDWARE HICCUP (Glitch Animation)
+   15. HARDWARE HICCUP
    ========================================================================== */
-
 @keyframes hardware-hiccup {
-  0%   { opacity: 1; filter: brightness(1); }
-  92%  { opacity: 1; filter: brightness(1); }
-  93%  { opacity: 0.8; filter: brightness(1.4) contrast(1.2); transform: translateX(1px); }
-  94%  { opacity: 1; filter: brightness(1); transform: translateX(0); }
-  95%  { opacity: 0.7; filter: brightness(0.8); transform: translateX(-1px); }
-  96%  { opacity: 1; filter: brightness(1); transform: translateX(0); }
+  0% { opacity: 1; filter: brightness(1); }
+  92% { opacity: 1; filter: brightness(1); }
+  93% { opacity: 0.8; filter: brightness(1.4) contrast(1.2); transform: translateX(1px); }
+  94% { opacity: 1; filter: brightness(1); transform: translateX(0); }
+  95% { opacity: 0.7; filter: brightness(0.8); transform: translateX(-1px); }
+  96% { opacity: 1; filter: brightness(1); transform: translateX(0); }
   100% { opacity: 1; filter: brightness(1); }
 }
 
-/* Targets both logo versions within the navbar */
-.navbar__brand img {
-  animation: hardware-hiccup 7s infinite;
-  display: block;
-}
+.navbar__brand img { animation: hardware-hiccup 7s infinite; display: block; }
 
 /* ==========================================================================
-   16. SYSTEM LOG CONSOLE (Enhanced Readability)
+   16. SYSTEM LOG CONSOLE
    ========================================================================== */
-
 .nunix-log-console {
   position: fixed;
   bottom: 40px; 
@@ -978,49 +972,18 @@ code:not(pre code) {
   transition: all 0.3s ease;
 }
 
-/* --- DARK MODE CONSOLE --- */
-[data-theme='dark'] .nunix-log-console {
-  background: #0a0f14; /* Solid obsidian for contrast */
-  border: 1px solid #30ba78;
-  color: #30ba78;
-}
+[data-theme='dark'] .nunix-log-console { background: #0a0f14; border: 1px solid #30ba78; color: #30ba78; }
+[data-theme='light'] .nunix-log-console { background: #f0f4f2; border: 1px solid #1a4d32; color: #1a4d32; box-shadow: 0 10px 30px rgba(26, 77, 50, 0.2); }
 
-/* --- LIGHT MODE CONSOLE --- */
-[data-theme='light'] .nunix-log-console {
-  background: #f0f4f2; /* Solid light gray-green */
-  border: 1px solid #1a4d32;
-  color: #1a4d32;
-  box-shadow: 0 10px 30px rgba(26, 77, 50, 0.2);
-}
-
-.log-header {
-  padding: 6px 12px;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  font-weight: bold;
-  text-transform: uppercase;
-  letter-spacing: 1px;
-}
-
+.log-header { padding: 6px 12px; display: flex; justify-content: space-between; align-items: center; font-weight: bold; text-transform: uppercase; letter-spacing: 1px; }
 [data-theme='dark'] .log-header { background: #30ba78; color: #000; }
 [data-theme='light'] .log-header { background: #1a4d32; color: #fff; }
 
-.log-body {
-  padding: 12px;
-  max-height: 220px;
-  overflow-y: auto;
-  line-height: 1.4;
-}
-
-/* Line Coloring */
-.log-line { margin-bottom: 6px; }
-
-/* OK / Success State */
+.log-body { padding: 12px; max-height: 220px; overflow-y: auto; line-height: 1.4; }
+.log-line { margin-bottom: 6px; animation: log-fade-in 0.1s ease-out forwards; }
 .text-success { color: #30ba78; font-weight: bold; }
 [data-theme='light'] .text-success { color: #238655; }
 
-/* Highlight / Geminix Line */
 .geminix-link {
   transition: all 0.2s ease;
   cursor: pointer;
@@ -1035,7 +998,6 @@ code:not(pre code) {
 
 .geminix-link:hover {
   color: var(--neon-blue) !important;
-  /* The "Blue Glass" HUD Signature */
   background: rgba(0, 127, 255, 0.1) !important; 
   backdrop-filter: blur(4px);
   border: 1px solid rgba(0, 127, 255, 0.3) !important;
@@ -1044,64 +1006,10 @@ code:not(pre code) {
   text-decoration: none !important;
 }
 
-/* Ensure the BY: label doesn't inherit the hover effect */
-.author-trigger:hover .status-label {
-  color: inherit;
-  text-shadow: none;
-}
+.author-trigger:hover .status-label { color: inherit; text-shadow: none; }
+.log-close-btn { background: transparent; border: none; cursor: pointer; font-family: inherit; font-weight: bold; color: inherit; font-size: 0.8rem; }
 
-/* Close Button */
-.log-close-btn {
-  background: transparent;
-  border: none;
-  cursor: pointer;
-  font-family: inherit;
-  font-weight: bold;
-  color: inherit;
-  font-size: 0.8rem;
-}
-
-/* ==========================================================================
-   17. ELEGANT HUD TOGGLE (Reduced Scale)
-   ========================================================================== */
-
-.status-toggle.is-collapsed-btn {
-  position: fixed;
-  bottom: 0 !important;
-  right: 30px; /* Shifted slightly more for balance */
-  height: 22px; /* Reduced from 28px for elegance */
-  padding: 0 10px;
-  background: var(--ifm-color-primary) !important;
-  color: #000 !important;
-  border: none;
-  border-radius: 3px 3px 0 0;
-  font-family: var(--vintage-mono);
-  font-weight: 500; /* Lighter weight for a technical feel */
-  font-size: 0.55rem; /* Micro-label style */
-  z-index: 12000;
-  cursor: pointer;
-  box-shadow: 0 -2px 8px rgba(0, 0, 0, 0.4);
-  opacity: 0.8; /* Slightly transparent until hover */
-  transition: all 0.2s ease;
-  letter-spacing: 0.5px;
-}
-
-.status-toggle.is-collapsed-btn:hover {
-  opacity: 1;
-  height: 24px; /* Subtle lift on hover */
-  filter: brightness(1.2);
-}
-
-[data-theme='light'] .status-toggle.is-collapsed-btn {
-  background: #1a4d32 !important;
-  color: #fff !important;
-  opacity: 0.9;
-}
-
-/* ==========================================================================
-   18. TERMINAL CURSOR & LINE REFINEMENT
-   ========================================================================== */
-
+/* Log Console Animation */
 .log-cursor {
   display: inline-block;
   width: 8px;
@@ -1112,106 +1020,5 @@ code:not(pre code) {
   box-shadow: 0 0 5px var(--ifm-color-primary);
 }
 
-@keyframes terminal-blink {
-  to { visibility: hidden; }
-}
-
-/* Subtle fade-in for new lines */
-.log-line {
-  animation: log-fade-in 0.1s ease-out forwards;
-}
-
-@keyframes log-fade-in {
-  from { opacity: 0; transform: translateY(2px); }
-  to { opacity: 1; transform: translateY(0); }
-}
-
-/* ==========================================================================
-   19. TABS (Elegant, 4-Sided & Anti-Clip)
-   ========================================================================== */
-
-.tabs {
-  border-bottom: 1px solid rgba(128, 128, 128, 0.2);
-  margin-bottom: 20px;
-  background: transparent;
-  
-  /* CRITICAL FIX: Top padding brings items "down" so borders show */
-  padding: 6px 0 10px 0; 
-  
-  gap: 8px; 
-}
-
-.tabs__item {
-  font-family: var(--vintage-mono);
-  font-weight: bold;
-  font-size: 0.8rem;
-  text-transform: uppercase;
-  
-  /* Elegant Dimensions */
-  padding: 6px 24px; 
-  border-radius: 6px; 
-  
-  /* Base: Invisible 4-sided border */
-  border: 1px solid transparent; 
-  
-  background: transparent !important;
-  transition: all 0.2s ease;
-  opacity: 0.7;
-  position: relative; /* Ensures z-index layering works */
-}
-
-/* --- HOVER STATE (Inactive Blue Glass) --- */
-.tabs__item:not(.tabs__item--active):hover {
-  opacity: 1;
-  color: var(--neon-blue) !important;
-  background: rgba(0, 127, 255, 0.08) !important; 
-  backdrop-filter: blur(4px);
-  
-  /* 4-Sided Blue Border */
-  border: 1px solid rgba(0, 127, 255, 0.4) !important; 
-  
-  box-shadow: 0 0 10px rgba(0, 127, 255, 0.15);
-  text-shadow: 0 0 5px var(--neon-blue-glow);
-  text-decoration: none !important;
-  transform: translateY(-1px);
-  z-index: 10; /* Ensures the border sits on top of neighboring elements */
-}
-
-/* --- ACTIVE STATE (System Green - Pulsing) --- */
-.tabs__item--active {
-  opacity: 1;
-  font-weight: 700 !important;
-  color: var(--ifm-color-primary) !important;
-  background-color: rgba(48, 186, 120, 0.08) !important;
-  
-  /* 4-Sided Green Border */
-  border: 1px solid rgba(48, 186, 120, 0.3) !important; 
-  
-  animation: tab-pulse 3s infinite ease-in-out;
-  z-index: 5;
-}
-
-/* --- ACTIVE HOVER (Stable Green Focus) --- */
-.tabs__item--active:hover {
-  color: var(--ifm-color-primary) !important;
-  background-color: rgba(48, 186, 120, 0.12) !important;
-  animation-play-state: paused;
-  border-color: var(--ifm-color-primary) !important;
-  box-shadow: 0 0 12px rgba(48, 186, 120, 0.3);
-}
-
-/* --- PULSE ANIMATION --- */
-@keyframes tab-pulse {
-  0% {
-    border-color: rgba(48, 186, 120, 0.3);
-    box-shadow: 0 0 0px rgba(48, 186, 120, 0);
-  }
-  50% {
-    border-color: var(--ifm-color-primary);
-    box-shadow: 0 0 10px rgba(48, 186, 120, 0.3);
-  }
-  100% {
-    border-color: rgba(48, 186, 120, 0.3);
-    box-shadow: 0 0 0px rgba(48, 186, 120, 0);
-  }
-}
+@keyframes terminal-blink { to { visibility: hidden; } }
+@keyframes log-fade-in { from { opacity: 0; transform: translateY(2px); } to { opacity: 1; transform: translateY(0); } }
