@@ -1,0 +1,18 @@
+{
+  "kernel": {
+    "title": "KERNEL",
+    "def": "The core component of an OS. It manages system resources and communication between hardware and software."
+  },
+  "wsl": {
+    "title": "WSL",
+    "def": "Windows Subsystem for Linux. A compatibility layer for running Linux binary executables natively on Windows."
+  },
+  "distro": {
+    "title": "DISTRIBUTION",
+    "def": "An operating system made from a software collection based on the Linux kernel and a package management system."
+  },
+  "shell": {
+    "title": "SHELL",
+    "def": "A computer program which exposes an operating system's services to a human user or other program."
+  }
+}

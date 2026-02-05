@@ -1232,3 +1232,137 @@ body:has(.nunix-status-bar.is-collapsed) .buffer-track {
   animation: neon-blink 2s infinite; 
   box-shadow: 0 0 15px var(--neon-blue-glow);
 }
+
+/* ==========================================================================
+   22. GLOSSARY (Smart Tooltips & Retro Typewriter)
+   ========================================================================== */
+
+/* The Trigger Word */
+.glossary-wrapper {
+  position: relative;
+  display: inline-block;
+  cursor: help;
+}
+
+.glossary-trigger {
+  border-bottom: 1px dashed var(--ifm-color-primary);
+  transition: all 0.2s ease;
+  color: inherit;
+}
+
+.glossary-wrapper:hover .glossary-trigger {
+  color: var(--neon-blue);
+  border-bottom: 1px solid var(--neon-blue);
+  text-shadow: 0 0 5px var(--neon-blue-glow);
+  background: rgba(0, 127, 255, 0.1);
+  border-radius: 2px;
+}
+
+/* Error State */
+.glossary-term.not-found {
+  border-bottom: 1px dotted #ff3e3e;
+  cursor: not-allowed;
+}
+
+/* THE POPUP CARD */
+.glossary-tooltip {
+  visibility: hidden;
+  opacity: 0;
+  position: absolute;
+  bottom: 130%; 
+  left: 50%;
+  transform: translateX(-50%) translateY(10px); 
+  
+  width: 280px; 
+  background: rgba(10, 13, 16, 0.95);
+  backdrop-filter: blur(12px);
+  border: 1px solid rgba(48, 186, 120, 0.4);
+  border-radius: 4px;
+  padding: 0;
+  
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.6);
+  z-index: 1000;
+  transition: all 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  pointer-events: none; 
+}
+
+/* Show on Hover */
+.glossary-wrapper:hover .glossary-tooltip {
+  visibility: visible;
+  opacity: 1;
+  transform: translateX(-50%) translateY(0);
+}
+
+/* Tooltip Header Container */
+.tooltip-header {
+  display: block;
+  background: rgba(48, 186, 120, 0.1);
+  border-bottom: 1px solid rgba(48, 186, 120, 0.2);
+  padding: 8px 12px;
+  overflow: hidden; 
+}
+
+/* --- THE TYPEWRITER TITLE --- */
+.tooltip-title {
+  display: inline-block;
+  font-family: var(--vintage-mono);
+  font-size: 0.7rem;
+  font-weight: bold;
+  color: var(--ifm-color-primary);
+  letter-spacing: 1px;
+  white-space: nowrap; 
+  overflow: hidden;    
+  width: 0%;           
+  border-right: none;
+  vertical-align: bottom;
+}
+
+/* ANIMATION FIX: 
+   1. Duration increased to 1.5s (Slower)
+   2. 'cursor-blink' REMOVED from here so text stays solid
+*/
+.glossary-wrapper:hover .tooltip-title {
+  animation: typewriter-wipe 1.5s steps(40, end) forwards; 
+}
+
+/* The Vintage Underscore Cursor */
+.tooltip-title::after {
+  content: "_";
+  color: var(--ifm-color-primary);
+  margin-left: 2px;
+  /* Blink is ISOLATED here */
+  animation: cursor-blink 1s step-end infinite;
+}
+
+/* Tooltip Body */
+.tooltip-body {
+  display: block;
+  padding: 10px 12px;
+  font-family: var(--ifm-font-family-base);
+  font-size: 0.85rem;
+  line-height: 1.4;
+  color: #ddd;
+}
+
+/* The "Pointer" Triangle */
+.glossary-tooltip::after {
+  content: "";
+  position: absolute;
+  top: 100%; 
+  left: 50%;
+  margin-left: -6px;
+  border-width: 6px;
+  border-style: solid;
+  border-color: rgba(48, 186, 120, 0.4) transparent transparent transparent;
+}
+
+/* --- ANIMATIONS --- */
+@keyframes typewriter-wipe {
+  from { width: 0%; }
+  to { width: 100%; }
+}
+
+@keyframes cursor-blink {
+  from, to { opacity: 1; }
+  50% { opacity: 0; }
+}

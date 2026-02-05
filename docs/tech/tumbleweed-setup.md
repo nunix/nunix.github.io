@@ -24,3 +24,5 @@ Use the following commands to sync with the Tumbleweed rolling mirrors.
 :::info[Rolling Release]
 Ensure you are using `dup` (dist-upgrade) rather than `up` to stay on the rolling edge.
 :::
+
+The Linux <Term>kernel</Term> is amazing, especially when used with <Term>WSL</Term>.

@@ -12,6 +12,7 @@ import Admonition from '@theme/Admonition';
 import Mermaid from '@theme/Mermaid';
 import Tabs from '@theme/Tabs';
 import TabItem from '@theme/TabItem';
+import GlossaryTerm from '@site/src/components/GlossaryTerm';
 
 import type {MDXComponentsObject} from '@theme/MDXComponents';
 
@@ -48,6 +49,7 @@ const MDXComponents: MDXComponentsObject = {
   Tabs,
   TabItem,
   NunixOut,
+  Term: GlossaryTerm,
 };
 
 export default MDXComponents;
