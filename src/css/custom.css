@@ -1022,41 +1022,26 @@ code:not(pre code) {
 
 /* Highlight / Geminix Line */
 .geminix-link {
-  transition: all 0.2s ease-in-out;
+  transition: all 0.2s ease;
   cursor: pointer;
   display: inline-block;
   padding: 0 6px;
-  border-radius: 2px;
+  border-radius: 3px;
   font-weight: bold;
-  /* Resetting any inherited blue colors */
   color: var(--ifm-color-primary) !important;
   text-decoration: none !important;
+  border: 1px solid transparent;
 }
 
-/* --- DARK MODE: 3D Neon Box --- */
-[data-theme='dark'] .geminix-link:hover {
-  color: #fff !important;
-  background: var(--ifm-color-primary);
-  /* The "3D" effect: A hard green shadow offset to the bottom right */
-  box-shadow: 
-    3px 3px 0px rgba(48, 186, 120, 0.4),
-    0 0 15px rgba(48, 186, 120, 0.6);
-  /* True Electric Neon Glow on text */
-  text-shadow: 
-    0 0 5px var(--ifm-color-primary),
-    0 0 10px var(--ifm-color-primary);
-  transform: translate(-2px, -2px); /* Moves away from the shadow */
-}
-
-/* --- LIGHT MODE: 3D Industrial Box --- */
-[data-theme='light'] .geminix-link:hover {
-  color: #fff !important;
-  background: #1a4d32;
-  border: 1px solid #1a4d32;
-  /* Hard 3D shadow match for Light Mode */
-  box-shadow: 3px 3px 0px #30ba78; 
-  transform: translate(-3px, -3px);
-  text-shadow: none;
+.geminix-link:hover {
+  color: var(--neon-blue) !important;
+  /* The "Blue Glass" HUD Signature */
+  background: rgba(0, 127, 255, 0.1) !important; 
+  backdrop-filter: blur(4px);
+  border: 1px solid rgba(0, 127, 255, 0.3) !important;
+  box-shadow: 0 0 10px rgba(0, 127, 255, 0.2);
+  text-shadow: 0 0 5px var(--neon-blue-glow);
+  text-decoration: none !important;
 }
 
 /* Ensure the BY: label doesn't inherit the hover effect */
@@ -1139,4 +1124,94 @@ code:not(pre code) {
 @keyframes log-fade-in {
   from { opacity: 0; transform: translateY(2px); }
   to { opacity: 1; transform: translateY(0); }
+}
+
+/* ==========================================================================
+   19. TABS (Elegant, 4-Sided & Anti-Clip)
+   ========================================================================== */
+
+.tabs {
+  border-bottom: 1px solid rgba(128, 128, 128, 0.2);
+  margin-bottom: 20px;
+  background: transparent;
+  
+  /* CRITICAL FIX: Top padding brings items "down" so borders show */
+  padding: 6px 0 10px 0; 
+  
+  gap: 8px; 
+}
+
+.tabs__item {
+  font-family: var(--vintage-mono);
+  font-weight: bold;
+  font-size: 0.8rem;
+  text-transform: uppercase;
+  
+  /* Elegant Dimensions */
+  padding: 6px 24px; 
+  border-radius: 6px; 
+  
+  /* Base: Invisible 4-sided border */
+  border: 1px solid transparent; 
+  
+  background: transparent !important;
+  transition: all 0.2s ease;
+  opacity: 0.7;
+  position: relative; /* Ensures z-index layering works */
+}
+
+/* --- HOVER STATE (Inactive Blue Glass) --- */
+.tabs__item:not(.tabs__item--active):hover {
+  opacity: 1;
+  color: var(--neon-blue) !important;
+  background: rgba(0, 127, 255, 0.08) !important; 
+  backdrop-filter: blur(4px);
+  
+  /* 4-Sided Blue Border */
+  border: 1px solid rgba(0, 127, 255, 0.4) !important; 
+  
+  box-shadow: 0 0 10px rgba(0, 127, 255, 0.15);
+  text-shadow: 0 0 5px var(--neon-blue-glow);
+  text-decoration: none !important;
+  transform: translateY(-1px);
+  z-index: 10; /* Ensures the border sits on top of neighboring elements */
+}
+
+/* --- ACTIVE STATE (System Green - Pulsing) --- */
+.tabs__item--active {
+  opacity: 1;
+  font-weight: 700 !important;
+  color: var(--ifm-color-primary) !important;
+  background-color: rgba(48, 186, 120, 0.08) !important;
+  
+  /* 4-Sided Green Border */
+  border: 1px solid rgba(48, 186, 120, 0.3) !important; 
+  
+  animation: tab-pulse 3s infinite ease-in-out;
+  z-index: 5;
+}
+
+/* --- ACTIVE HOVER (Stable Green Focus) --- */
+.tabs__item--active:hover {
+  color: var(--ifm-color-primary) !important;
+  background-color: rgba(48, 186, 120, 0.12) !important;
+  animation-play-state: paused;
+  border-color: var(--ifm-color-primary) !important;
+  box-shadow: 0 0 12px rgba(48, 186, 120, 0.3);
+}
+
+/* --- PULSE ANIMATION --- */
+@keyframes tab-pulse {
+  0% {
+    border-color: rgba(48, 186, 120, 0.3);
+    box-shadow: 0 0 0px rgba(48, 186, 120, 0);
+  }
+  50% {
+    border-color: var(--ifm-color-primary);
+    box-shadow: 0 0 10px rgba(48, 186, 120, 0.3);
+  }
+  100% {
+    border-color: rgba(48, 186, 120, 0.3);
+    box-shadow: 0 0 0px rgba(48, 186, 120, 0);
+  }
 }
