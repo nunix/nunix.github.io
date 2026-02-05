@@ -959,3 +959,184 @@ code:not(pre code) {
   animation: hardware-hiccup 7s infinite;
   display: block;
 }
+
+/* ==========================================================================
+   16. SYSTEM LOG CONSOLE (Enhanced Readability)
+   ========================================================================== */
+
+.nunix-log-console {
+  position: fixed;
+  bottom: 40px; 
+  right: 20px;
+  width: 340px;
+  font-family: var(--vintage-mono);
+  font-size: 0.7rem;
+  z-index: 11000;
+  border-radius: 4px;
+  overflow: hidden;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+  transition: all 0.3s ease;
+}
+
+/* --- DARK MODE CONSOLE --- */
+[data-theme='dark'] .nunix-log-console {
+  background: #0a0f14; /* Solid obsidian for contrast */
+  border: 1px solid #30ba78;
+  color: #30ba78;
+}
+
+/* --- LIGHT MODE CONSOLE --- */
+[data-theme='light'] .nunix-log-console {
+  background: #f0f4f2; /* Solid light gray-green */
+  border: 1px solid #1a4d32;
+  color: #1a4d32;
+  box-shadow: 0 10px 30px rgba(26, 77, 50, 0.2);
+}
+
+.log-header {
+  padding: 6px 12px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-weight: bold;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+[data-theme='dark'] .log-header { background: #30ba78; color: #000; }
+[data-theme='light'] .log-header { background: #1a4d32; color: #fff; }
+
+.log-body {
+  padding: 12px;
+  max-height: 220px;
+  overflow-y: auto;
+  line-height: 1.4;
+}
+
+/* Line Coloring */
+.log-line { margin-bottom: 6px; }
+
+/* OK / Success State */
+.text-success { color: #30ba78; font-weight: bold; }
+[data-theme='light'] .text-success { color: #238655; }
+
+/* Highlight / Geminix Line */
+.geminix-link {
+  transition: all 0.2s ease-in-out;
+  cursor: pointer;
+  display: inline-block;
+  padding: 0 6px;
+  border-radius: 2px;
+  font-weight: bold;
+  /* Resetting any inherited blue colors */
+  color: var(--ifm-color-primary) !important;
+  text-decoration: none !important;
+}
+
+/* --- DARK MODE: 3D Neon Box --- */
+[data-theme='dark'] .geminix-link:hover {
+  color: #fff !important;
+  background: var(--ifm-color-primary);
+  /* The "3D" effect: A hard green shadow offset to the bottom right */
+  box-shadow: 
+    3px 3px 0px rgba(48, 186, 120, 0.4),
+    0 0 15px rgba(48, 186, 120, 0.6);
+  /* True Electric Neon Glow on text */
+  text-shadow: 
+    0 0 5px var(--ifm-color-primary),
+    0 0 10px var(--ifm-color-primary);
+  transform: translate(-2px, -2px); /* Moves away from the shadow */
+}
+
+/* --- LIGHT MODE: 3D Industrial Box --- */
+[data-theme='light'] .geminix-link:hover {
+  color: #fff !important;
+  background: #1a4d32;
+  border: 1px solid #1a4d32;
+  /* Hard 3D shadow match for Light Mode */
+  box-shadow: 3px 3px 0px #30ba78; 
+  transform: translate(-3px, -3px);
+  text-shadow: none;
+}
+
+/* Ensure the BY: label doesn't inherit the hover effect */
+.author-trigger:hover .status-label {
+  color: inherit;
+  text-shadow: none;
+}
+
+/* Close Button */
+.log-close-btn {
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  font-family: inherit;
+  font-weight: bold;
+  color: inherit;
+  font-size: 0.8rem;
+}
+
+/* ==========================================================================
+   17. ELEGANT HUD TOGGLE (Reduced Scale)
+   ========================================================================== */
+
+.status-toggle.is-collapsed-btn {
+  position: fixed;
+  bottom: 0 !important;
+  right: 30px; /* Shifted slightly more for balance */
+  height: 22px; /* Reduced from 28px for elegance */
+  padding: 0 10px;
+  background: var(--ifm-color-primary) !important;
+  color: #000 !important;
+  border: none;
+  border-radius: 3px 3px 0 0;
+  font-family: var(--vintage-mono);
+  font-weight: 500; /* Lighter weight for a technical feel */
+  font-size: 0.55rem; /* Micro-label style */
+  z-index: 12000;
+  cursor: pointer;
+  box-shadow: 0 -2px 8px rgba(0, 0, 0, 0.4);
+  opacity: 0.8; /* Slightly transparent until hover */
+  transition: all 0.2s ease;
+  letter-spacing: 0.5px;
+}
+
+.status-toggle.is-collapsed-btn:hover {
+  opacity: 1;
+  height: 24px; /* Subtle lift on hover */
+  filter: brightness(1.2);
+}
+
+[data-theme='light'] .status-toggle.is-collapsed-btn {
+  background: #1a4d32 !important;
+  color: #fff !important;
+  opacity: 0.9;
+}
+
+/* ==========================================================================
+   18. TERMINAL CURSOR & LINE REFINEMENT
+   ========================================================================== */
+
+.log-cursor {
+  display: inline-block;
+  width: 8px;
+  height: 12px;
+  background: var(--ifm-color-primary);
+  margin-left: 4px;
+  animation: terminal-blink 1s steps(2, start) infinite;
+  box-shadow: 0 0 5px var(--ifm-color-primary);
+}
+
+@keyframes terminal-blink {
+  to { visibility: hidden; }
+}
+
+/* Subtle fade-in for new lines */
+.log-line {
+  animation: log-fade-in 0.1s ease-out forwards;
+}
+
+@keyframes log-fade-in {
+  from { opacity: 0; transform: translateY(2px); }
+  to { opacity: 1; transform: translateY(0); }
+}

@@ -10,6 +10,33 @@ export default function Root({ children }: { children: React.ReactNode }) {
   // Using the new status object for binary state and date string
   const [sslStatus, setSslStatus] = useState<{secure: boolean, expiry: string} | null>(null);
   const [lastUpdated, setLastUpdated] = useState<string | null>(null);
+  const [logOpen, setLogOpen] = useState(false);
+  const [visibleLines, setVisibleLines] = useState<number>(0);
+
+  const logEntries = [
+    { text: "[OK] LOAD_NUNIX_DEV", type: "success" },
+    { text: `[OK] SSL_HANDSHAKE: ${sslStatus?.secure ? 'SECURE' : 'UNVERIFIED'}`, type: "success" },
+    { text: `[OK] REPO_SYNC: ${lastUpdated}`, type: "success" },
+    { text: `[INFO] CONTENT_SCAN: ${readingTime}M_READ`, type: "default" },
+    { text: `[INFO] LAST_UPDATED: ${lastUpdated}`, type: "default" },
+    { text: "[READY] NUNIX_DEV_LOADED", type: "highlight" },
+  ];
+
+  useEffect(() => {
+    if (logOpen) {
+      setVisibleLines(0);
+      const interval = setInterval(() => {
+        setVisibleLines((prev) => {
+          if (prev >= logEntries.length) {
+            clearInterval(interval);
+            return prev;
+          }
+          return prev + 1;
+        });
+      }, 150); // Speed of "line scanning"
+      return () => clearInterval(interval);
+    }
+  }, [logOpen]);
 
   useEffect(() => {
     fetch('/ssl-info.json')
@@ -132,9 +159,32 @@ export default function Root({ children }: { children: React.ReactNode }) {
   // --- SECTION 5: RENDER ---
   return (
     <>
-      {/* CRT OVERLAY REMOVED FROM HERE TO KEEP SITE CLEAR */}
+      {/* 1. Global Background Effects */}
+      <div className="crt-overlay-localized"></div>
+      
+      {/* 2. Main Website Content */}
       {children}
       
+      {/* 3. THE SYSTEM LOG CONSOLE (Placed correctly inside the fragment) */}
+      {logOpen && isVisible && (
+        <div className="nunix-log-console">
+          <div className="log-header">
+            <span>NUNIX_SYS_LOG</span>
+            <button onClick={() => setLogOpen(false)} className="log-close-btn">[X]</button>
+          </div>
+          <div className="log-body">
+            {logEntries.slice(0, visibleLines).map((line, index) => (
+              <div key={index} className={`log-line ${line.type === 'success' ? 'text-success' : line.type === 'highlight' ? 'text-highlight' : ''}`}>
+                {line.text}
+              </div>
+            ))}
+            {/* The cursor only shows when typing is done or as a prompt */}
+            <div className="log-cursor">_</div>
+          </div>
+        </div>
+      )}
+
+      {/* 4. THE SYSTEM STATUS BAR */}
       <div className={`nunix-status-bar ${!isVisible ? 'is-collapsed' : ''}`}>
         <div className="status-section section-left">
           {isVisible && (
@@ -142,7 +192,7 @@ export default function Root({ children }: { children: React.ReactNode }) {
               <span className="status-pulse"></span>
               <span className="status-label">SSL:</span> 
               <span className="status-active-value">
-                {sslStatus?.secure ? `SECURE | ${sslStatus.expiry}` : 'UNVERIFIED'}
+                {sslStatus?.secure ? `SECURE | ${sslStatus.expiry}` : 'AUTHENTICATING...'}
               </span>
             </div>
           )}
@@ -159,12 +209,24 @@ export default function Root({ children }: { children: React.ReactNode }) {
 
         <div className="status-section section-right">
           {isVisible && (
-            <div className="status-node hide-mobile">
-              <span className="status-label">LAST_UPDATED:</span> 
-              <span className="status-active-value">{lastUpdated || 'SYNCING...'}</span>
-            </div>
+            <>
+              <div className="status-node hide-mobile">
+                <span className="status-label">UPDATED:</span> 
+                <span className="status-active-value">{lastUpdated || 'SYNCING...'}</span>
+              </div>
+
+              <div className="status-node author-trigger" onClick={() => setLogOpen(!logOpen)}>
+                <span className="status-label">BY:</span> 
+                <span className="geminix-link status-active-value">GEMINIX</span>
+              </div>
+            </>
           )}
-          <button className="status-toggle" onClick={() => setIsVisible(!isVisible)}>
+          
+          {/* The Toggle is now a precise micro-tab when hidden */}
+          <button 
+            className={`status-toggle ${!isVisible ? 'is-collapsed-btn' : ''}`} 
+            onClick={() => setIsVisible(!isVisible)}
+          >
             {isVisible ? '[ HIDE ]' : '[ SHOW HUD ]'}
           </button>
         </div>
