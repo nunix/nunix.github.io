@@ -860,8 +860,9 @@ code:not(pre code) {
 }
 
 /* ==========================================================================
-   13. SYSTEM STATUS BAR
+   13. SYSTEM STATUS BAR (Subtle Collapsed State)
    ========================================================================== */
+
 .nunix-status-bar {
   position: fixed;
   bottom: 0;
@@ -878,46 +879,34 @@ code:not(pre code) {
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   letter-spacing: 1px;
   text-transform: uppercase;
+  
+  /* Default Expanded Border */
   border-top: 1px solid rgba(48, 186, 120, 0.3);
 }
 
+/* Section Logic */
 .status-section { display: flex; align-items: center; flex: 1; }
 .section-center { justify-content: center; flex: 0 0 auto; }
 .section-right { justify-content: flex-end; gap: 20px; }
 .status-node { display: flex; align-items: center; gap: 8px; white-space: nowrap; }
 
+/* Theme Colors (Expanded) */
 [data-theme='dark'] .nunix-status-bar { background: rgba(10, 15, 20, 0.95); color: var(--ifm-color-primary); }
 [data-theme='light'] .nunix-status-bar { background: rgba(245, 247, 250, 0.9); color: #1a4d32; border-top: 1px solid rgba(26, 77, 50, 0.2); }
 
 .status-active-value { color: var(--ifm-color-primary); font-weight: bold; }
 .status-toggle { background: transparent; border: none; color: inherit; font-family: inherit; font-size: 0.6rem; font-weight: bold; cursor: pointer; padding: 2px 8px; }
 
-.nunix-status-bar.is-collapsed { height: 6px; background: var(--ifm-color-primary) !important; }
-
-/* HUD Toggle Button (Collapsed State) */
-.status-toggle.is-collapsed-btn {
-  position: fixed;
-  bottom: 0 !important;
-  right: 30px; 
-  height: 22px; 
-  padding: 0 10px;
-  background: var(--ifm-color-primary) !important;
-  color: #000 !important;
-  border: none;
-  border-radius: 3px 3px 0 0;
-  font-family: var(--vintage-mono);
-  font-weight: 500; 
-  font-size: 0.55rem; 
-  z-index: 12000;
-  cursor: pointer;
-  box-shadow: 0 -2px 8px rgba(0, 0, 0, 0.4);
-  opacity: 0.8;
-  transition: all 0.2s ease;
-  letter-spacing: 0.5px;
+/* --- COLLAPSED STATE (The Fix) --- */
+.nunix-status-bar.is-collapsed {
+  height: 6px;
+  
+  /* Replaces solid green with Dark Glass + Thin Border */
+  background: rgba(0, 0, 0, 0.8) !important; 
+  border-top: 1px solid var(--ifm-color-primary) !important; /* Matches HUD Badge */
+  
+  backdrop-filter: blur(4px);
 }
-
-.status-toggle.is-collapsed-btn:hover { opacity: 1; height: 24px; filter: brightness(1.2); }
-[data-theme='light'] .status-toggle.is-collapsed-btn { background: #1a4d32 !important; color: #fff !important; opacity: 0.9; }
 
 /* ==========================================================================
    14. LOCALIZED CRT EFFECT
@@ -1022,6 +1011,50 @@ code:not(pre code) {
 
 @keyframes terminal-blink { to { visibility: hidden; } }
 @keyframes log-fade-in { from { opacity: 0; transform: translateY(2px); } to { opacity: 1; transform: translateY(0); } }
+
+/* ==========================================================================
+   17. ELEGANT HUD TOGGLE (Lifted Tab)
+   ========================================================================== */
+
+.status-toggle.is-collapsed-btn {
+  position: fixed;
+  
+  /* LIFTED: Sits on top of the 6px collapsed rail */
+  bottom: 6px !important; 
+  
+  right: 30px; 
+  height: 20px; /* Slightly tighter height */
+  padding: 0 12px;
+  
+  background: var(--ifm-color-primary) !important;
+  color: #000 !important;
+  border: none;
+  border-radius: 4px 4px 0 0; /* Rounded top corners only */
+  
+  font-family: var(--vintage-mono);
+  font-weight: 700; 
+  font-size: 0.55rem; 
+  z-index: 12000;
+  cursor: pointer;
+  box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.3);
+  opacity: 0.8; 
+  transition: all 0.2s ease;
+  letter-spacing: 1px;
+}
+
+.status-toggle.is-collapsed-btn:hover {
+  opacity: 1;
+  height: 24px; /* Grows UPWARD on hover */
+  padding-bottom: 4px; /* Keeps text centered as it grows */
+  filter: brightness(1.1);
+  box-shadow: 0 -4px 15px rgba(48, 186, 120, 0.4);
+}
+
+[data-theme='light'] .status-toggle.is-collapsed-btn {
+  background: #1a4d32 !important;
+  color: #fff !important;
+  opacity: 1;
+}
 
 /* ==========================================================================
    20. 404 KERNEL PANIC PAGE
@@ -1136,4 +1169,66 @@ code:not(pre code) {
   font-size: 0.7rem;
   color: #555;
   text-align: right;
+}
+
+/* ==========================================================================
+   21. BUFFER LOAD (Electric Blue & Fixed Badge)
+   ========================================================================== */
+
+/* The Invisible Track */
+.buffer-track {
+  position: fixed;
+  top: auto; 
+  bottom: 28px; /* Base position (Expanded) */
+  left: 0;
+  width: 100%;
+  height: 2px; 
+  z-index: 11000; /* Lower than the Toggle Button (12000) */
+  background: transparent;
+  pointer-events: none;
+  
+  transition: bottom 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* SMART SYNC: Sits exactly on top of the 6px dark rail */
+body:has(.nunix-status-bar.is-collapsed) .buffer-track {
+  bottom: 6px; 
+}
+
+/* The Filling Bar */
+.buffer-bar {
+  height: 100%;
+  background: var(--neon-blue); 
+  box-shadow: 0 0 10px var(--neon-blue); 
+  transition: width 0.1s linear;
+}
+
+/* The "EOF" Signal Badge */
+.buffer-eof {
+  position: fixed; 
+  bottom: 40px; 
+  right: 10px;
+  
+  font-family: var(--vintage-mono);
+  font-size: 0.7rem;
+  font-weight: bold;
+  
+  color: var(--neon-blue);
+  background: rgba(0, 0, 0, 0.9);
+  padding: 2px 6px;
+  border: 1px solid var(--neon-blue);
+  
+  opacity: 0;
+  transform: translateY(10px);
+  transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  pointer-events: none;
+  z-index: 100000;
+}
+
+/* Active State */
+.buffer-eof.eof-active {
+  opacity: 1;
+  transform: translateY(0);
+  animation: neon-blink 2s infinite; 
+  box-shadow: 0 0 15px var(--neon-blue-glow);
 }
