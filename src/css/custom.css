@@ -1766,3 +1766,61 @@ html[data-single-user='true'] main {
   from { opacity: 0; }
   to { opacity: 1; }
 }
+
+/* ==========================================================================
+   26. INODE COUNTER (Real Data Edition)
+   ========================================================================== */
+
+.inode-status-wrapper {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px; 
+  font-family: var(--vintage-mono);
+  font-size: 0.65rem; 
+  font-weight: bold;
+  letter-spacing: 1px;
+}
+
+.inode-label {
+  color: inherit; 
+  opacity: 0.7;
+}
+
+.inode-value {
+  padding: 0 4px;
+  border-radius: 2px;
+  min-width: 50px; 
+  text-align: center;
+  transition: all 0.5s ease;
+}
+
+/* STATE 1: BOOTING (Waiting for API) */
+.inode-value.is-booting {
+  color: rgba(48, 186, 120, 0.5); /* Dim Green */
+  background: transparent;
+  text-shadow: none;
+  filter: blur(0.5px); /* Slight motion blur effect */
+}
+
+/* STATE 2: LOCKED (Real Data Received) */
+.inode-value.is-locked {
+  color: var(--ifm-color-primary);
+  background: rgba(48, 186, 120, 0.1);
+  text-shadow: 0 0 2px var(--ifm-color-primary);
+  filter: none;
+}
+
+/* Hover Effect */
+.inode-status-wrapper:hover .inode-value {
+  color: var(--neon-blue);
+  background: rgba(0, 127, 255, 0.1);
+  text-shadow: 0 0 8px var(--neon-blue-glow);
+  cursor: help;
+}
+
+/* Light Mode Override */
+[data-theme='light'] .inode-value.is-locked {
+  color: #1a4d32;
+  background: rgba(26, 77, 50, 0.08);
+  text-shadow: none;
+}

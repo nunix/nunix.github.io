@@ -57,6 +57,14 @@ const config: Config = {
     'docusaurus-plugin-image-zoom',
   ],
 
+  scripts: [
+    {
+      src: 'https://gc.zgo.at/count.js',
+      async: true,
+      'data-goatcounter': 'https://nunix.goatcounter.com/count', // CHANGE 'nunix' TO YOUR CODE
+    },
+  ],
+
   themes: [
     [
       require.resolve("@easyops-cn/docusaurus-search-local"),

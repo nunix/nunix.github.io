@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useLocation } from '@docusaurus/router';
 import ZenToggle from '@site/src/components/ZenToggle';
+import InodeCounter from '@site/src/components/InodeCounter';
 
 export default function Root({ children }: { children: React.ReactNode }) {
   const location = useLocation();
@@ -194,6 +195,10 @@ export default function Root({ children }: { children: React.ReactNode }) {
               <span className="status-label">SSL:</span> 
               <span className="status-active-value">
                 {sslStatus?.secure ? `SECURE | ${sslStatus.expiry}` : 'AUTHENTICATING...'}
+              </span>
+              {/* NEW: Insert the Counter here */}
+              <span className="status-node">
+                <InodeCounter />
               </span>
             </div>
           )}
