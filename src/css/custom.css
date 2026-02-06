@@ -1603,3 +1603,67 @@ mark {
   0%, 100% { opacity: 1; }
   50% { opacity: 0.4; }
 }
+
+/* ==========================================================================
+   24. SMART ANCHORS (Target Lock System - Smooth Sync)
+   ========================================================================== */
+
+/* 1. THE TARGET ANIMATION (The Header Itself) */
+:target {
+  /* Continuous smooth animation from start to finish */
+  animation: target-lock-flash 2s cubic-bezier(0.25, 1, 0.5, 1) forwards;
+  position: relative;
+  border-radius: 4px;
+}
+
+/* 2. THE "<<" INDICATOR (Moved to End) */
+:target::after {
+  content: "<<";
+  display: inline-block; 
+  vertical-align: middle;
+  margin-left: 12px; 
+  
+  font-family: var(--vintage-mono);
+  font-weight: bold;
+  font-size: 0.8em; 
+  color: var(--ifm-color-primary);
+  opacity: 0;
+  
+  /* Matches the header animation exactly */
+  animation: indicator-slide-out 2s cubic-bezier(0.25, 1, 0.5, 1) forwards;
+}
+
+/* 3. LIGHT MODE ADJUSTMENT */
+[data-theme='light'] :target::after {
+  color: #1a4d32; 
+}
+
+/* --- ANIMATIONS --- */
+
+/* Flash Background & Slide Text (Continuous) */
+@keyframes target-lock-flash {
+  0% {
+    background-color: rgba(48, 186, 120, 0.2);
+    text-shadow: 0 0 10px var(--ifm-color-primary);
+    color: var(--ifm-color-primary);
+    padding-left: 15px; /* Jump right */
+  }
+  100% {
+    background-color: transparent;
+    text-shadow: none;
+    color: inherit;
+    padding-left: 0; /* Slide back smoothly */
+  }
+}
+
+/* Slide Arrow & Fade Out (Continuous) */
+@keyframes indicator-slide-out {
+  0% {
+    opacity: 1; /* Visible immediately */
+    transform: translateX(10px); /* Start offset */
+  }
+  100% {
+    opacity: 0; /* Fade out smoothly */
+    transform: translateX(0); /* Slide into place */
+  }
+}
