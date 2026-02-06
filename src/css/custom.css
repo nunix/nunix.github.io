@@ -616,162 +616,173 @@ code:not(pre code) {
 @keyframes float-up { from { opacity: 1; transform: translateY(0); } to { opacity: 0; transform: translateY(-15px); } }
 
 /* ==========================================================================
-   9. IMAGES & LIGHTBOX
+   9. IMAGES & LIGHTBOX (Stealth Blue Frame + Theme-Aware Hints)
    ========================================================================== */
-[class*='blog-post'] .markdown p > img,
-.blog-wrapper .markdown p > img {
-  cursor: pointer;
-  transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-  border: 1px solid rgba(48, 186, 120, 0.1);
-  border-radius: 4px;
+
+/* 1. THE IMAGE (The Stealth Container) */
+[class*='blog-post'] .markdown p > img:not(.img-zoom-overlay img),
+.blog-wrapper .markdown p > img:not(.img-zoom-overlay img),
+article .markdown p > img:not(.img-zoom-overlay img) {
+  cursor: zoom-in;
   display: block;
-  margin: 2rem auto;
+  margin: 2.5rem auto 0 auto; 
+  max-width: 100%;
+  
+  /* INNER BOX GAP */
+  padding: 6px;
+  
+  /* IDLE STATE: Transparent (No grey box) */
+  background: transparent !important; 
+  border: 1px solid transparent;
+  border-radius: 2px;
+  
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+  z-index: 10; 
 }
 
-[class*='blog-post'] .markdown p:has(img):hover img {
-  border-color: var(--ifm-color-primary);
-  box-shadow: 0 0 20px rgba(48, 186, 120, 0.4);
-  transform: translateY(-5px);
+/* 2. HOVER STATE (Activation - Shared Blue for ALL Themes) */
+[class*='blog-post'] .markdown p:has(img):hover img:not(.img-zoom-overlay img),
+.blog-wrapper .markdown p:has(img):hover img:not(.img-zoom-overlay img),
+article .markdown p:has(img):hover img:not(.img-zoom-overlay img) {
+  /* Neon Blue Border */
+  border-color: var(--neon-blue);
+  
+  /* Blue Glow */
+  box-shadow: 0 0 25px rgba(0, 127, 255, 0.6);
+  
+  /* Keep background transparent */
+  background: transparent !important;
+  
+  transform: translateY(-2px);
 }
 
-[class*='blog-post'] .markdown p:has(img)::after {
-  content: '⛶ CLICK TO ENLARGE';
+/* 3. THE CONNECTED HINT (Default / Dark Mode) */
+[class*='blog-post'] .markdown p:has(img)::after,
+.blog-wrapper .markdown p:has(img)::after,
+article .markdown p:has(img)::after {
+  content: '[ OPTIC_ZOOM :: ANALYZE ]';
   display: block;
-  text-align: center;
+  width: fit-content;
+  margin: 0 auto;
+  
+  /* LOCK POSITION: Center on the border line */
+  transform: translateY(-50%) scale(0.9);
+  
+  position: relative;
+  z-index: 11;
+  
+  /* TYPOGRAPHY */
   font-family: var(--vintage-mono);
-  font-size: 0.65rem;
-  color: var(--ifm-color-primary);
+  font-size: 0.6rem;
+  font-weight: bold;
+  letter-spacing: 1px;
+  
+  /* DARK THEME STYLING (The Default) */
+  color: var(--neon-blue);
+  background: #0a0d10; /* Dark BG to mask border */
+  padding: 3px 10px;
+  border: 1px solid var(--neon-blue);
+  border-radius: 2px;
+  
+  /* BASE STATE: Hidden */
   opacity: 0;
-  transition: opacity 0.3s ease;
-  margin-top: -1.5rem;
-  padding-bottom: 1.5rem;
+  transition: all 0.2s ease;
+  pointer-events: none; 
 }
 
-[class*='blog-post'] .markdown p:has(img):hover::after { opacity: 1; }
+/* 4. HOVER STATE (Label Reveal) */
+[class*='blog-post'] .markdown p:has(img):hover::after,
+.blog-wrapper .markdown p:has(img):hover::after,
+article .markdown p:has(img):hover::after { 
+  opacity: 1;
+  transform: translateY(-50%) scale(1);
+  box-shadow: 0 0 15px rgba(0, 0, 0, 0.8);
+  text-shadow: 0 0 8px var(--neon-blue-glow);
+}
 
+/* ==========================================================================
+   LIGHT MODE OVERRIDES (Forced High Specificity)
+   ========================================================================== */
+
+/* 1. Ensure Image Background stays transparent */
+html[data-theme='light'] [class*='blog-post'] .markdown p > img:not(.img-zoom-overlay img),
+html[data-theme='light'] .blog-wrapper .markdown p > img:not(.img-zoom-overlay img),
+html[data-theme='light'] article .markdown p > img:not(.img-zoom-overlay img) {
+  background: transparent !important;
+  border-color: transparent;
+}
+
+/* 2. Keep Hover Blue (Re-asserting just in case) */
+html[data-theme='light'] [class*='blog-post'] .markdown p:has(img):hover img:not(.img-zoom-overlay img),
+html[data-theme='light'] .blog-wrapper .markdown p:has(img):hover img:not(.img-zoom-overlay img),
+html[data-theme='light'] article .markdown p:has(img):hover img:not(.img-zoom-overlay img) {
+  border-color: var(--neon-blue) !important;
+  box-shadow: 0 0 25px rgba(0, 127, 255, 0.6) !important;
+}
+
+/* 3. THE HINT BOX (White Background, Blue Text) */
+html[data-theme='light'] [class*='blog-post'] .markdown p:has(img)::after,
+html[data-theme='light'] .blog-wrapper .markdown p:has(img)::after,
+html[data-theme='light'] article .markdown p:has(img)::after {
+  /* FORCE WHITE BACKGROUND to mask the line on light pages */
+  background: #ffffff !important;
+  
+  /* KEEP NEON BLUE TEXT & BORDER */
+  color: var(--neon-blue) !important;
+  border-color: var(--neon-blue) !important;
+}
+
+/* Light Mode Hint Hover */
+html[data-theme='light'] [class*='blog-post'] .markdown p:has(img):hover::after,
+html[data-theme='light'] .blog-wrapper .markdown p:has(img):hover::after,
+html[data-theme='light'] article .markdown p:has(img):hover::after {
+  text-shadow: none; /* Cleaner text for light mode */
+  box-shadow: 0 2px 15px rgba(0, 0, 0, 0.15); /* Softer shadow */
+}
+
+/* ==========================================================================
+   LIGHTBOX OVERLAY (Zoom Logic)
+   ========================================================================== */
 .img-zoom-overlay {
-  position: fixed;
-  top: 0; left: 0;
+  position: fixed; top: 0; left: 0;
   width: 100%; height: 100%;
   background: var(--nunix-img-overlay);
   backdrop-filter: blur(10px);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 9999;
-  visibility: hidden;
-  opacity: 0;
-  transition: all 0.3s ease;
-  cursor: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cline x1='18' y1='6' x2='6' y2='18'%3E%3C/line%3E%3Cline x1='6' y1='6' x2='18' y2='18'%3E%3C/line%3E%3C/svg%3E"), auto;
+  display: flex; align-items: center; justify-content: center;
+  z-index: 9999; visibility: hidden; opacity: 0;
+  transition: all 0.3s ease; cursor: zoom-out;
   overflow: auto; 
 }
-
 .img-zoom-overlay.active { visibility: visible; opacity: 1; }
 
 .img-zoom-overlay img {
-  max-width: 90%;
-  max-height: 90%;
-  border: 2px solid var(--ifm-color-primary);
-  box-shadow: 0 0 40px rgba(0, 0, 0, 0.5);
-  transform: scale(0.9);
-  transition: transform 0.3s ease;
+  max-width: 95vw; max-height: 95vh; object-fit: contain;
+  border: 1px solid var(--ifm-color-primary);
+  box-shadow: 0 0 50px rgba(0, 0, 0, 0.5);
+  transform: scale(0.95); transition: transform 0.3s ease;
+  padding: 0 !important; background: transparent !important; margin: 0 !important;
 }
 
-.img-zoom-overlay.active img { transform: scale(1); }
-
-.zoom-hud-exit {
-  position: fixed; 
-  top: 2rem;
-  right: 2rem;
-  left: auto;
-  transform: none;
-  font-family: var(--vintage-mono);
-  font-size: 0.75rem;
-  font-weight: bold;
-  color: var(--ifm-color-primary);
-  letter-spacing: 1.5px;
-  background: rgba(0, 0, 0, 0.8); 
-  backdrop-filter: blur(10px);
-  padding: 8px 16px;
-  border-radius: 4px;
-  border: 1px solid rgba(48, 186, 120, 0.4);
-  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.5);
-  z-index: 10000;
-  pointer-events: none;
-  display: flex;
-  align-items: center;
-  gap: 10px;
-}
-
-.zoom-hud-exit::before {
-  content: 'SYSTEM';
-  font-size: 0.5rem;
-  background: var(--ifm-color-primary);
-  color: #000;
-  padding: 1px 4px;
-  border-radius: 1px;
-  margin-right: 4px;
-}
-
+/* Zoom Logic Classes */
 .zoomable-content {
   cursor: zoom-in;
   transition: transform 0.3s cubic-bezier(0.165, 0.84, 0.44, 1), 
-              max-width 0.3s ease, 
-              max-height 0.3s ease !important;
+              max-width 0.3s ease, max-height 0.3s ease !important;
 }
-
 .zoomable-content.is-magnified {
   cursor: zoom-out;
-  max-width: none !important;
-  max-height: none !important;
-  transform: scale(1) !important; 
+  max-width: none !important; max-height: none !important;
+  transform: scale(1.5) !important; 
 }
 
-.img-zoom-overlay.active .zoom-hud-exit { animation: hud-glow-pulse 2s infinite ease-in-out; }
-
-@keyframes hud-flicker { 0%, 100% { opacity: 0.6; } 50% { opacity: 0.3; } }
-@keyframes hud-glow-pulse {
-  0%, 100% { border-color: rgba(48, 186, 120, 0.4); box-shadow: 0 4px 15px rgba(0, 0, 0, 0.5); }
-  50% { border-color: var(--ifm-color-primary); box-shadow: 0 0 10px rgba(48, 186, 120, 0.3); }
-}
-
-.nunix-img-wrapper {
-  position: relative;
-  margin-top: 10px !important; 
-  display: block;
-}
-
-.nunix-image-hint {
-  position: absolute;
-  top: 12px;
-  right: 12px;
-  z-index: 10;
-  font-family: var(--vintage-mono);
-  font-size: 0.65rem;
-  font-weight: bold;
-  color: var(--neon-blue);
-  background: rgba(0, 0, 0, 0.75);
-  backdrop-filter: blur(6px);
-  padding: 4px 10px;
-  border-radius: 3px;
-  border: 1px solid rgba(0, 127, 255, 0.3);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
-  letter-spacing: 1px;
-  pointer-events: none;
-  white-space: nowrap;
-  text-transform: uppercase;
-}
-
-.nunix-image-hint .hint-pulse {
-  color: var(--ifm-color-primary);
-  margin-right: 6px;
-  animation: neon-blink 2s infinite ease-in-out;
-}
-
-.nunix-img-wrapper:hover img {
-  border-color: var(--ifm-color-primary);
-  box-shadow: 0 0 20px rgba(48, 186, 120, 0.3);
-  transform: translateY(-3px);
+/* HUD Exit Button */
+.zoom-hud-exit {
+  position: fixed; top: 2rem; right: 2rem;
+  font-family: var(--vintage-mono); font-size: 0.75rem; color: var(--ifm-color-primary);
+  background: rgba(0, 0, 0, 0.8); padding: 8px 16px;
+  border: 1px solid var(--ifm-color-primary); pointer-events: none;
+  z-index: 10000;
 }
 
 /* ==========================================================================

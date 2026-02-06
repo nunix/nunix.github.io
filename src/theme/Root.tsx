@@ -10,7 +10,6 @@ export default function Root({ children }: { children: React.ReactNode }) {
   // --- STATE SECTIONS ---
   const [isVisible, setIsVisible] = useState<boolean>(true);
   const [readingTime, setReadingTime] = useState<number>(0);
-  // Using the new status object for binary state and date string
   const [sslStatus, setSslStatus] = useState<{secure: boolean, expiry: string} | null>(null);
   const [lastUpdated, setLastUpdated] = useState<string | null>(null);
   const [logOpen, setLogOpen] = useState(false);
@@ -25,6 +24,7 @@ export default function Root({ children }: { children: React.ReactNode }) {
     { text: "[READY] NUNIX_DEV_LOADED", type: "highlight" },
   ];
 
+  // --- SECTION 1: LOGS & SSL ---
   useEffect(() => {
     if (logOpen) {
       setVisibleLines(0);
@@ -36,7 +36,7 @@ export default function Root({ children }: { children: React.ReactNode }) {
           }
           return prev + 1;
         });
-      }, 150); // Speed of "line scanning"
+      }, 150); 
       return () => clearInterval(interval);
     }
   }, [logOpen]);
@@ -47,7 +47,7 @@ export default function Root({ children }: { children: React.ReactNode }) {
       .then(data => {
         if (data) {
           setSslStatus({ secure: data.is_secure, expiry: data.expiry_date });
-          setLastUpdated(data.last_updated); // Map to our JSON key
+          setLastUpdated(data.last_updated); 
         }
       });
   }, []);
@@ -137,41 +137,15 @@ export default function Root({ children }: { children: React.ReactNode }) {
     };
   }, []);
 
-  // --- SECTION 4: HUD INJECTION (Image Hints) ---
-  useEffect(() => {
-    const injectImageHints = () => {
-      setTimeout(() => {
-        const images = document.querySelectorAll('.markdown p > img');
-        images.forEach((img) => {
-          if (!img.parentElement?.classList.contains('nunix-img-wrapper')) {
-            const wrapper = document.createElement('div');
-            wrapper.className = 'nunix-img-wrapper';
-            const hint = document.createElement('div');
-            hint.className = 'nunix-image-hint';
-            hint.innerHTML = `<span class="hint-pulse">●</span> CLICK TO ENLARGE`;
-            img.parentNode?.insertBefore(wrapper, img);
-            wrapper.appendChild(hint);
-            wrapper.appendChild(img);
-          }
-        });
-      }, 100);
-    };
-    injectImageHints();
-  }, [location.pathname]);
-
   // --- SECTION 5: RENDER ---
   return (
     <>
-      {/* 1. Global Background Effects */}
       <div className="crt-overlay-localized"></div>
       
-      {/* 2. Main Website Content */}
       {children}
 
-      {/* The new Jump Top Controller */}
       <JumpTop />
       
-      {/* 3. THE SYSTEM LOG CONSOLE (Placed correctly inside the fragment) */}
       {logOpen && isVisible && (
         <div className="nunix-log-console">
           <div className="log-header">
@@ -184,13 +158,11 @@ export default function Root({ children }: { children: React.ReactNode }) {
                 {line.text}
               </div>
             ))}
-            {/* The cursor only shows when typing is done or as a prompt */}
             <div className="log-cursor">_</div>
           </div>
         </div>
       )}
 
-      {/* 4. THE SYSTEM STATUS BAR */}
       <div className={`nunix-status-bar ${!isVisible ? 'is-collapsed' : ''}`}>
         <div className="status-section section-left">
           {isVisible && (
@@ -200,7 +172,6 @@ export default function Root({ children }: { children: React.ReactNode }) {
               <span className="status-active-value">
                 {sslStatus?.secure ? `SECURE | ${sslStatus.expiry}` : 'AUTHENTICATING...'}
               </span>
-              {/* NEW: Insert the Counter here */}
               <span className="status-node">
                 <InodeCounter />
               </span>
@@ -235,7 +206,6 @@ export default function Root({ children }: { children: React.ReactNode }) {
             </>
           )}
           
-          {/* The Toggle is now a precise micro-tab when hidden */}
           <button 
             className={`status-toggle ${!isVisible ? 'is-collapsed-btn' : ''}`} 
             onClick={() => setIsVisible(!isVisible)}
