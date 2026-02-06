@@ -84,57 +84,54 @@
 .navbar__brand, .navbar__item, .navbar__link {
   position: relative;
   overflow: hidden;
-  transition: all 0.3s ease-out;
-  border-radius: 4px;
-  margin: 0 2px;
+  transition: all 0.2s ease-out;
+  border-radius: 4px; /* Standard Box Radius */
+  margin: 0 4px;
   padding: 0.4rem 0.8rem !important;
+  
+  /* Reset Typography to Elegant Standard */
+  font-weight: 500 !important;
+  text-transform: none !important; /* No CAPS */
+  letter-spacing: normal !important;
 }
 
+/* --- ACTIVE STATE (Standardized Box) --- */
 .navbar__link--active {
-  font-weight: 700 !important;
-  text-transform: uppercase !important;
-  letter-spacing: 0.05em !important;
   color: var(--ifm-color-primary) !important;
-  background-color: rgba(48, 186, 120, 0.12) !important;
-  border-bottom: 2px solid var(--ifm-color-primary) !important;
-  text-shadow: 0 0 8px rgba(48, 186, 120, 0.4);
-  border-radius: 4px 4px 0 0 !important;
+  background-color: rgba(48, 186, 120, 0.08) !important;
+  
+  /* Full Border Box (Not just bottom) */
+  border: 1px solid rgba(48, 186, 120, 0.3) !important;
+  
+  /* The Pulse */
+  animation: nav-pulse 3s infinite ease-in-out;
+  box-shadow: 0 0 10px rgba(48, 186, 120, 0.15);
 }
 
+/* --- HOVER STATE --- */
 .navbar__item:hover, 
 .navbar__link:hover {
   color: var(--neon-blue) !important;
-  background: rgba(0, 127, 255, 0.1) !important; 
-  backdrop-filter: blur(4px);
-  padding: 0.4rem 0.8rem !important;
-  border-radius: 3px;
+  background: rgba(0, 127, 255, 0.08) !important; 
   border: 1px solid rgba(0, 127, 255, 0.3) !important;
-  box-shadow: 0 0 10px rgba(0, 127, 255, 0.2);
-  text-shadow: 0 0 5px var(--neon-blue-glow);
+  box-shadow: 0 0 10px rgba(0, 127, 255, 0.15);
+  backdrop-filter: blur(4px);
+  text-decoration: none !important;
 }
 
+/* Ensure Active + Hover stays Green (System Stability) */
 .navbar__link--active:hover {
-  background-color: rgba(48, 186, 120, 0.15) !important;
+  background-color: rgba(48, 186, 120, 0.12) !important;
   border-color: var(--ifm-color-primary) !important;
   color: var(--ifm-color-primary) !important;
-  text-shadow: 0 0 8px rgba(48, 186, 120, 0.4);
+  animation-play-state: paused; /* Freeze pulse on interaction */
 }
 
-.markdown a:hover {
-  color: var(--neon-blue) !important;
-  text-decoration: none !important;
-  background: rgba(0, 127, 255, 0.1); 
-  backdrop-filter: blur(4px);
-  padding: 2px 6px;
-  border-radius: 3px;
-  border: 1px solid rgba(0, 127, 255, 0.3);
-  box-shadow: 0 0 10px rgba(0, 127, 255, 0.2);
-  text-shadow: 0 0 5px var(--neon-blue-glow);
-}
-
-.navbar__link--active,
-.menu__link--active {
-  color: var(--ifm-color-primary) !important;
+/* SHARED PULSE ANIMATION (Used by Nav, Sidebar, TOC) */
+@keyframes nav-pulse {
+  0% { border-color: rgba(48, 186, 120, 0.3); box-shadow: 0 0 0px rgba(48, 186, 120, 0); }
+  50% { border-color: var(--ifm-color-primary); box-shadow: 0 0 8px rgba(48, 186, 120, 0.25); }
+  100% { border-color: rgba(48, 186, 120, 0.3); box-shadow: 0 0 0px rgba(48, 186, 120, 0); }
 }
 
 /* ==========================================================================
@@ -143,47 +140,39 @@
 .theme-doc-sidebar-item-link {
   position: relative;
   overflow: hidden;
-  transition: all 0.3s ease;
-  border-radius: 6px;
+  transition: all 0.2s ease;
+  border-radius: 4px; /* Matches Navbar */
   margin: 2px 4px;
   z-index: 1; 
+  border: 1px solid transparent; /* Prevents layout jump when active adds border */
 }
 
-.theme-doc-sidebar-item-link::before {
-  content: '';
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  width: 0;
-  height: 0;
-  background: radial-gradient(circle, rgba(0, 127, 255, 0.25) 0%, transparent 70%);
-  transform: translate(-50%, -50%);
-  transition: width 0.5s ease-out, height 0.5s ease-out;
-  pointer-events: none;
-  z-index: -1; 
-}
-
+/* --- HOVER STATE (No Movement) --- */
 .theme-doc-sidebar-item-link:hover {
   color: var(--neon-blue) !important;
   background-color: rgba(0, 127, 255, 0.08) !important;
-  padding-left: 1.25rem;
+  border-color: rgba(0, 127, 255, 0.3) !important;
+  /* padding-left removed to stop movement */
 }
 
-.theme-doc-sidebar-item-link:hover::before {
-  width: 300%;
-  height: 500%;
-}
-
+/* --- ACTIVE STATE (Standardized Box) --- */
 .menu__list-item .menu__link--active {
-  font-weight: 600 !important;
-  text-transform: uppercase !important;
-  letter-spacing: 0.05em !important;
+  /* Typography Reset */
+  font-weight: 500 !important;
+  text-transform: none !important;
+  letter-spacing: normal !important;
+  
   color: var(--ifm-color-primary) !important;
   background-color: rgba(48, 186, 120, 0.08) !important;
-  border-left: 3px solid var(--ifm-color-primary) !important;
-  border-radius: 0 4px 4px 0 !important;
-  text-shadow: 0 0 8px rgba(48, 186, 120, 0.3);
-  box-shadow: inset 8px 0 12px -10px rgba(48, 186, 120, 0.2) !important;
+  
+  /* The Standard Box */
+  border: 1px solid rgba(48, 186, 120, 0.3) !important;
+  /* Removed the thick left border */
+  border-radius: 4px !important;
+  
+  /* The Pulse */
+  animation: nav-pulse 3s infinite ease-in-out;
+  box-shadow: 0 0 10px rgba(48, 186, 120, 0.15) !important;
 }
 
 /* ==========================================================================
@@ -254,7 +243,7 @@
 }
 
 /* ==========================================================================
-   5. CODEBLOCKS (Terminal, Header & Pulse)
+   5. CODEBLOCKS (Real Terminal Window & Perfect Text Spacing)
    ========================================================================== */
 
 /* 1. THE OUTER SHELL (Ghost Anchor) */
@@ -269,69 +258,105 @@
   cursor: text !important;
 }
 
-/* 2. THE INNER BOX (Compact Terminal) */
+/* 2. THE INNER BOX (The Shell) */
 .nunix-code-wrapper .prism-code,
 .nunix-code-wrapper pre {
+  position: relative !important; 
   background: var(--nunix-glass-bg) !important;
   border: 1px solid rgba(48, 186, 120, 0.2) !important;
   border-radius: 4px !important;
-  padding: 0.2rem 0.5rem !important; 
+  
+  /* PADDING: Top 2.2rem (Clearance) | Sides 0.5rem (Compact) */
+  padding: 1rem 0.5rem 0rem 0.5rem !important; 
+  
   margin: 0 !important;
   display: block;
   vertical-align: top;
   transition: border-color 0.2s ease, box-shadow 0.2s ease;
-  overflow: hidden;
+  
+  /* SCROLLBARS */
+  overflow: auto !important;
+  scrollbar-width: thin; 
+  scrollbar-color: rgba(48, 186, 120, 0.4) transparent; 
 }
 
-/* 3. TERMINAL HEADER & HUD (Grouped) */
+/* --- SCROLLBAR STYLING --- */
+.nunix-code-wrapper .prism-code::-webkit-scrollbar,
+.nunix-code-wrapper pre::-webkit-scrollbar { height: 8px; width: 8px; background: transparent; }
+.nunix-code-wrapper .prism-code::-webkit-scrollbar-corner,
+.nunix-code-wrapper pre::-webkit-scrollbar-corner { background: transparent; }
+.nunix-code-wrapper .prism-code::-webkit-scrollbar-thumb,
+.nunix-code-wrapper pre::-webkit-scrollbar-thumb {
+  background-color: rgba(48, 186, 120, 0.4); 
+  border-radius: 4px;
+  border: 2px solid transparent; 
+  background-clip: content-box;
+  transition: background-color 0.2s ease;
+}
+.nunix-code-wrapper .prism-code::-webkit-scrollbar-thumb:hover,
+.nunix-code-wrapper pre::-webkit-scrollbar-thumb:hover {
+  background-color: var(--ifm-color-primary) !important;
+  border: 0;
+}
 
-/* Left Side: Language Label */
+/* 3. TERMINAL HEADER (The Real Window Bar) */
+
+/* The Full-Width Title Bar */
 .prism-code::before {
   content: "CODE"; 
   position: absolute;
   top: 0;
-  left: 0;
-  width: 0%;
   z-index: 10;
+  
+  /* ALIGNMENT: Matches 0.5rem container padding */
+  left: -0.5rem; 
+  width: calc(100% + 1rem); 
+  
+  height: 1.6rem; 
+  line-height: 1.6rem;
+  
+  background: rgba(10, 13, 16, 0.85); 
+  backdrop-filter: blur(4px);
+  border-bottom: 1px solid rgba(0, 127, 255, 0.3); 
+  border-radius: 4px 4px 0 0; 
   
   font-family: var(--vintage-mono);
   font-size: 0.65rem; 
   font-weight: bold;
   color: var(--neon-blue);
-  background: rgba(0, 0, 0, 0.85); 
-  backdrop-filter: blur(4px);
-  padding: 0px 8px;
   
-  border-radius: 2px 0 2px 0; 
-  border-right: 1px solid rgba(0, 127, 255, 0.3);
-  border-bottom: 1px solid rgba(0, 127, 255, 0.3);
+  /* TEXT PADDING: Breathing room inside the bar */
+  padding-left: 16px; 
   
   letter-spacing: 0.5px;
   pointer-events: none;
   text-transform: uppercase;
+  text-align: left; 
 }
 
-/* Right Side: Hint/Status Box */
+/* Right Side: Hint Box */
 .nunix-terminal-hint {
   position: absolute;
   top: 0;
-  right: 0;
-  height: 17px;
-  width: 100%;
-  z-index: 10;
+  z-index: 11; 
+  
+  /* ALIGNMENT: Touch the right border */
+  right: -0.5rem; 
+  
+  height: 1.6rem; 
+  line-height: 1.6rem;
+  
+  background: transparent; 
+  
+  /* TEXT PADDING */
+  padding-right: 16px; 
   
   font-family: var(--vintage-mono);
-  font-size: 0.65rem;
+  font-size: 0.65rem; 
   font-weight: bold;
   color: var(--neon-blue);
-  background: rgba(0, 0, 0, 0.85); 
-  backdrop-filter: blur(4px);
-  padding: 0px 8px; 
   
-  border-radius: 0 2px 0 2px; 
-  border-left: 1px solid rgba(0, 127, 255, 0.3);
-  border-bottom: 1px solid rgba(0, 127, 255, 0.3);
-  
+  border: none;
   letter-spacing: 0.5px;
   pointer-events: none;
   text-transform: uppercase;
@@ -342,23 +367,24 @@
 /* Copy Status Feedback */
 .nunix-copy-status {
   position: absolute;
-  top: 20px;
-  right: 8px;
+  /* FIX: Moved down to 30px to clear the 1.6rem header */
+  top: 30px; 
+  right: 16px; 
   z-index: 30;
+  
   background: var(--ifm-color-primary);
   color: #000;
   font-family: var(--vintage-mono);
   font-weight: 800;
   font-size: 0.65rem;
-  padding: 2px 8px;
+  padding: 1px 6px;
   border-radius: 2px;
+  
   opacity: 0;
   transform: scale(0.9) translateX(10px);
   transition: all 0.15s cubic-bezier(0.175, 0.885, 0.32, 1.275);
   pointer-events: none;
-  box-shadow: 0 0 10px rgba(48, 186, 120, 0.5);
 }
-
 .alert-active .nunix-copy-status { opacity: 1; transform: scale(1) translateX(0); }
 .hint-pulse { color: var(--ifm-color-primary); margin-right: 4px; animation: neon-blink 2s infinite ease-in-out; }
 
@@ -383,8 +409,6 @@
 .prism-code.language-powershell::before, .prism-code.language-ps1::before { content: "POWERSHELL"; }
 
 /* 4. ANIMATIONS & INTERACTIONS */
-
-/* Container Hover Glow */
 .nunix-code-wrapper:hover .prism-code,
 .nunix-code-wrapper:hover pre {
   animation: code-border-pulse 0.5s infinite ease-in-out;
@@ -393,8 +417,7 @@
 }
 
 /* Header Highlight on Hover */
-.nunix-code-wrapper:hover .prism-code::before,
-.nunix-code-wrapper:hover .nunix-terminal-hint {
+.nunix-code-wrapper:hover .prism-code::before {
   border-bottom-color: var(--neon-blue);
   color: #fff;
   text-shadow: 0 0 5px var(--neon-blue-glow);
@@ -413,8 +436,9 @@
   line-height: 1.1 !important;    
   letter-spacing: 0.03rem;
   min-height: 1.1rem; 
+  width: fit-content; 
+  min-width: 100%;
 }
-
 .code-line-number {
   color: rgba(48, 186, 120, 0.4) !important;
   font-family: var(--vintage-mono) !important;
@@ -424,7 +448,6 @@
   border-right: 1px solid rgba(48, 186, 120, 0.2);
   opacity: 0.6;
 }
-
 .prism-code .token-line:hover {
   background-color: rgba(48, 186, 120, 0.1) !important;
   box-shadow: -1rem 0 0 rgba(48, 186, 120, 0.1), 1rem 0 0 rgba(48, 186, 120, 0.1);
@@ -432,7 +455,6 @@
   z-index: 5;
   position: relative;
 }
-
 .prism-code .token-line:hover::after {
   content: 'COPY'; 
   position: absolute;
@@ -445,7 +467,6 @@
   pointer-events: none;
   margin-top: 2px; 
 }
-
 ::selection { background: rgba(0, 127, 255, 0.3); color: #ffffff; }
 .prism-code ::selection { background: rgba(48, 186, 120, 0.3); }
 
@@ -701,35 +722,41 @@ code:not(pre code) {
    ========================================================================== */
 .table-of-contents__link {
   transition: all 0.2s ease;
-  border-left: 1px solid rgba(48, 186, 120, 0.1); 
-  padding-left: 10px !important;
+  border-radius: 4px; /* Box shape */
+  padding: 4px 10px !important;
+  margin: 2px 0;
+  border: 1px solid transparent; /* Reserve space for border */
 }
 
+/* --- HOVER STATE --- */
 .table-of-contents__link:not(.table-of-contents__link--active):hover {
   color: var(--neon-blue) !important;
   text-decoration: none !important;
-  background: rgba(0, 127, 255, 0.1) !important; 
-  backdrop-filter: blur(4px);
-  border-radius: 3px;
+  background: rgba(0, 127, 255, 0.08) !important; 
   border: 1px solid rgba(0, 127, 255, 0.3) !important;
-  box-shadow: 0 0 10px rgba(0, 127, 255, 0.2);
-  padding: 2px 10px !important;
-  margin-left: -5px;
-  text-shadow: 0 0 5px var(--neon-blue-glow);
+  backdrop-filter: blur(4px);
 }
 
+/* --- ACTIVE STATE (Standardized Box) --- */
 .table-of-contents__link--active {
   color: var(--ifm-color-primary) !important;
-  border-left: 2.5px solid var(--ifm-color-primary) !important;
-  font-weight: bold;
-  text-shadow: 0 0 8px rgba(48, 186, 120, 0.3);
+  background-color: rgba(48, 186, 120, 0.08) !important;
+  
+  /* The Standard Box */
+  border: 1px solid rgba(48, 186, 120, 0.3) !important;
+  /* Removed left-border override */
+  
+  font-weight: 500 !important;
+  
+  /* The Pulse */
+  animation: nav-pulse 3s infinite ease-in-out;
 }
 
+/* Active Hover - Stays Green */
 .table-of-contents__link--active:hover {
   color: var(--ifm-color-primary) !important;
-  background: rgba(0, 127, 255, 0.1) !important; 
-  border: 1px solid rgba(0, 127, 255, 0.3) !important;
-  backdrop-filter: blur(4px);
+  background-color: rgba(48, 186, 120, 0.12) !important;
+  animation-play-state: paused;
 }
 
 /* ==========================================================================
@@ -1386,4 +1413,193 @@ body:has(.nunix-status-bar.is-collapsed) .buffer-track {
 @keyframes cursor-blink {
   from, to { opacity: 1; }
   50% { opacity: 0; }
+}
+
+/* ==========================================================================
+   23. TERMINAL SEARCH (Command Line Interface - Theme Aware)
+   ========================================================================== */
+
+/* 1. THE SEARCH BAR CONTAINER */
+.navbar__search {
+  position: relative;
+  margin-left: 10px;
+}
+
+/* 2. THE INPUT FIELD (The Prompt) */
+.navbar__search-input {
+  appearance: none;
+  background: rgba(10, 13, 16, 0.6) !important; /* Default Dark Glass */
+  backdrop-filter: blur(4px);
+  border: 1px solid rgba(48, 186, 120, 0.4) !important; 
+  border-radius: 4px !important;
+  
+  color: var(--ifm-color-primary) !important;
+  font-family: var(--vintage-mono) !important;
+  font-size: 0.8rem !important;
+  font-weight: bold;
+  
+  /* Space for the ">" prompt character */
+  padding: 0.4rem 0.8rem 0.4rem 2rem !important; 
+  width: 12rem;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  background-image: none !important; 
+}
+
+/* Placeholder Styling */
+.navbar__search-input::placeholder {
+  color: rgba(48, 186, 120, 0.5);
+  text-transform: uppercase;
+  font-size: 0.7rem;
+}
+
+/* 3. THE ">" PROMPT CHARACTER */
+.navbar__search::before {
+  content: ">";
+  position: absolute;
+  left: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  
+  color: var(--ifm-color-primary);
+  font-family: var(--vintage-mono);
+  font-weight: 800;
+  font-size: 0.9rem;
+  z-index: 5;
+  pointer-events: none;
+  
+  animation: prompt-blink 3s infinite;
+}
+
+/* 4. ACTIVE / FOCUS STATE (Electric Blue) */
+.navbar__search-input:focus {
+  width: 18rem; 
+  outline: none;
+  background: rgba(0, 0, 0, 0.9) !important;
+  
+  border-color: var(--neon-blue) !important;
+  color: var(--neon-blue) !important;
+  box-shadow: 0 0 15px rgba(0, 127, 255, 0.3) !important;
+}
+
+/* Change Prompt Color on Focus */
+.navbar__search:focus-within::before {
+  color: var(--neon-blue);
+  text-shadow: 0 0 8px var(--neon-blue-glow);
+  animation: none; 
+}
+
+/* 5. SEARCH RESULTS DROPDOWN (System Log Style) */
+.search-result-container {
+  background: rgba(15, 20, 25, 0.98) !important;
+  border: 1px solid var(--ifm-color-primary) !important;
+  border-radius: 4px !important;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.8) !important;
+  margin-top: 12px;
+  font-family: var(--vintage-mono) !important;
+  width: 300px !important; 
+}
+
+/* Individual Result Item */
+.search-result-item {
+  border-bottom: 1px solid rgba(48, 186, 120, 0.1);
+  padding: 8px 12px !important;
+  transition: all 0.1s ease;
+}
+
+.search-result-item:hover,
+.search-result-item[aria-selected="true"] {
+  background: rgba(48, 186, 120, 0.15) !important;
+  border-left: 3px solid var(--ifm-color-primary);
+  padding-left: 9px !important; 
+}
+
+.search-result-title {
+  color: var(--ifm-color-primary) !important;
+  font-weight: bold;
+  font-size: 0.8rem;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+mark {
+  color: #fff !important;
+  background: var(--neon-blue) !important;
+  padding: 0 2px;
+  border-radius: 2px;
+}
+
+.search-no-results {
+  padding: 20px;
+  text-align: center;
+  color: #ff3e3e; 
+  font-weight: bold;
+  text-transform: uppercase;
+}
+
+/* ==========================================================================
+   LIGHT MODE OVERRIDES
+   ========================================================================== */
+
+[data-theme='light'] .navbar__search-input {
+  /* GLASS FIX: Semi-transparent white with heavy blur */
+  background: rgba(255, 255, 255, 0.5) !important; 
+  backdrop-filter: blur(8px) saturate(120%);
+  
+  border-color: #1a4d32 !important; /* Dark Green Border */
+  color: #1a4d32 !important; 
+}
+
+[data-theme='light'] .navbar__search-input::placeholder {
+  color: rgba(26, 77, 50, 0.6); 
+}
+
+[data-theme='light'] .navbar__search::before {
+  color: #1a4d32; 
+}
+
+/* Light Mode Focus */
+[data-theme='light'] .navbar__search-input:focus {
+  /* Slightly more solid on focus for readability */
+  background: rgba(255, 255, 255, 0.85) !important;
+  border-color: #0056b3 !important; 
+  color: #0056b3 !important;
+  box-shadow: 0 0 15px rgba(0, 86, 179, 0.2) !important;
+}
+
+[data-theme='light'] .navbar__search:focus-within::before {
+  color: #0056b3;
+  text-shadow: none; 
+}
+
+/* Light Mode Dropdown (Glassy Paper) */
+[data-theme='light'] .search-result-container {
+  background: rgba(255, 255, 255, 0.85) !important;
+  backdrop-filter: blur(12px);
+  border-color: #1a4d32 !important;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15) !important;
+}
+
+[data-theme='light'] .search-result-item {
+  border-bottom: 1px solid rgba(26, 77, 50, 0.1);
+}
+
+[data-theme='light'] .search-result-item:hover,
+[data-theme='light'] .search-result-item[aria-selected="true"] {
+  background: rgba(26, 77, 50, 0.08) !important;
+  border-left-color: #1a4d32;
+}
+
+[data-theme='light'] .search-result-title {
+  color: #1a4d32 !important; 
+}
+
+/* Mobile Fix */
+@media (max-width: 996px) {
+  .navbar__search-input { width: 8rem; }
+  .navbar__search-input:focus { width: 12rem; }
+}
+
+@keyframes prompt-blink {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.4; }
 }
