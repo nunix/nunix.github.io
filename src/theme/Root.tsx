@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useLocation } from '@docusaurus/router';
+import ZenToggle from '@site/src/components/ZenToggle';
 
 export default function Root({ children }: { children: React.ReactNode }) {
   const location = useLocation();
@@ -203,6 +204,9 @@ export default function Root({ children }: { children: React.ReactNode }) {
             <div className="status-node">
               <span className="status-label">READ_TIME:</span> 
               {readingTime} MIN
+              <span className="status-node">
+                <ZenToggle />
+              </span>
             </div>
           )}
         </div>
