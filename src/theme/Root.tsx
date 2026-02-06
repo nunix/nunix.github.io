@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { useLocation } from '@docusaurus/router';
 import ZenToggle from '@site/src/components/ZenToggle';
 import InodeCounter from '@site/src/components/InodeCounter';
+import JumpTop from '@site/src/components/JumpTop';
 
 export default function Root({ children }: { children: React.ReactNode }) {
   const location = useLocation();
@@ -166,6 +167,9 @@ export default function Root({ children }: { children: React.ReactNode }) {
       
       {/* 2. Main Website Content */}
       {children}
+
+      {/* The new Jump Top Controller */}
+      <JumpTop />
       
       {/* 3. THE SYSTEM LOG CONSOLE (Placed correctly inside the fragment) */}
       {logOpen && isVisible && (

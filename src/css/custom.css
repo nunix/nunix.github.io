@@ -507,48 +507,105 @@ code:not(pre code) {
 }
 
 /* ==========================================================================
-   7. ADMONITIONS (ALERTS)
+   7. ADMONITIONS (SYSTEM ALERT LOGS)
    ========================================================================== */
-[class*='admonition_'] {
-  border-radius: 4px !important;
+/* The Container */
+[class*='admonition_'], .alert {
+  --ifm-alert-border-radius: 2px; /* Sharp, technical corners */
+  --ifm-alert-padding-vertical: 1rem;
+  --ifm-alert-padding-horizontal: 1.2rem;
+  
+  position: relative;
   border: 1px solid var(--nunix-admonition-border) !important;
-  background-color: var(--nunix-glass-bg) !important;
-  backdrop-filter: blur(12px) !important;
-  padding: 1rem 1.25rem !important;
-  margin-bottom: 1.6rem !important;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2) !important;
-  border-left: 6px solid var(--nunix-admonition-color) !important;
+  border-left: 4px solid var(--nunix-admonition-color) !important; 
+  
+  /* Dark Glass + Scanline Effect */
+  background-color: rgba(10, 13, 16, 0.7) !important; 
+  backdrop-filter: blur(12px);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+  margin-bottom: 1.5rem;
+  overflow: hidden;
 }
 
-[class*='admonitionHeading_'] {
-  font-family: var(--vintage-mono) !important;
-  text-transform: uppercase !important;
-  letter-spacing: 0.12em !important;
-  font-weight: 700 !important;
-  color: var(--nunix-admonition-color) !important;
-  text-shadow: 0 0 8px var(--nunix-admonition-glow);
-  margin-bottom: 0.6rem !important;
+/* Subtle Scanline Texture Overlay */
+[class*='admonition_']::before {
+  content: "";
+  position: absolute;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.1) 50%);
+  background-size: 100% 4px;
+  pointer-events: none;
+  z-index: 0;
+  opacity: 0.6;
 }
 
+/* The Header (Title) */
+[class*='admonitionHeading_'], .alert__heading {
+  position: relative;
+  z-index: 1;
+  font-family: var(--vintage-mono);
+  font-weight: 800 !important;
+  font-size: 0.8rem;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  color: var(--nunix-admonition-color);
+  
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  
+  /* Divider Line */
+  border-bottom: 1px solid var(--nunix-admonition-border);
+  padding-bottom: 8px;
+  margin-bottom: 12px;
+}
+
+/* Icons (SVG) - Neon Glow */
+[class*='admonitionHeading_'] svg {
+  fill: var(--nunix-admonition-color) !important;
+  filter: drop-shadow(0 0 3px var(--nunix-admonition-glow));
+  height: 1rem;
+  width: 1rem;
+}
+
+/* The Content */
+[class*='admonitionContent_'], .alert p {
+  position: relative;
+  z-index: 1;
+  font-size: 0.95rem;
+  line-height: 1.6;
+  color: var(--ifm-font-color-base);
+}
+
+/* Color Variables */
 .alert--info, [class*='admonition-info'] {
-  --nunix-admonition-color: #007fff;
+  --nunix-admonition-color: #007fff; /* Neon Blue */
   --nunix-admonition-border: rgba(0, 127, 255, 0.25);
-  --nunix-admonition-glow: rgba(0, 127, 255, 0.4);
+  --nunix-admonition-glow: rgba(0, 127, 255, 0.6);
 }
 .alert--success, [class*='admonition-tip'] {
-  --nunix-admonition-color: var(--ifm-color-primary);
+  --nunix-admonition-color: var(--ifm-color-primary); /* Neon Green */
   --nunix-admonition-border: rgba(48, 186, 120, 0.25);
-  --nunix-admonition-glow: rgba(48, 186, 120, 0.4);
+  --nunix-admonition-glow: rgba(48, 186, 120, 0.6);
 }
 .alert--warning, [class*='admonition-warning'] {
-  --nunix-admonition-color: #ffaa00;
+  --nunix-admonition-color: #ffaa00; /* Amber */
   --nunix-admonition-border: rgba(255, 170, 0, 0.25);
-  --nunix-admonition-glow: rgba(255, 170, 0, 0.4);
+  --nunix-admonition-glow: rgba(255, 170, 0, 0.6);
 }
 .alert--danger, [class*='admonition-danger'] {
-  --nunix-admonition-color: #ff3e3e;
+  --nunix-admonition-color: #ff3e3e; /* Red */
   --nunix-admonition-border: rgba(255, 62, 62, 0.3);
-  --nunix-admonition-glow: rgba(255, 62, 62, 0.5);
+  --nunix-admonition-glow: rgba(255, 62, 62, 0.6);
+}
+
+/* Light Mode Override (Clean Technical Look) */
+[data-theme='light'] [class*='admonition_'] {
+  background-color: rgba(255, 255, 255, 0.8) !important;
+  border: 1px solid var(--nunix-admonition-color) !important;
+}
+[data-theme='light'] [class*='admonition_']::before {
+  display: none; /* No scanlines in light mode */
 }
 
 /* ==========================================================================
@@ -1824,3 +1881,142 @@ html[data-single-user='true'] main {
   background: rgba(26, 77, 50, 0.08);
   text-shadow: none;
 }
+
+/* ==========================================================================
+   28. GLOBAL TERMINAL UI (Scrollbars & Selection)
+   ========================================================================== */
+
+/* 1. TEXT SELECTION (High Contrast) */
+::selection {
+  background: rgba(0, 127, 255, 0.3); /* Electric Blue Selection */
+  color: #fff;
+  text-shadow: 0 0 2px #000;
+}
+[data-theme='light'] ::selection {
+  background: rgba(48, 186, 120, 0.3); /* Green Selection */
+  color: #000;
+}
+
+/* 2. GLOBAL SCROLLBAR (Chrome/Edge/Safari) */
+html {
+  scrollbar-width: thin;
+  scrollbar-color: var(--ifm-color-primary) #0a0d10;
+}
+
+body::-webkit-scrollbar {
+  width: 10px;
+}
+
+body::-webkit-scrollbar-track {
+  background: #0a0d10; /* Dark Track */
+}
+
+body::-webkit-scrollbar-thumb {
+  background-color: rgba(48, 186, 120, 0.4); /* Green Thumb */
+  border-radius: 2px;
+  border: 2px solid #0a0d10; /* Creates padding effect */
+}
+
+body::-webkit-scrollbar-thumb:hover {
+  background-color: var(--ifm-color-primary);
+}
+
+/* Light Mode Scrollbar */
+[data-theme='light'] html {
+  scrollbar-color: #1a4d32 #e2e8f0;
+}
+[data-theme='light'] body::-webkit-scrollbar-track {
+  background: #e2e8f0;
+}
+[data-theme='light'] body::-webkit-scrollbar-thumb {
+  background-color: rgba(26, 77, 50, 0.4);
+  border-color: #e2e8f0;
+}
+
+/* ==========================================================================
+   29. BACK TO TOP (NUNIX HUD CONTROLLER)
+   ========================================================================== */
+
+/* 1. HIDE NATIVE DOCUSAURUS BUTTON (The override) */
+.clean-btn.theme-back-to-top-button {
+  display: none !important;
+}
+
+/* 2. NUNIX JUMP BUTTON (The Replacement) */
+.nunix-jump-top {
+  /* Positioning: Centered, floating above Status Bar */
+  position: fixed;
+  bottom: 40px; 
+  left: 50%;
+  transform: translateX(-50%) translateY(20px); /* Start hidden (lower) */
+  z-index: 12000;
+  
+  /* Geometry */
+  width: 40px;
+  height: 40px;
+  border-radius: 4px;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  
+  /* Visuals: Glass & Border */
+  background: rgba(10, 13, 16, 0.4); 
+  backdrop-filter: blur(2px);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  box-shadow: none;
+  
+  /* State: Hidden by default */
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+  
+  transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+/* 3. ACTIVE STATE (Scrolled > 50px) */
+.nunix-jump-top.show {
+  opacity: 0.3; /* Ghost Mode */
+  visibility: visible;
+  pointer-events: auto;
+  transform: translateX(-50%) translateY(0); /* Slide up */
+}
+
+/* 4. HOVER STATE (Power On) */
+.nunix-jump-top:hover {
+  opacity: 1; /* Full Power */
+  background: rgba(10, 13, 16, 0.95);
+  border-color: var(--neon-blue);
+  box-shadow: 0 0 20px var(--neon-blue-glow), inset 0 0 10px rgba(0, 127, 255, 0.2);
+  transform: translateX(-50%) translateY(-5px); /* Lift */
+}
+
+/* 5. ICON STYLING */
+.nunix-jump-top svg {
+  width: 20px;
+  height: 20px;
+  color: #fff;
+  opacity: 0.7;
+  transition: all 0.3s ease;
+}
+
+.nunix-jump-top:hover svg {
+  color: var(--neon-blue);
+  opacity: 1;
+  filter: drop-shadow(0 0 5px var(--neon-blue));
+}
+
+/* 6. LIGHT MODE OVERRIDES */
+[data-theme='light'] .nunix-jump-top {
+  background: rgba(255, 255, 255, 0.4);
+  border-color: rgba(0, 0, 0, 0.2);
+}
+[data-theme='light'] .nunix-jump-top svg { color: #000; }
+
+[data-theme='light'] .nunix-jump-top:hover {
+  background: rgba(255, 255, 255, 0.95);
+  border-color: var(--ifm-color-primary);
+  box-shadow: 0 0 20px rgba(48, 186, 120, 0.4);
+}
+[data-theme='light'] .nunix-jump-top:hover svg { color: var(--ifm-color-primary); }
