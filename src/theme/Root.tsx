@@ -21,6 +21,13 @@ export default function Root({ children }: { children: React.ReactNode }) {
   const [scrollProgress, setScrollProgress] = useState(0);
   const [showJumpTop, setShowJumpTop] = useState(false);
 
+  // LINK TOOLTIP STATE
+  const [hoveredLink, setHoveredLink] = useState<{
+    url: string;
+    x: number;
+    y: number;
+  } | null>(null);
+
   const logEntries = [
     { text: "[OK] LOAD_NUNIX_DEV", type: "success" },
     {
@@ -73,24 +80,20 @@ export default function Root({ children }: { children: React.ReactNode }) {
   };
 
   useEffect(() => {
-    // Recalculate read time on page change
     setTimeout(calculateReadTime, 500);
-
-    // Reset scroll state on page change
     setScrollProgress(0);
     setShowJumpTop(false);
+    setHoveredLink(null);
   }, [location.pathname]);
 
-  // --- SECTION 3: ROBUST SCROLL LOGIC (THE FIX) ---
+  // --- SECTION 3: SCROLL & HOVER LOGIC ---
   useEffect(() => {
+    // 1. Scroll Handler
     const handleScroll = () => {
-      // 1. Get Scroll Position (Cover all bases)
       const scrollTop =
         window.scrollY ||
         document.documentElement.scrollTop ||
         document.body.scrollTop;
-
-      // 2. Get Total Height (Cover all bases)
       const scrollHeight = Math.max(
         document.body.scrollHeight,
         document.documentElement.scrollHeight,
@@ -99,37 +102,52 @@ export default function Root({ children }: { children: React.ReactNode }) {
         document.body.clientHeight,
         document.documentElement.clientHeight,
       );
-
-      // 3. Get Viewport Height
       const clientHeight =
         window.innerHeight || document.documentElement.clientHeight;
-
-      // 4. Calculate "Scrollable Distance" (Total - Viewport)
       const totalScrollable = scrollHeight - clientHeight;
 
-      // 5. Calculate Percentage with Safety Check
-      // If totalScrollable is 0 or negative (page fits on screen), progress is 0.
       let progress = 0;
       if (totalScrollable > 0) {
         progress = (scrollTop / totalScrollable) * 100;
-        // Clamp between 0 and 100
         progress = Math.min(100, Math.max(0, progress));
       }
 
       setScrollProgress(progress);
-      setShowJumpTop(scrollTop > 300); // Show button after 300px
+      setShowJumpTop(scrollTop > 300);
+
+      // Hide tooltip on scroll to prevent detachment
+      setHoveredLink(null);
     };
 
-    // Attach listener to BOTH window and body to catch inner scrolls
+    // 2. Link Hover Handler (Attached Tooltip)
+    const handleHover = (e: MouseEvent) => {
+      // TARGETING: Only .markdown links (Content), ignore sidebar/nav
+      const target = (e.target as HTMLElement).closest(".markdown a");
+
+      if (target && (target as HTMLAnchorElement).href) {
+        const anchor = target as HTMLAnchorElement;
+        const rect = anchor.getBoundingClientRect();
+
+        setHoveredLink({
+          url: anchor.href,
+          x: rect.left, // Align with left edge of link
+          y: rect.bottom + 8, // 8px below the link
+        });
+      } else {
+        setHoveredLink(null);
+      }
+    };
+
     window.addEventListener("scroll", handleScroll, { passive: true });
     document.body.addEventListener("scroll", handleScroll, { passive: true });
+    document.addEventListener("mouseover", handleHover);
 
-    // Force initial check
     handleScroll();
 
     return () => {
       window.removeEventListener("scroll", handleScroll);
       document.body.removeEventListener("scroll", handleScroll);
+      document.removeEventListener("mouseover", handleHover);
     };
   }, [location.pathname]);
 
@@ -139,7 +157,7 @@ export default function Root({ children }: { children: React.ReactNode }) {
     document.documentElement.scrollTo({ top: 0, behavior: "smooth" });
   };
 
-  // --- SECTION 4: GLOBAL UI INTERACTION (Clicks/Zoom/Copy) ---
+  // --- SECTION 4: GLOBAL UI INTERACTION ---
   useEffect(() => {
     const closeZoom = () => {
       const overlay = document.querySelector(".img-zoom-overlay");
@@ -152,7 +170,6 @@ export default function Root({ children }: { children: React.ReactNode }) {
     const handleGlobalClick = (e: MouseEvent) => {
       const target = e.target as HTMLElement;
 
-      // Inline Code Copy
       if (target.tagName === "CODE" && !target.closest("pre")) {
         const text = target.textContent || "";
         navigator.clipboard.writeText(text);
@@ -173,7 +190,6 @@ export default function Root({ children }: { children: React.ReactNode }) {
         return;
       }
 
-      // Image Zoom
       if (target.tagName === "IMG" && target.closest(".markdown")) {
         const imgTarget = target as HTMLImageElement;
         const overlay = document.createElement("div");
@@ -216,21 +232,21 @@ export default function Root({ children }: { children: React.ReactNode }) {
 
       {children}
 
-      {/* 1. BUFFER BAR (Progress Tracker) */}
+      {/* 1. BUFFER BAR */}
       <div className="buffer-track">
         <div
-          // CLASS LOGIC: Adds 'is-active' only when scrolling starts
           className={`buffer-bar ${scrollProgress > 0 ? "is-active" : ""}`}
-          style={{ width: `${scrollProgress}%` }}
+          style={{
+            width: `${scrollProgress}%`,
+            opacity: scrollProgress > 1 ? 1 : 0,
+          }}
         />
       </div>
 
-      {/* 2. EOF INDICATOR (100% Badge) */}
       <div className={`buffer-eof ${scrollProgress > 99 ? "eof-active" : ""}`}>
         [ EOF ]
       </div>
 
-      {/* 3. JUMP TOP BUTTON */}
       <button
         className={`nunix-jump-top ${showJumpTop ? "show" : ""}`}
         onClick={scrollToTop}
@@ -249,7 +265,20 @@ export default function Root({ children }: { children: React.ReactNode }) {
         </svg>
       </button>
 
-      {/* LOG CONSOLE */}
+      {/* NEW: ATTACHED TOOLTIP (Dynamic Position) */}
+      {hoveredLink && (
+        <div
+          className="nunix-link-tooltip"
+          style={{
+            top: `${hoveredLink.y}px`,
+            left: `${hoveredLink.x}px`,
+          }}
+        >
+          <span className="tooltip-arrow"></span>
+          <span className="tooltip-url">{hoveredLink.url}</span>
+        </div>
+      )}
+
       {logOpen && isVisible && (
         <div className="nunix-log-console">
           <div className="log-header">
@@ -272,7 +301,6 @@ export default function Root({ children }: { children: React.ReactNode }) {
         </div>
       )}
 
-      {/* STATUS BAR */}
       <div className={`nunix-status-bar ${!isVisible ? "is-collapsed" : ""}`}>
         <div className="status-section section-left">
           {isVisible && (

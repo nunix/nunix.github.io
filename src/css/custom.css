@@ -2577,3 +2577,81 @@ body::-webkit-scrollbar-thumb:hover {
   /* Changed from var(--ifm-color-primary) to var(--neon-blue) */
   color: var(--neon-blue) !important;
 }
+
+/* ==========================================================================
+   30. SMART LINK TOOLTIP (Attached to Content)
+   ========================================================================== */
+
+.nunix-link-tooltip {
+  position: fixed; /* JS sets top/left */
+  z-index: 12000;
+
+  max-width: 320px;
+  background: rgba(10, 13, 16, 0.95);
+  backdrop-filter: blur(8px);
+
+  /* Neon Blue Border */
+  border: 1px solid var(--neon-blue);
+  border-radius: 4px;
+
+  padding: 4px 8px;
+  display: flex;
+  align-items: center;
+
+  /* Typography */
+  font-family: var(--vintage-mono);
+  font-size: 0.65rem;
+  color: #fff;
+
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.5);
+  pointer-events: none; /* Let mouse pass through */
+  animation: tooltip-pop 0.15s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+/* The Triangle Pointer (Up) */
+.tooltip-arrow {
+  position: absolute;
+  top: -5px; /* Sit on top edge */
+  left: 10px; /* Offset slightly */
+  width: 0;
+  height: 0;
+  border-left: 5px solid transparent;
+  border-right: 5px solid transparent;
+  border-bottom: 5px solid var(--neon-blue);
+}
+
+/* URL Text Truncation */
+.tooltip-url {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  color: var(--neon-blue);
+  font-weight: bold;
+}
+
+/* Animation */
+@keyframes tooltip-pop {
+  from {
+    opacity: 0;
+    transform: translateY(5px) scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+/* LIGHT MODE OVERRIDE */
+[data-theme="light"] .nunix-link-tooltip {
+  background: rgba(255, 255, 255, 0.95);
+  border-color: #1a4d32; /* Dark Green */
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.15);
+}
+
+[data-theme="light"] .tooltip-arrow {
+  border-bottom-color: #1a4d32;
+}
+
+[data-theme="light"] .tooltip-url {
+  color: #0056b3; /* Standard Blue */
+}
