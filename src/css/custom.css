@@ -1196,7 +1196,7 @@ html[data-theme="light"] article .markdown p:has(img):hover::after {
 }
 
 /* ==========================================================================
-   13. SYSTEM STATUS BAR (Subtle Collapsed State)
+   13. SYSTEM STATUS BAR (Ghost Container)
    ========================================================================== */
 
 .nunix-status-bar {
@@ -1216,8 +1216,19 @@ html[data-theme="light"] article .markdown p:has(img):hover::after {
   letter-spacing: 1px;
   text-transform: uppercase;
 
-  /* Default Expanded Border */
-  border-top: 1px solid rgba(48, 186, 120, 0.3);
+  /* NUCLEAR: No border, no shadow, no outline */
+  border: none !important;
+  border-top: none !important;
+  box-shadow: none !important;
+  outline: none !important;
+  background-clip: padding-box;
+}
+
+/* Kill pseudo-elements */
+.nunix-status-bar::before,
+.nunix-status-bar::after {
+  display: none !important;
+  content: none !important;
 }
 
 /* Section Logic */
@@ -1241,7 +1252,7 @@ html[data-theme="light"] article .markdown p:has(img):hover::after {
   white-space: nowrap;
 }
 
-/* Theme Colors (Expanded) */
+/* Theme Colors */
 [data-theme="dark"] .nunix-status-bar {
   background: rgba(10, 15, 20, 0.95);
   color: var(--ifm-color-primary);
@@ -1249,7 +1260,6 @@ html[data-theme="light"] article .markdown p:has(img):hover::after {
 [data-theme="light"] .nunix-status-bar {
   background: rgba(245, 247, 250, 0.9);
   color: #1a4d32;
-  border-top: 1px solid rgba(26, 77, 50, 0.2);
 }
 
 .status-active-value {
@@ -1267,14 +1277,10 @@ html[data-theme="light"] article .markdown p:has(img):hover::after {
   padding: 2px 8px;
 }
 
-/* --- COLLAPSED STATE (The Fix) --- */
+/* --- COLLAPSED STATE --- */
 .nunix-status-bar.is-collapsed {
   height: 6px;
-
-  /* Replaces solid green with Dark Glass + Thin Border */
   background: rgba(0, 0, 0, 0.8) !important;
-  border-top: 1px solid var(--ifm-color-primary) !important; /* Matches HUD Badge */
-
   backdrop-filter: blur(4px);
 }
 
@@ -1729,19 +1735,23 @@ html[data-theme="light"] article .markdown p:has(img):hover::after {
 }
 
 /* ==========================================================================
-   21. BUFFER LOAD (Electric Blue & Fixed Badge)
+   21. BUFFER LOAD (Dynamic Glow Logic)
    ========================================================================== */
 
 /* The Invisible Track */
 .buffer-track {
   position: fixed;
-  top: auto;
-  bottom: 28px; /* Default: Sits above Status Bar */
+  bottom: 28px; /* Sits on top of status bar */
   left: 0;
   width: 100%;
   height: 2px;
   z-index: 11000;
-  background: transparent;
+
+  /* FORCE INVISIBLE CONTAINER */
+  background: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
+
   pointer-events: none;
   transition: bottom 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
@@ -1754,9 +1764,28 @@ body:has(.nunix-status-bar.is-collapsed) .buffer-track {
 /* The Filling Bar */
 .buffer-bar {
   height: 100%;
+  width: 0;
+
+  /* BASE STATE: Invisible, No Glow */
+  background: transparent;
+  box-shadow: none;
+  opacity: 0;
+
+  transition:
+    width 0.1s linear,
+    opacity 0.2s ease,
+    box-shadow 0.2s ease;
+}
+
+/* ACTIVE STATE: Only applied when width > 0 */
+.buffer-bar.is-active {
   background: var(--neon-blue);
-  box-shadow: 0 0 10px var(--neon-blue);
-  transition: width 0.1s linear;
+  opacity: 1;
+
+  /* THE GLOW: Only exists when active */
+  box-shadow:
+    0 0 10px var(--neon-blue),
+    0 0 20px var(--neon-blue-glow);
 }
 
 /* The "EOF" Signal Badge */
@@ -1778,7 +1807,6 @@ body:has(.nunix-status-bar.is-collapsed) .buffer-track {
   z-index: 100000;
 }
 
-/* Active State */
 .buffer-eof.eof-active {
   opacity: 1;
   transform: translateY(0);
@@ -2489,7 +2517,7 @@ body::-webkit-scrollbar-thumb:hover {
   transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
 }
 
-/* 3. ACTIVE STATE (Scrolled > 50px) */
+/* 3. ACTIVE STATE (Scrolled > 300px) */
 .nunix-jump-top.show {
   opacity: 0.3; /* Ghost Mode */
   visibility: visible;
@@ -2497,14 +2525,17 @@ body::-webkit-scrollbar-thumb:hover {
   transform: translateX(-50%) translateY(0); /* Slide up */
 }
 
-/* 4. HOVER STATE (Power On) */
+/* 4. HOVER STATE (Power On - NEON BLUE) */
 .nunix-jump-top:hover {
   opacity: 1; /* Full Power */
   background: rgba(10, 13, 16, 0.95);
+
+  /* FORCE BLUE BORDER & GLOW */
   border-color: var(--neon-blue);
   box-shadow:
     0 0 20px var(--neon-blue-glow),
     inset 0 0 10px rgba(0, 127, 255, 0.2);
+
   transform: translateX(-50%) translateY(-5px); /* Lift */
 }
 
@@ -2517,13 +2548,14 @@ body::-webkit-scrollbar-thumb:hover {
   transition: all 0.3s ease;
 }
 
+/* Icon turns Blue on Hover */
 .nunix-jump-top:hover svg {
   color: var(--neon-blue);
   opacity: 1;
   filter: drop-shadow(0 0 5px var(--neon-blue));
 }
 
-/* 6. LIGHT MODE OVERRIDES */
+/* 6. LIGHT MODE OVERRIDES (The Fix: Force Blue) */
 [data-theme="light"] .nunix-jump-top {
   background: rgba(255, 255, 255, 0.4);
   border-color: rgba(0, 0, 0, 0.2);
@@ -2532,11 +2564,16 @@ body::-webkit-scrollbar-thumb:hover {
   color: #000;
 }
 
+/* FIX: Hover in Light Mode now uses NEON BLUE instead of Green */
 [data-theme="light"] .nunix-jump-top:hover {
   background: rgba(255, 255, 255, 0.95);
-  border-color: var(--ifm-color-primary);
-  box-shadow: 0 0 20px rgba(48, 186, 120, 0.4);
+
+  /* Changed from var(--ifm-color-primary) to var(--neon-blue) */
+  border-color: var(--neon-blue) !important;
+  box-shadow: 0 0 20px rgba(0, 127, 255, 0.4) !important;
 }
+
 [data-theme="light"] .nunix-jump-top:hover svg {
-  color: var(--ifm-color-primary);
+  /* Changed from var(--ifm-color-primary) to var(--neon-blue) */
+  color: var(--neon-blue) !important;
 }
