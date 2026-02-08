@@ -3,7 +3,7 @@
  * Optimized for: Core, Layout, Navigation, Codeblocks, & Admonitions
  */
 
-@import url('https://fonts.googleapis.com/css2?family=Share+Tech+Mono&display=swap');
+@import url("https://fonts.googleapis.com/css2?family=Share+Tech+Mono&display=swap");
 
 /* ==========================================================================
    1. CORE VARIABLES & THEMES
@@ -18,16 +18,23 @@
   --ifm-color-primary-lightest: #3cad6e;
   --ifm-code-font-size: 95%;
   --docusaurus-highlighted-code-line-bg: rgba(0, 0, 0, 0.1);
-  --nunix-banner: url('/img/nunix-banner-light.png');
+  --nunix-banner: url("/img/nunix-banner-light.png");
   --nunix-navbar-text: #1a1a1a;
   --nunix-glass-bg: rgba(255, 255, 255, 0.4);
   --nunix-img-overlay: rgba(0, 0, 0, 0.85);
   --neon-blue: #007fff;
   --neon-blue-glow: rgba(0, 127, 255, 0.5);
-  --vintage-mono: 'Share Tech Mono', monospace;
+  --vintage-mono: "Share Tech Mono", monospace;
 }
 
-[data-theme='dark'] {
+html,
+body {
+  overflow-x: hidden !important; /* Kills the horizontal slider */
+  width: 100%;
+  position: relative;
+}
+
+[data-theme="dark"] {
   --ifm-color-primary: #25c2a0;
   --ifm-color-primary-dark: #21af90;
   --ifm-color-primary-darker: #1fa588;
@@ -36,7 +43,7 @@
   --ifm-color-primary-lighter: #32d8b4;
   --ifm-color-primary-lightest: #4fddbf;
   --docusaurus-highlighted-code-line-bg: rgba(0, 0, 0, 0.3);
-  --nunix-banner: url('/img/nunix-banner.png');
+  --nunix-banner: url("/img/nunix-banner.png");
   --nunix-navbar-text: #ffffff;
   --nunix-glass-bg: rgba(10, 13, 11, 0.6);
   --cursor-primary: #ffffff;
@@ -44,7 +51,7 @@
   --cursor-selection: #ffcc33;
 }
 
-[data-theme='light'] {
+[data-theme="light"] {
   --ifm-background-color: #f1f5f9;
   --ifm-contents-background-color: #ffffff;
   --ifm-secondary-background-color: #e2e8f0;
@@ -54,41 +61,56 @@
 /* ==========================================================================
    2. GLOBAL LAYOUT & NAVIGATION
    ========================================================================== */
-.footer { display: none; }
-.main-wrapper { padding-top: 1rem; }
+.footer {
+  display: none;
+}
+.main-wrapper {
+  padding-top: 1rem;
+  overflow-x: clip;
+  width: 100%;
+}
 
 .navbar {
+  /* ... existing styles ... */
   background-image: var(--nunix-banner);
   background-size: cover;
   background-position: center 20%;
   border-bottom: 2px solid var(--ifm-color-primary);
   backdrop-filter: blur(12px) saturate(160%);
-  background-color: var(--nunix-glass-bg); 
+  background-color: var(--nunix-glass-bg);
   transition: all 0.3s ease;
   padding: 0.5rem 1rem;
+
+  /* THE FIX: Clips the scaled background image so it doesn't scroll the page */
+  overflow: hidden !important;
 }
 
 .navbar::before {
   content: "";
   position: absolute;
-  top: 0; left: 0; right: 0; bottom: 0;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
   z-index: -1;
   background-image: var(--nunix-banner);
   background-size: cover;
   background-position: center 20%;
   filter: blur(6px) saturate(40%) brightness(0.8);
   opacity: 0.9;
-  transform: scale(1.1); 
+  transform: scale(1.1);
 }
 
-.navbar__brand, .navbar__item, .navbar__link {
+.navbar__brand,
+.navbar__item,
+.navbar__link {
   position: relative;
   overflow: hidden;
   transition: all 0.2s ease-out;
   border-radius: 4px; /* Standard Box Radius */
   margin: 0 4px;
   padding: 0.4rem 0.8rem !important;
-  
+
   /* Reset Typography to Elegant Standard */
   font-weight: 500 !important;
   text-transform: none !important; /* No CAPS */
@@ -99,20 +121,20 @@
 .navbar__link--active {
   color: var(--ifm-color-primary) !important;
   background-color: rgba(48, 186, 120, 0.08) !important;
-  
+
   /* Full Border Box (Not just bottom) */
   border: 1px solid rgba(48, 186, 120, 0.3) !important;
-  
+
   /* The Pulse */
   animation: nav-pulse 3s infinite ease-in-out;
   box-shadow: 0 0 10px rgba(48, 186, 120, 0.15);
 }
 
 /* --- HOVER STATE --- */
-.navbar__item:hover, 
+.navbar__item:hover,
 .navbar__link:hover {
   color: var(--neon-blue) !important;
-  background: rgba(0, 127, 255, 0.08) !important; 
+  background: rgba(0, 127, 255, 0.08) !important;
   border: 1px solid rgba(0, 127, 255, 0.3) !important;
   box-shadow: 0 0 10px rgba(0, 127, 255, 0.15);
   backdrop-filter: blur(4px);
@@ -129,50 +151,101 @@
 
 /* SHARED PULSE ANIMATION (Used by Nav, Sidebar, TOC) */
 @keyframes nav-pulse {
-  0% { border-color: rgba(48, 186, 120, 0.3); box-shadow: 0 0 0px rgba(48, 186, 120, 0); }
-  50% { border-color: var(--ifm-color-primary); box-shadow: 0 0 8px rgba(48, 186, 120, 0.25); }
-  100% { border-color: rgba(48, 186, 120, 0.3); box-shadow: 0 0 0px rgba(48, 186, 120, 0); }
+  0% {
+    border-color: rgba(48, 186, 120, 0.3);
+    box-shadow: 0 0 0px rgba(48, 186, 120, 0);
+  }
+  50% {
+    border-color: var(--ifm-color-primary);
+    box-shadow: 0 0 8px rgba(48, 186, 120, 0.25);
+  }
+  100% {
+    border-color: rgba(48, 186, 120, 0.3);
+    box-shadow: 0 0 0px rgba(48, 186, 120, 0);
+  }
 }
 
 /* ==========================================================================
-   3. SIDEBAR & MENU
+   3. SIDEBAR & MENU (Standardized: Single Border Fix)
    ========================================================================== */
-.theme-doc-sidebar-item-link {
+
+/* 1. PARENT CONTAINER RESET (The Double Border Fix) */
+/* Forces the list item to be invisible so only the link inside lights up */
+.theme-doc-sidebar-item-category-level-1,
+.menu__list-item {
+  border: none !important;
+  background: transparent !important;
+  box-shadow: none !important;
+}
+
+/* 2. BASE ITEM STATE (The Clickable Link) */
+.menu__link,
+.theme-doc-sidebar-item-link-level-1 {
   position: relative;
-  overflow: hidden;
   transition: all 0.2s ease;
-  border-radius: 4px; /* Matches Navbar */
-  margin: 2px 4px;
-  z-index: 1; 
-  border: 1px solid transparent; /* Prevents layout jump when active adds border */
+  border-radius: 4px;
+  margin: 2px 0;
+
+  /* Layout: Transparent border to prevent jump on hover */
+  border: 1px solid transparent;
+  outline: none !important; /* Kills default focus ring */
+
+  /* Typography */
+  font-weight: 500;
+  color: var(--ifm-menu-color);
 }
 
-/* --- HOVER STATE (No Movement) --- */
-.theme-doc-sidebar-item-link:hover {
+/* 3. HOVER STATE (Neon Blue Box) */
+.menu__link:not(.menu__link--active):hover {
+  /* Blue Text */
   color: var(--neon-blue) !important;
+
+  /* Blue Glass Background */
   background-color: rgba(0, 127, 255, 0.08) !important;
+
+  /* Blue Border (Single Line) */
   border-color: rgba(0, 127, 255, 0.3) !important;
-  /* padding-left removed to stop movement */
+
+  /* Remove decoration */
+  text-decoration: none !important;
+  backdrop-filter: blur(4px);
+  box-shadow: 0 0 10px rgba(0, 127, 255, 0.1);
 }
 
-/* --- ACTIVE STATE (Standardized Box) --- */
-.menu__list-item .menu__link--active {
-  /* Typography Reset */
-  font-weight: 500 !important;
-  text-transform: none !important;
-  letter-spacing: normal !important;
-  
+/* 4. ACTIVE STATE (Green Pulse Box) */
+.menu__link--active {
+  /* Green Text */
   color: var(--ifm-color-primary) !important;
+
+  /* Green Glass Background */
   background-color: rgba(48, 186, 120, 0.08) !important;
-  
-  /* The Standard Box */
-  border: 1px solid rgba(48, 186, 120, 0.3) !important;
-  /* Removed the thick left border */
-  border-radius: 4px !important;
-  
-  /* The Pulse */
+
+  /* Green Border */
+  border-color: rgba(48, 186, 120, 0.3) !important;
+
+  /* The Standard Pulse Animation */
   animation: nav-pulse 3s infinite ease-in-out;
-  box-shadow: 0 0 10px rgba(48, 186, 120, 0.15) !important;
+  box-shadow: 0 0 10px rgba(48, 186, 120, 0.15);
+
+  font-weight: 600 !important;
+}
+
+/* Stop Pulse on Hover (Stable Green) */
+.menu__link--active:hover {
+  animation-play-state: paused;
+  background-color: rgba(48, 186, 120, 0.12) !important;
+  border-color: var(--ifm-color-primary) !important;
+}
+
+/* 5. COLLAPSIBLE ARROW FIX */
+/* Ensures the arrow inherits the color of the link state */
+.menu__list-item-collapsible:hover .menu__link,
+.menu__list-item-collapsible:hover .menu__caret {
+  color: var(--neon-blue) !important;
+}
+
+.menu__link--active .menu__caret {
+  color: var(--ifm-color-primary) !important;
 }
 
 /* ==========================================================================
@@ -183,8 +256,8 @@
   margin-bottom: 20px;
   background: transparent;
   /* Top padding brings items "down" so borders show */
-  padding: 6px 0 10px 0; 
-  gap: 8px; 
+  padding: 6px 0 10px 0;
+  gap: 8px;
 }
 
 .tabs__item {
@@ -192,24 +265,24 @@
   font-weight: bold;
   font-size: 0.8rem;
   text-transform: uppercase;
-  
+
   /* Elegant Dimensions */
-  padding: 6px 24px; 
-  border-radius: 6px; 
-  border: 1px solid transparent; 
+  padding: 6px 24px;
+  border-radius: 6px;
+  border: 1px solid transparent;
   background: transparent !important;
   transition: all 0.2s ease;
   opacity: 0.7;
-  position: relative; 
+  position: relative;
 }
 
 /* --- HOVER STATE --- */
 .tabs__item:not(.tabs__item--active):hover {
   opacity: 1;
   color: var(--neon-blue) !important;
-  background: rgba(0, 127, 255, 0.08) !important; 
+  background: rgba(0, 127, 255, 0.08) !important;
   backdrop-filter: blur(4px);
-  border: 1px solid rgba(0, 127, 255, 0.4) !important; 
+  border: 1px solid rgba(0, 127, 255, 0.4) !important;
   box-shadow: 0 0 10px rgba(0, 127, 255, 0.15);
   text-shadow: 0 0 5px var(--neon-blue-glow);
   text-decoration: none !important;
@@ -223,7 +296,7 @@
   font-weight: 700 !important;
   color: var(--ifm-color-primary) !important;
   background-color: rgba(48, 186, 120, 0.08) !important;
-  border: 1px solid rgba(48, 186, 120, 0.3) !important; 
+  border: 1px solid rgba(48, 186, 120, 0.3) !important;
   animation: tab-pulse 3s infinite ease-in-out;
   z-index: 5;
 }
@@ -237,13 +310,22 @@
 }
 
 @keyframes tab-pulse {
-  0% { border-color: rgba(48, 186, 120, 0.3); box-shadow: 0 0 0px rgba(48, 186, 120, 0); }
-  50% { border-color: var(--ifm-color-primary); box-shadow: 0 0 10px rgba(48, 186, 120, 0.3); }
-  100% { border-color: rgba(48, 186, 120, 0.3); box-shadow: 0 0 0px rgba(48, 186, 120, 0); }
+  0% {
+    border-color: rgba(48, 186, 120, 0.3);
+    box-shadow: 0 0 0px rgba(48, 186, 120, 0);
+  }
+  50% {
+    border-color: var(--ifm-color-primary);
+    box-shadow: 0 0 10px rgba(48, 186, 120, 0.3);
+  }
+  100% {
+    border-color: rgba(48, 186, 120, 0.3);
+    box-shadow: 0 0 0px rgba(48, 186, 120, 0);
+  }
 }
 
 /* ==========================================================================
-   5. CODEBLOCKS (Real Terminal Window & Perfect Text Spacing)
+   5. CODEBLOCKS (High-Contrast Numbers & Clean Hover)
    ========================================================================== */
 
 /* 1. THE OUTER SHELL (Ghost Anchor) */
@@ -254,159 +336,113 @@
   background: transparent !important;
   border: none !important;
   box-shadow: none !important;
-  padding: 0 !important; 
+  padding: 0 !important;
   cursor: text !important;
 }
 
 /* 2. THE INNER BOX (The Shell) */
 .nunix-code-wrapper .prism-code,
 .nunix-code-wrapper pre {
-  position: relative !important; 
+  position: relative !important;
   background: var(--nunix-glass-bg) !important;
   border: 1px solid rgba(48, 186, 120, 0.2) !important;
   border-radius: 4px !important;
-  
-  /* PADDING: Top 2.2rem (Clearance) | Sides 0.5rem (Compact) */
-  padding: 1rem 0.5rem 0rem 0.5rem !important; 
-  
+
+  /* PADDING */
+  padding: 1rem 0.5rem 0rem 0.5rem !important;
+
   margin: 0 !important;
   display: block;
   vertical-align: top;
-  transition: border-color 0.2s ease, box-shadow 0.2s ease;
-  
-  /* SCROLLBARS */
-  overflow: auto !important;
-  scrollbar-width: thin; 
-  scrollbar-color: rgba(48, 186, 120, 0.4) transparent; 
+  transition:
+    border-color 0.2s ease,
+    box-shadow 0.2s ease;
+
+  /* SMART SCROLLBAR LOGIC */
+  overflow-x: auto !important;
+  overflow-y: hidden !important;
+  white-space: pre !important;
+  word-wrap: normal !important;
+
+  /* Scrollbar Styling */
+  scrollbar-width: thin;
+  scrollbar-color: rgba(48, 186, 120, 0.4) transparent;
 }
 
 /* --- SCROLLBAR STYLING --- */
 .nunix-code-wrapper .prism-code::-webkit-scrollbar,
-.nunix-code-wrapper pre::-webkit-scrollbar { height: 8px; width: 8px; background: transparent; }
+.nunix-code-wrapper pre::-webkit-scrollbar {
+  height: 6px;
+  background: transparent;
+}
 .nunix-code-wrapper .prism-code::-webkit-scrollbar-corner,
-.nunix-code-wrapper pre::-webkit-scrollbar-corner { background: transparent; }
+.nunix-code-wrapper pre::-webkit-scrollbar-corner {
+  background: transparent;
+}
+
 .nunix-code-wrapper .prism-code::-webkit-scrollbar-thumb,
 .nunix-code-wrapper pre::-webkit-scrollbar-thumb {
-  background-color: rgba(48, 186, 120, 0.4); 
+  background-color: rgba(48, 186, 120, 0.2);
   border-radius: 4px;
-  border: 2px solid transparent; 
-  background-clip: content-box;
   transition: background-color 0.2s ease;
+}
+.nunix-code-wrapper:hover .prism-code::-webkit-scrollbar-thumb,
+.nunix-code-wrapper:hover pre::-webkit-scrollbar-thumb {
+  background-color: rgba(48, 186, 120, 0.5);
 }
 .nunix-code-wrapper .prism-code::-webkit-scrollbar-thumb:hover,
 .nunix-code-wrapper pre::-webkit-scrollbar-thumb:hover {
   background-color: var(--ifm-color-primary) !important;
-  border: 0;
+  cursor: grab;
 }
 
-/* 3. TERMINAL HEADER (The Real Window Bar) */
-
-/* The Full-Width Title Bar */
+/* 3. TERMINAL HEADER */
 .prism-code::before {
-  content: "CODE"; 
+  content: "CODE";
   position: absolute;
   top: 0;
   z-index: 10;
-  
-  /* ALIGNMENT: Matches 0.5rem container padding */
-  left: -0.5rem; 
-  width: calc(100% + 1rem); 
-  
-  height: 1.6rem; 
+  left: -0.5rem;
+  width: calc(100% + 1rem);
+  height: 1.6rem;
   line-height: 1.6rem;
-  
-  background: rgba(10, 13, 16, 0.85); 
+  background: rgba(10, 13, 16, 0.85);
   backdrop-filter: blur(4px);
-  border-bottom: 1px solid rgba(0, 127, 255, 0.3); 
-  border-radius: 4px 4px 0 0; 
-  
+  border-bottom: 1px solid rgba(0, 127, 255, 0.3);
+  border-radius: 4px 4px 0 0;
+
   font-family: var(--vintage-mono);
-  font-size: 0.65rem; 
+  font-size: 0.65rem;
   font-weight: bold;
   color: var(--neon-blue);
-  
-  /* TEXT PADDING: Breathing room inside the bar */
-  padding-left: 16px; 
-  
+  padding-left: 16px;
   letter-spacing: 0.5px;
   pointer-events: none;
   text-transform: uppercase;
-  text-align: left; 
+  text-align: left;
 }
 
 /* Right Side: Hint Box */
 .nunix-terminal-hint {
   position: absolute;
   top: 0;
-  z-index: 11; 
-  
-  /* ALIGNMENT: Touch the right border */
-  right: -0.5rem; 
-  
-  height: 1.6rem; 
+  z-index: 11;
+  right: -0.5rem;
+  height: 1.6rem;
   line-height: 1.6rem;
-  
-  background: transparent; 
-  
-  /* TEXT PADDING */
-  padding-right: 16px; 
-  
+  background: transparent;
+  padding-right: 16px;
   font-family: var(--vintage-mono);
-  font-size: 0.65rem; 
+  font-size: 0.65rem;
   font-weight: bold;
   color: var(--neon-blue);
-  
   border: none;
   letter-spacing: 0.5px;
   pointer-events: none;
   text-transform: uppercase;
   text-align: right;
-  transition: opacity 0.3s ease;
+  transition: all 0.2s ease;
 }
-
-/* Copy Status Feedback */
-.nunix-copy-status {
-  position: absolute;
-  /* FIX: Moved down to 30px to clear the 1.6rem header */
-  top: 30px; 
-  right: 16px; 
-  z-index: 30;
-  
-  background: var(--ifm-color-primary);
-  color: #000;
-  font-family: var(--vintage-mono);
-  font-weight: 800;
-  font-size: 0.65rem;
-  padding: 1px 6px;
-  border-radius: 2px;
-  
-  opacity: 0;
-  transform: scale(0.9) translateX(10px);
-  transition: all 0.15s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-  pointer-events: none;
-}
-.alert-active .nunix-copy-status { opacity: 1; transform: scale(1) translateX(0); }
-.hint-pulse { color: var(--ifm-color-primary); margin-right: 4px; animation: neon-blink 2s infinite ease-in-out; }
-
-/* Language Mappings */
-.prism-code.language-bash::before, .prism-code.language-sh::before { content: "BASH"; }
-.prism-code.language-ts::before, .prism-code.language-typescript::before { content: "TYPESCRIPT"; }
-.prism-code.language-js::before, .prism-code.language-javascript::before { content: "JAVASCRIPT"; }
-.prism-code.language-css::before { content: "CSS"; }
-.prism-code.language-scss::before { content: "SCSS"; }
-.prism-code.language-json::before { content: "JSON"; }
-.prism-code.language-yaml::before, .prism-code.language-yml::before { content: "YAML"; }
-.prism-code.language-html::before { content: "HTML"; }
-.prism-code.language-tsx::before { content: "TSX"; }
-.prism-code.language-jsx::before { content: "JSX"; }
-.prism-code.language-python::before, .prism-code.language-py::before { content: "PYTHON"; }
-.prism-code.language-docker::before, .prism-code.language-dockerfile::before { content: "DOCKER"; }
-.prism-code.language-go::before { content: "GO"; }
-.prism-code.language-rust::before { content: "RUST"; }
-.prism-code.language-csharp::before, .prism-code.language-cs::before { content: "C#"; }
-.prism-code.language-cpp::before { content: "C++"; }
-.prism-code.language-sql::before { content: "SQL"; }
-.prism-code.language-powershell::before, .prism-code.language-ps1::before { content: "POWERSHELL"; }
 
 /* 4. ANIMATIONS & INTERACTIONS */
 .nunix-code-wrapper:hover .prism-code,
@@ -416,64 +452,175 @@
   box-shadow: 0 0 15px var(--neon-blue) !important;
 }
 
-/* Header Highlight on Hover */
+/* Header Text Turns White on Hover */
 .nunix-code-wrapper:hover .prism-code::before {
   border-bottom-color: var(--neon-blue);
-  color: #fff;
+  color: #fff !important;
   text-shadow: 0 0 5px var(--neon-blue-glow);
 }
 
+.nunix-code-wrapper:hover .nunix-terminal-hint,
+.nunix-code-wrapper:hover button {
+  color: #ffffff !important;
+  text-shadow: 0 0 5px rgba(255, 255, 255, 0.8);
+  opacity: 1;
+}
+
 @keyframes thick-pulse {
-  0% { box-shadow: 0 0 0 0px var(--neon-blue) , 0 0 0px var(--neon-blue-glow); }
-  50% { box-shadow: 0 0 0 1.5px var(--neon-blue) , 0 0 20px var(--neon-blue); }
-  100% { box-shadow: 0 0 0 0px var(--neon-blue) , 0 0 0px var(--neon-blue-glow); }
+  0% {
+    box-shadow:
+      0 0 0 0px var(--neon-blue),
+      0 0 0px var(--neon-blue-glow);
+  }
+  50% {
+    box-shadow:
+      0 0 0 1.5px var(--neon-blue),
+      0 0 20px var(--neon-blue);
+  }
+  100% {
+    box-shadow:
+      0 0 0 0px var(--neon-blue),
+      0 0 0px var(--neon-blue-glow);
+  }
 }
 
 /* 5. CODE CONTENT STYLING */
 .prism-code .token-line {
   font-family: var(--vintage-mono) !important;
-  font-size: 0.95rem !important; 
-  line-height: 1.1 !important;    
+  font-size: 0.95rem !important;
+  line-height: 1.1 !important;
   letter-spacing: 0.03rem;
-  min-height: 1.1rem; 
-  width: fit-content; 
+  width: fit-content;
   min-width: 100%;
 }
+
+/* --- LINE NUMBERS (The Fix) --- */
 .code-line-number {
-  color: rgba(48, 186, 120, 0.4) !important;
+  /* DARK THEME: Bright Mint Green (High Contrast) */
+  color: #b0f2c2 !important;
+  background-color: transparent !important; /* FIX: Prevents glitch */
+
   font-family: var(--vintage-mono) !important;
-  font-size: 0.95rem !important; 
+  font-size: 0.95rem !important;
+
   padding-right: 0.8rem;
   margin-right: 0.8rem;
-  border-right: 1px solid rgba(48, 186, 120, 0.2);
-  opacity: 0.6;
+  border-right: 1px solid rgba(48, 186, 120, 0.3);
+  opacity: 1 !important; /* Fully visible */
+  min-width: 2.5rem;
+  text-align: right;
 }
+
+/* LIGHT THEME OVERRIDE */
+html[data-theme="light"] .code-line-number {
+  /* LIGHT THEME: Deep Forest Green (High Contrast against White) */
+  color: #0f3d26 !important;
+  border-right-color: rgba(26, 77, 50, 0.2);
+  background-color: transparent !important;
+}
+
+/* Hover Highlight for Code Lines */
 .prism-code .token-line:hover {
   background-color: rgba(48, 186, 120, 0.1) !important;
-  box-shadow: -1rem 0 0 rgba(48, 186, 120, 0.1), 1rem 0 0 rgba(48, 186, 120, 0.1);
+  box-shadow:
+    -1rem 0 0 rgba(48, 186, 120, 0.1),
+    1rem 0 0 rgba(48, 186, 120, 0.1);
   filter: brightness(1.1);
   z-index: 5;
   position: relative;
 }
+
+/* LINE COPY HINT */
 .prism-code .token-line:hover::after {
-  content: 'COPY'; 
+  content: "COPY";
   position: absolute;
   right: 0;
   font-family: var(--vintage-mono);
   font-size: 0.6rem;
   font-weight: bold;
-  color: var(--neon-blue);
-  opacity: 0.6;
+  color: #ffffff !important;
+  text-shadow: 0 0 5px rgba(255, 255, 255, 0.8);
+  opacity: 1;
   pointer-events: none;
-  margin-top: 2px; 
+  margin-top: 2px;
 }
-::selection { background: rgba(0, 127, 255, 0.3); color: #ffffff; }
-.prism-code ::selection { background: rgba(48, 186, 120, 0.3); }
+
+::selection {
+  background: rgba(0, 127, 255, 0.3);
+  color: #ffffff;
+}
+.prism-code ::selection {
+  background: rgba(48, 186, 120, 0.3);
+}
 
 .block-copied-flash {
   outline: 1px solid var(--neon-blue) !important;
   box-shadow: 0 0 15px rgba(0, 127, 255, 0.4) !important;
   transition: all 0.2s ease;
+}
+
+/* 6. LANGUAGE MAPPINGS */
+.prism-code.language-bash::before,
+.prism-code.language-sh::before {
+  content: "BASH";
+}
+.prism-code.language-ts::before,
+.prism-code.language-typescript::before {
+  content: "TYPESCRIPT";
+}
+.prism-code.language-js::before,
+.prism-code.language-javascript::before {
+  content: "JAVASCRIPT";
+}
+.prism-code.language-css::before {
+  content: "CSS";
+}
+.prism-code.language-scss::before {
+  content: "SCSS";
+}
+.prism-code.language-json::before {
+  content: "JSON";
+}
+.prism-code.language-yaml::before,
+.prism-code.language-yml::before {
+  content: "YAML";
+}
+.prism-code.language-html::before {
+  content: "HTML";
+}
+.prism-code.language-tsx::before {
+  content: "TSX";
+}
+.prism-code.language-jsx::before {
+  content: "JSX";
+}
+.prism-code.language-python::before,
+.prism-code.language-py::before {
+  content: "PYTHON";
+}
+.prism-code.language-docker::before,
+.prism-code.language-dockerfile::before {
+  content: "DOCKER";
+}
+.prism-code.language-go::before {
+  content: "GO";
+}
+.prism-code.language-rust::before {
+  content: "RUST";
+}
+.prism-code.language-csharp::before,
+.prism-code.language-cs::before {
+  content: "C#";
+}
+.prism-code.language-cpp::before {
+  content: "C++";
+}
+.prism-code.language-sql::before {
+  content: "SQL";
+}
+.prism-code.language-powershell::before,
+.prism-code.language-ps1::before {
+  content: "POWERSHELL";
 }
 
 /* ==========================================================================
@@ -510,17 +657,18 @@ code:not(pre code) {
    7. ADMONITIONS (SYSTEM ALERT LOGS)
    ========================================================================== */
 /* The Container */
-[class*='admonition_'], .alert {
+[class*="admonition_"],
+.alert {
   --ifm-alert-border-radius: 2px; /* Sharp, technical corners */
   --ifm-alert-padding-vertical: 1rem;
   --ifm-alert-padding-horizontal: 1.2rem;
-  
+
   position: relative;
   border: 1px solid var(--nunix-admonition-border) !important;
-  border-left: 4px solid var(--nunix-admonition-color) !important; 
-  
+  border-left: 4px solid var(--nunix-admonition-color) !important;
+
   /* Dark Glass + Scanline Effect */
-  background-color: rgba(10, 13, 16, 0.7) !important; 
+  background-color: rgba(10, 13, 16, 0.7) !important;
   backdrop-filter: blur(12px);
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
   margin-bottom: 1.5rem;
@@ -528,10 +676,13 @@ code:not(pre code) {
 }
 
 /* Subtle Scanline Texture Overlay */
-[class*='admonition_']::before {
+[class*="admonition_"]::before {
   content: "";
   position: absolute;
-  top: 0; left: 0; right: 0; bottom: 0;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
   background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.1) 50%);
   background-size: 100% 4px;
   pointer-events: none;
@@ -540,7 +691,8 @@ code:not(pre code) {
 }
 
 /* The Header (Title) */
-[class*='admonitionHeading_'], .alert__heading {
+[class*="admonitionHeading_"],
+.alert__heading {
   position: relative;
   z-index: 1;
   font-family: var(--vintage-mono);
@@ -549,11 +701,11 @@ code:not(pre code) {
   text-transform: uppercase;
   letter-spacing: 1px;
   color: var(--nunix-admonition-color);
-  
+
   display: flex;
   align-items: center;
   gap: 10px;
-  
+
   /* Divider Line */
   border-bottom: 1px solid var(--nunix-admonition-border);
   padding-bottom: 8px;
@@ -561,7 +713,7 @@ code:not(pre code) {
 }
 
 /* Icons (SVG) - Neon Glow */
-[class*='admonitionHeading_'] svg {
+[class*="admonitionHeading_"] svg {
   fill: var(--nunix-admonition-color) !important;
   filter: drop-shadow(0 0 3px var(--nunix-admonition-glow));
   height: 1rem;
@@ -569,7 +721,8 @@ code:not(pre code) {
 }
 
 /* The Content */
-[class*='admonitionContent_'], .alert p {
+[class*="admonitionContent_"],
+.alert p {
   position: relative;
   z-index: 1;
   font-size: 0.95rem;
@@ -578,123 +731,155 @@ code:not(pre code) {
 }
 
 /* Color Variables */
-.alert--info, [class*='admonition-info'] {
+.alert--info,
+[class*="admonition-info"] {
   --nunix-admonition-color: #007fff; /* Neon Blue */
   --nunix-admonition-border: rgba(0, 127, 255, 0.25);
   --nunix-admonition-glow: rgba(0, 127, 255, 0.6);
 }
-.alert--success, [class*='admonition-tip'] {
+.alert--success,
+[class*="admonition-tip"] {
   --nunix-admonition-color: var(--ifm-color-primary); /* Neon Green */
   --nunix-admonition-border: rgba(48, 186, 120, 0.25);
   --nunix-admonition-glow: rgba(48, 186, 120, 0.6);
 }
-.alert--warning, [class*='admonition-warning'] {
+.alert--warning,
+[class*="admonition-warning"] {
   --nunix-admonition-color: #ffaa00; /* Amber */
   --nunix-admonition-border: rgba(255, 170, 0, 0.25);
   --nunix-admonition-glow: rgba(255, 170, 0, 0.6);
 }
-.alert--danger, [class*='admonition-danger'] {
+.alert--danger,
+[class*="admonition-danger"] {
   --nunix-admonition-color: #ff3e3e; /* Red */
   --nunix-admonition-border: rgba(255, 62, 62, 0.3);
   --nunix-admonition-glow: rgba(255, 62, 62, 0.6);
 }
 
 /* Light Mode Override (Clean Technical Look) */
-[data-theme='light'] [class*='admonition_'] {
+[data-theme="light"] [class*="admonition_"] {
   background-color: rgba(255, 255, 255, 0.8) !important;
   border: 1px solid var(--nunix-admonition-color) !important;
 }
-[data-theme='light'] [class*='admonition_']::before {
+[data-theme="light"] [class*="admonition_"]::before {
   display: none; /* No scanlines in light mode */
 }
 
 /* ==========================================================================
    8. GLOBAL ANIMATIONS
    ========================================================================== */
-@keyframes hint-fade-in { from { opacity: 0; transform: translateY(5px); } to { opacity: 0.7; transform: translateY(0); } }
-@keyframes neon-blink { 0%, 100% { opacity: 1; text-shadow: 0 0 5px var(--ifm-color-primary); } 50% { opacity: 0.3; text-shadow: none; } }
-@keyframes float-up { from { opacity: 1; transform: translateY(0); } to { opacity: 0; transform: translateY(-15px); } }
+@keyframes hint-fade-in {
+  from {
+    opacity: 0;
+    transform: translateY(5px);
+  }
+  to {
+    opacity: 0.7;
+    transform: translateY(0);
+  }
+}
+@keyframes neon-blink {
+  0%,
+  100% {
+    opacity: 1;
+    text-shadow: 0 0 5px var(--ifm-color-primary);
+  }
+  50% {
+    opacity: 0.3;
+    text-shadow: none;
+  }
+}
+@keyframes float-up {
+  from {
+    opacity: 1;
+    transform: translateY(0);
+  }
+  to {
+    opacity: 0;
+    transform: translateY(-15px);
+  }
+}
 
 /* ==========================================================================
    9. IMAGES & LIGHTBOX (Stealth Blue Frame + Theme-Aware Hints)
    ========================================================================== */
 
 /* 1. THE IMAGE (The Stealth Container) */
-[class*='blog-post'] .markdown p > img:not(.img-zoom-overlay img),
+[class*="blog-post"] .markdown p > img:not(.img-zoom-overlay img),
 .blog-wrapper .markdown p > img:not(.img-zoom-overlay img),
 article .markdown p > img:not(.img-zoom-overlay img) {
   cursor: zoom-in;
   display: block;
-  margin: 2.5rem auto 0 auto; 
+  margin: 2.5rem auto 0 auto;
   max-width: 100%;
-  
+
   /* INNER BOX GAP */
   padding: 6px;
-  
+
   /* IDLE STATE: Transparent (No grey box) */
-  background: transparent !important; 
+  background: transparent !important;
   border: 1px solid transparent;
   border-radius: 2px;
-  
+
   transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
   position: relative;
-  z-index: 10; 
+  z-index: 10;
 }
 
 /* 2. HOVER STATE (Activation - Shared Blue for ALL Themes) */
-[class*='blog-post'] .markdown p:has(img):hover img:not(.img-zoom-overlay img),
+[class*="blog-post"] .markdown p:has(img):hover img:not(.img-zoom-overlay img),
 .blog-wrapper .markdown p:has(img):hover img:not(.img-zoom-overlay img),
 article .markdown p:has(img):hover img:not(.img-zoom-overlay img) {
   /* Neon Blue Border */
   border-color: var(--neon-blue);
-  
+
   /* Blue Glow */
   box-shadow: 0 0 25px rgba(0, 127, 255, 0.6);
-  
+
   /* Keep background transparent */
   background: transparent !important;
-  
+
   transform: translateY(-2px);
 }
 
 /* 3. THE CONNECTED HINT (Default / Dark Mode) */
-[class*='blog-post'] .markdown p:has(img)::after,
+[class*="blog-post"] .markdown p:has(img)::after,
 .blog-wrapper .markdown p:has(img)::after,
 article .markdown p:has(img)::after {
-  content: '[ OPTIC_ZOOM :: ANALYZE ]';
+  content: "[ OPTIC_ZOOM :: ANALYZE ]";
   display: block;
   width: fit-content;
   margin: 0 auto;
-  
+
   /* LOCK POSITION: Center on the border line */
   transform: translateY(-50%) scale(0.9);
-  
+
   position: relative;
   z-index: 11;
-  
+
   /* TYPOGRAPHY */
   font-family: var(--vintage-mono);
   font-size: 0.6rem;
   font-weight: bold;
   letter-spacing: 1px;
-  
+
   /* DARK THEME STYLING (The Default) */
   color: var(--neon-blue);
   background: #0a0d10; /* Dark BG to mask border */
   padding: 3px 10px;
   border: 1px solid var(--neon-blue);
   border-radius: 2px;
-  
+
   /* BASE STATE: Hidden */
   opacity: 0;
   transition: all 0.2s ease;
-  pointer-events: none; 
+  pointer-events: none;
 }
 
 /* 4. HOVER STATE (Label Reveal) */
-[class*='blog-post'] .markdown p:has(img):hover::after,
+[class*="blog-post"] .markdown p:has(img):hover::after,
 .blog-wrapper .markdown p:has(img):hover::after,
-article .markdown p:has(img):hover::after { 
+article .markdown p:has(img):hover::after {
   opacity: 1;
   transform: translateY(-50%) scale(1);
   box-shadow: 0 0 15px rgba(0, 0, 0, 0.8);
@@ -706,37 +891,57 @@ article .markdown p:has(img):hover::after {
    ========================================================================== */
 
 /* 1. Ensure Image Background stays transparent */
-html[data-theme='light'] [class*='blog-post'] .markdown p > img:not(.img-zoom-overlay img),
-html[data-theme='light'] .blog-wrapper .markdown p > img:not(.img-zoom-overlay img),
-html[data-theme='light'] article .markdown p > img:not(.img-zoom-overlay img) {
+html[data-theme="light"]
+  [class*="blog-post"]
+  .markdown
+  p
+  > img:not(.img-zoom-overlay img),
+html[data-theme="light"]
+  .blog-wrapper
+  .markdown
+  p
+  > img:not(.img-zoom-overlay img),
+html[data-theme="light"] article .markdown p > img:not(.img-zoom-overlay img) {
   background: transparent !important;
   border-color: transparent;
 }
 
 /* 2. Keep Hover Blue (Re-asserting just in case) */
-html[data-theme='light'] [class*='blog-post'] .markdown p:has(img):hover img:not(.img-zoom-overlay img),
-html[data-theme='light'] .blog-wrapper .markdown p:has(img):hover img:not(.img-zoom-overlay img),
-html[data-theme='light'] article .markdown p:has(img):hover img:not(.img-zoom-overlay img) {
+html[data-theme="light"]
+  [class*="blog-post"]
+  .markdown
+  p:has(img):hover
+  img:not(.img-zoom-overlay img),
+html[data-theme="light"]
+  .blog-wrapper
+  .markdown
+  p:has(img):hover
+  img:not(.img-zoom-overlay img),
+html[data-theme="light"]
+  article
+  .markdown
+  p:has(img):hover
+  img:not(.img-zoom-overlay img) {
   border-color: var(--neon-blue) !important;
   box-shadow: 0 0 25px rgba(0, 127, 255, 0.6) !important;
 }
 
 /* 3. THE HINT BOX (White Background, Blue Text) */
-html[data-theme='light'] [class*='blog-post'] .markdown p:has(img)::after,
-html[data-theme='light'] .blog-wrapper .markdown p:has(img)::after,
-html[data-theme='light'] article .markdown p:has(img)::after {
+html[data-theme="light"] [class*="blog-post"] .markdown p:has(img)::after,
+html[data-theme="light"] .blog-wrapper .markdown p:has(img)::after,
+html[data-theme="light"] article .markdown p:has(img)::after {
   /* FORCE WHITE BACKGROUND to mask the line on light pages */
   background: #ffffff !important;
-  
+
   /* KEEP NEON BLUE TEXT & BORDER */
   color: var(--neon-blue) !important;
   border-color: var(--neon-blue) !important;
 }
 
 /* Light Mode Hint Hover */
-html[data-theme='light'] [class*='blog-post'] .markdown p:has(img):hover::after,
-html[data-theme='light'] .blog-wrapper .markdown p:has(img):hover::after,
-html[data-theme='light'] article .markdown p:has(img):hover::after {
+html[data-theme="light"] [class*="blog-post"] .markdown p:has(img):hover::after,
+html[data-theme="light"] .blog-wrapper .markdown p:has(img):hover::after,
+html[data-theme="light"] article .markdown p:has(img):hover::after {
   text-shadow: none; /* Cleaner text for light mode */
   box-shadow: 0 2px 15px rgba(0, 0, 0, 0.15); /* Softer shadow */
 }
@@ -745,43 +950,68 @@ html[data-theme='light'] article .markdown p:has(img):hover::after {
    LIGHTBOX OVERLAY (Zoom Logic)
    ========================================================================== */
 .img-zoom-overlay {
-  position: fixed; top: 0; left: 0;
-  width: 100%; height: 100%;
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
   background: var(--nunix-img-overlay);
   backdrop-filter: blur(10px);
-  display: flex; align-items: center; justify-content: center;
-  z-index: 9999; visibility: hidden; opacity: 0;
-  transition: all 0.3s ease; cursor: zoom-out;
-  overflow: auto; 
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+  visibility: hidden;
+  opacity: 0;
+  transition: all 0.3s ease;
+  cursor: zoom-out;
+  overflow: auto;
 }
-.img-zoom-overlay.active { visibility: visible; opacity: 1; }
+.img-zoom-overlay.active {
+  visibility: visible;
+  opacity: 1;
+}
 
 .img-zoom-overlay img {
-  max-width: 95vw; max-height: 95vh; object-fit: contain;
+  max-width: 95vw;
+  max-height: 95vh;
+  object-fit: contain;
   border: 1px solid var(--ifm-color-primary);
   box-shadow: 0 0 50px rgba(0, 0, 0, 0.5);
-  transform: scale(0.95); transition: transform 0.3s ease;
-  padding: 0 !important; background: transparent !important; margin: 0 !important;
+  transform: scale(0.95);
+  transition: transform 0.3s ease;
+  padding: 0 !important;
+  background: transparent !important;
+  margin: 0 !important;
 }
 
 /* Zoom Logic Classes */
 .zoomable-content {
   cursor: zoom-in;
-  transition: transform 0.3s cubic-bezier(0.165, 0.84, 0.44, 1), 
-              max-width 0.3s ease, max-height 0.3s ease !important;
+  transition:
+    transform 0.3s cubic-bezier(0.165, 0.84, 0.44, 1),
+    max-width 0.3s ease,
+    max-height 0.3s ease !important;
 }
 .zoomable-content.is-magnified {
   cursor: zoom-out;
-  max-width: none !important; max-height: none !important;
-  transform: scale(1.5) !important; 
+  max-width: none !important;
+  max-height: none !important;
+  transform: scale(1.5) !important;
 }
 
 /* HUD Exit Button */
 .zoom-hud-exit {
-  position: fixed; top: 2rem; right: 2rem;
-  font-family: var(--vintage-mono); font-size: 0.75rem; color: var(--ifm-color-primary);
-  background: rgba(0, 0, 0, 0.8); padding: 8px 16px;
-  border: 1px solid var(--ifm-color-primary); pointer-events: none;
+  position: fixed;
+  top: 2rem;
+  right: 2rem;
+  font-family: var(--vintage-mono);
+  font-size: 0.75rem;
+  color: var(--ifm-color-primary);
+  background: rgba(0, 0, 0, 0.8);
+  padding: 8px 16px;
+  border: 1px solid var(--ifm-color-primary);
+  pointer-events: none;
   z-index: 10000;
 }
 
@@ -800,7 +1030,7 @@ html[data-theme='light'] article .markdown p:has(img):hover::after {
 .table-of-contents__link:not(.table-of-contents__link--active):hover {
   color: var(--neon-blue) !important;
   text-decoration: none !important;
-  background: rgba(0, 127, 255, 0.08) !important; 
+  background: rgba(0, 127, 255, 0.08) !important;
   border: 1px solid rgba(0, 127, 255, 0.3) !important;
   backdrop-filter: blur(4px);
 }
@@ -809,13 +1039,13 @@ html[data-theme='light'] article .markdown p:has(img):hover::after {
 .table-of-contents__link--active {
   color: var(--ifm-color-primary) !important;
   background-color: rgba(48, 186, 120, 0.08) !important;
-  
+
   /* The Standard Box */
   border: 1px solid rgba(48, 186, 120, 0.3) !important;
   /* Removed left-border override */
-  
+
   font-weight: 500 !important;
-  
+
   /* The Pulse */
   animation: nav-pulse 3s infinite ease-in-out;
 }
@@ -852,15 +1082,19 @@ html[data-theme='light'] article .markdown p:has(img):hover::after {
   text-shadow: 0 0 8px var(--neon-blue-glow);
 }
 
-.tag, [class*='tag_'], .margin-vert--md .margin-horiz--sm a {
+.tag,
+[class*="tag_"],
+.margin-vert--md .margin-horiz--sm a {
   --ifm-tag-border-radius: 0px !important;
-  border-radius: 0px !important; 
+  border-radius: 0px !important;
   transition: all 0.2s ease !important;
   text-decoration: none !important;
   border: 1px solid transparent !important;
 }
 
-.tag:hover, [class*='tag_']:hover, .margin-vert--md .margin-horiz--sm a:hover {
+.tag:hover,
+[class*="tag_"]:hover,
+.margin-vert--md .margin-horiz--sm a:hover {
   color: var(--neon-blue) !important;
   background: rgba(0, 127, 255, 0.1) !important;
   box-shadow: 0 0 10px rgba(0, 127, 255, 0.2);
@@ -871,8 +1105,12 @@ html[data-theme='light'] article .markdown p:has(img):hover::after {
 /* ==========================================================================
    12. FILE-PATH BREADCRUMBS
    ========================================================================== */
-.breadcrumbs__separator, .breadcrumbs__item--separator, [class*='separator'],
-.breadcrumbs li::before, .breadcrumbs li::after, .breadcrumbs svg {
+.breadcrumbs__separator,
+.breadcrumbs__item--separator,
+[class*="separator"],
+.breadcrumbs li::before,
+.breadcrumbs li::after,
+.breadcrumbs svg {
   display: none !important;
   content: none !important;
 }
@@ -888,7 +1126,10 @@ html[data-theme='light'] article .markdown p:has(img):hover::after {
   margin: 0 !important;
 }
 
-.breadcrumbs__item { display: inline-flex !important; align-items: center !important; }
+.breadcrumbs__item {
+  display: inline-flex !important;
+  align-items: center !important;
+}
 
 .breadcrumbs__item + .breadcrumbs__item::before {
   display: inline-block !important;
@@ -928,7 +1169,7 @@ html[data-theme='light'] article .markdown p:has(img):hover::after {
 }
 
 .breadcrumbs__item:first-child .breadcrumbs__link:hover {
-  background: rgba(0, 127, 255, 0.1) !important; 
+  background: rgba(0, 127, 255, 0.1) !important;
   border: 1px solid rgba(0, 127, 255, 0.3) !important;
 }
 
@@ -950,7 +1191,7 @@ html[data-theme='light'] article .markdown p:has(img):hover::after {
 .breadcrumbs__link:not(.breadcrumbs__item--active .breadcrumbs__link):hover {
   color: var(--neon-blue) !important;
   text-decoration: none !important;
-  background: rgba(0, 127, 255, 0.1) !important; 
+  background: rgba(0, 127, 255, 0.1) !important;
   border: 1px solid rgba(0, 127, 255, 0.3) !important;
 }
 
@@ -965,7 +1206,7 @@ html[data-theme='light'] article .markdown p:has(img):hover::after {
   width: 100%;
   height: 28px;
   display: flex;
-  justify-content: space-between; 
+  justify-content: space-between;
   align-items: center;
   padding: 0 15px;
   font-family: var(--vintage-mono);
@@ -974,44 +1215,98 @@ html[data-theme='light'] article .markdown p:has(img):hover::after {
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   letter-spacing: 1px;
   text-transform: uppercase;
-  
+
   /* Default Expanded Border */
   border-top: 1px solid rgba(48, 186, 120, 0.3);
 }
 
 /* Section Logic */
-.status-section { display: flex; align-items: center; flex: 1; }
-.section-center { justify-content: center; flex: 0 0 auto; }
-.section-right { justify-content: flex-end; gap: 20px; }
-.status-node { display: flex; align-items: center; gap: 8px; white-space: nowrap; }
+.status-section {
+  display: flex;
+  align-items: center;
+  flex: 1;
+}
+.section-center {
+  justify-content: center;
+  flex: 0 0 auto;
+}
+.section-right {
+  justify-content: flex-end;
+  gap: 20px;
+}
+.status-node {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  white-space: nowrap;
+}
 
 /* Theme Colors (Expanded) */
-[data-theme='dark'] .nunix-status-bar { background: rgba(10, 15, 20, 0.95); color: var(--ifm-color-primary); }
-[data-theme='light'] .nunix-status-bar { background: rgba(245, 247, 250, 0.9); color: #1a4d32; border-top: 1px solid rgba(26, 77, 50, 0.2); }
+[data-theme="dark"] .nunix-status-bar {
+  background: rgba(10, 15, 20, 0.95);
+  color: var(--ifm-color-primary);
+}
+[data-theme="light"] .nunix-status-bar {
+  background: rgba(245, 247, 250, 0.9);
+  color: #1a4d32;
+  border-top: 1px solid rgba(26, 77, 50, 0.2);
+}
 
-.status-active-value { color: var(--ifm-color-primary); font-weight: bold; }
-.status-toggle { background: transparent; border: none; color: inherit; font-family: inherit; font-size: 0.6rem; font-weight: bold; cursor: pointer; padding: 2px 8px; }
+.status-active-value {
+  color: var(--ifm-color-primary);
+  font-weight: bold;
+}
+.status-toggle {
+  background: transparent;
+  border: none;
+  color: inherit;
+  font-family: inherit;
+  font-size: 0.6rem;
+  font-weight: bold;
+  cursor: pointer;
+  padding: 2px 8px;
+}
 
 /* --- COLLAPSED STATE (The Fix) --- */
 .nunix-status-bar.is-collapsed {
   height: 6px;
-  
+
   /* Replaces solid green with Dark Glass + Thin Border */
-  background: rgba(0, 0, 0, 0.8) !important; 
+  background: rgba(0, 0, 0, 0.8) !important;
   border-top: 1px solid var(--ifm-color-primary) !important; /* Matches HUD Badge */
-  
+
   backdrop-filter: blur(4px);
 }
 
 /* ==========================================================================
-   14. LOCALIZED CRT EFFECT
+   14. LOCALIZED CRT EFFECT (Safety Patch)
    ========================================================================== */
-.navbar__brand { position: relative; display: flex; align-items: center; overflow: hidden; }
+/* Ensure this element never triggers layout overflow */
+.crt-overlay-localized {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  z-index: 9999;
+  background: transparent; /* Ensure it's not a visible glass box by default */
+}
+
+.navbar__brand {
+  position: relative;
+  display: flex;
+  align-items: center;
+  overflow: hidden;
+}
 
 .navbar__brand::after {
   content: "";
   position: absolute;
-  top: 0; left: 0; width: 100%; height: 100%;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
   background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.15) 50%);
   background-size: 100% 3px;
   z-index: 2;
@@ -1019,32 +1314,63 @@ html[data-theme='light'] article .markdown p:has(img):hover::after {
   transition: opacity 0.3s ease;
 }
 
-[data-theme='light'] .navbar__brand::after {
+[data-theme="light"] .navbar__brand::after {
   opacity: 0.2;
-  background: linear-gradient(rgba(26, 77, 50, 0) 50%, rgba(26, 77, 50, 0.1) 50%);
+  background: linear-gradient(
+    rgba(26, 77, 50, 0) 50%,
+    rgba(26, 77, 50, 0.1) 50%
+  );
 }
 
 /* ==========================================================================
    15. HARDWARE HICCUP
    ========================================================================== */
 @keyframes hardware-hiccup {
-  0% { opacity: 1; filter: brightness(1); }
-  92% { opacity: 1; filter: brightness(1); }
-  93% { opacity: 0.8; filter: brightness(1.4) contrast(1.2); transform: translateX(1px); }
-  94% { opacity: 1; filter: brightness(1); transform: translateX(0); }
-  95% { opacity: 0.7; filter: brightness(0.8); transform: translateX(-1px); }
-  96% { opacity: 1; filter: brightness(1); transform: translateX(0); }
-  100% { opacity: 1; filter: brightness(1); }
+  0% {
+    opacity: 1;
+    filter: brightness(1);
+  }
+  92% {
+    opacity: 1;
+    filter: brightness(1);
+  }
+  93% {
+    opacity: 0.8;
+    filter: brightness(1.4) contrast(1.2);
+    transform: translateX(1px);
+  }
+  94% {
+    opacity: 1;
+    filter: brightness(1);
+    transform: translateX(0);
+  }
+  95% {
+    opacity: 0.7;
+    filter: brightness(0.8);
+    transform: translateX(-1px);
+  }
+  96% {
+    opacity: 1;
+    filter: brightness(1);
+    transform: translateX(0);
+  }
+  100% {
+    opacity: 1;
+    filter: brightness(1);
+  }
 }
 
-.navbar__brand img { animation: hardware-hiccup 7s infinite; display: block; }
+.navbar__brand img {
+  animation: hardware-hiccup 7s infinite;
+  display: block;
+}
 
 /* ==========================================================================
    16. SYSTEM LOG CONSOLE
    ========================================================================== */
 .nunix-log-console {
   position: fixed;
-  bottom: 40px; 
+  bottom: 40px;
   right: 20px;
   width: 340px;
   font-family: var(--vintage-mono);
@@ -1056,17 +1382,53 @@ html[data-theme='light'] article .markdown p:has(img):hover::after {
   transition: all 0.3s ease;
 }
 
-[data-theme='dark'] .nunix-log-console { background: #0a0f14; border: 1px solid #30ba78; color: #30ba78; }
-[data-theme='light'] .nunix-log-console { background: #f0f4f2; border: 1px solid #1a4d32; color: #1a4d32; box-shadow: 0 10px 30px rgba(26, 77, 50, 0.2); }
+[data-theme="dark"] .nunix-log-console {
+  background: #0a0f14;
+  border: 1px solid #30ba78;
+  color: #30ba78;
+}
+[data-theme="light"] .nunix-log-console {
+  background: #f0f4f2;
+  border: 1px solid #1a4d32;
+  color: #1a4d32;
+  box-shadow: 0 10px 30px rgba(26, 77, 50, 0.2);
+}
 
-.log-header { padding: 6px 12px; display: flex; justify-content: space-between; align-items: center; font-weight: bold; text-transform: uppercase; letter-spacing: 1px; }
-[data-theme='dark'] .log-header { background: #30ba78; color: #000; }
-[data-theme='light'] .log-header { background: #1a4d32; color: #fff; }
+.log-header {
+  padding: 6px 12px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-weight: bold;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+[data-theme="dark"] .log-header {
+  background: #30ba78;
+  color: #000;
+}
+[data-theme="light"] .log-header {
+  background: #1a4d32;
+  color: #fff;
+}
 
-.log-body { padding: 12px; max-height: 220px; overflow-y: auto; line-height: 1.4; }
-.log-line { margin-bottom: 6px; animation: log-fade-in 0.1s ease-out forwards; }
-.text-success { color: #30ba78; font-weight: bold; }
-[data-theme='light'] .text-success { color: #238655; }
+.log-body {
+  padding: 12px;
+  max-height: 220px;
+  overflow-y: auto;
+  line-height: 1.4;
+}
+.log-line {
+  margin-bottom: 6px;
+  animation: log-fade-in 0.1s ease-out forwards;
+}
+.text-success {
+  color: #30ba78;
+  font-weight: bold;
+}
+[data-theme="light"] .text-success {
+  color: #238655;
+}
 
 .geminix-link {
   transition: all 0.2s ease;
@@ -1082,7 +1444,7 @@ html[data-theme='light'] article .markdown p:has(img):hover::after {
 
 .geminix-link:hover {
   color: var(--neon-blue) !important;
-  background: rgba(0, 127, 255, 0.1) !important; 
+  background: rgba(0, 127, 255, 0.1) !important;
   backdrop-filter: blur(4px);
   border: 1px solid rgba(0, 127, 255, 0.3) !important;
   box-shadow: 0 0 10px rgba(0, 127, 255, 0.2);
@@ -1090,8 +1452,19 @@ html[data-theme='light'] article .markdown p:has(img):hover::after {
   text-decoration: none !important;
 }
 
-.author-trigger:hover .status-label { color: inherit; text-shadow: none; }
-.log-close-btn { background: transparent; border: none; cursor: pointer; font-family: inherit; font-weight: bold; color: inherit; font-size: 0.8rem; }
+.author-trigger:hover .status-label {
+  color: inherit;
+  text-shadow: none;
+}
+.log-close-btn {
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  font-family: inherit;
+  font-weight: bold;
+  color: inherit;
+  font-size: 0.8rem;
+}
 
 /* Log Console Animation */
 .log-cursor {
@@ -1104,8 +1477,21 @@ html[data-theme='light'] article .markdown p:has(img):hover::after {
   box-shadow: 0 0 5px var(--ifm-color-primary);
 }
 
-@keyframes terminal-blink { to { visibility: hidden; } }
-@keyframes log-fade-in { from { opacity: 0; transform: translateY(2px); } to { opacity: 1; transform: translateY(0); } }
+@keyframes terminal-blink {
+  to {
+    visibility: hidden;
+  }
+}
+@keyframes log-fade-in {
+  from {
+    opacity: 0;
+    transform: translateY(2px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
 
 /* ==========================================================================
    17. ELEGANT HUD TOGGLE (Lifted Tab)
@@ -1113,26 +1499,26 @@ html[data-theme='light'] article .markdown p:has(img):hover::after {
 
 .status-toggle.is-collapsed-btn {
   position: fixed;
-  
+
   /* LIFTED: Sits on top of the 6px collapsed rail */
-  bottom: 6px !important; 
-  
-  right: 30px; 
+  bottom: 6px !important;
+
+  right: 30px;
   height: 20px; /* Slightly tighter height */
   padding: 0 12px;
-  
+
   background: var(--ifm-color-primary) !important;
   color: #000 !important;
   border: none;
   border-radius: 4px 4px 0 0; /* Rounded top corners only */
-  
+
   font-family: var(--vintage-mono);
-  font-weight: 700; 
-  font-size: 0.55rem; 
+  font-weight: 700;
+  font-size: 0.55rem;
   z-index: 12000;
   cursor: pointer;
   box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.3);
-  opacity: 0.8; 
+  opacity: 0.8;
   transition: all 0.2s ease;
   letter-spacing: 1px;
 }
@@ -1145,10 +1531,74 @@ html[data-theme='light'] article .markdown p:has(img):hover::after {
   box-shadow: 0 -4px 15px rgba(48, 186, 120, 0.4);
 }
 
-[data-theme='light'] .status-toggle.is-collapsed-btn {
+[data-theme="light"] .status-toggle.is-collapsed-btn {
   background: #1a4d32 !important;
   color: #fff !important;
   opacity: 1;
+}
+
+/* ==========================================================================
+   18. CONTENT LINKS (Standardized: Boxed UI Style)
+   ========================================================================== */
+
+/* 1. BASE STATE (Invisible Box) */
+.markdown a {
+  display: inline-block; /* Allows box model rendering */
+  color: var(--ifm-color-primary); /* Default Theme Green */
+  text-decoration: none !important; /* Kill default underlines */
+
+  /* The Box Structure */
+  border: 1px solid transparent; /* Reserve space for border */
+  border-radius: 4px; /* Standard NUNIX radius */
+  padding: 0 6px; /* Breathing room inside the box */
+  margin: 0 1px; /* prevent touching neighbors */
+
+  transition: all 0.2s ease;
+  line-height: inherit;
+}
+
+/* 2. HOVER STATE (Neon Blue Box) */
+.markdown a:hover {
+  color: var(--neon-blue) !important;
+  background-color: rgba(0, 127, 255, 0.08); /* Blue Glass */
+  border-color: rgba(0, 127, 255, 0.4); /* Blue Border */
+
+  /* The Glow */
+  text-shadow: 0 0 8px var(--neon-blue-glow);
+  box-shadow: 0 0 10px rgba(0, 127, 255, 0.15);
+
+  transform: translateY(-1px); /* Tactile lift */
+}
+
+/* 3. EXTERNAL LINKS (The Icon) */
+.markdown a[target="_blank"]::after {
+  content: "↗";
+  font-family: var(--vintage-mono);
+  font-weight: bold;
+  font-size: 0.7em;
+  opacity: 0.7;
+  display: inline-block;
+  vertical-align: middle;
+  margin-left: 4px;
+  position: relative;
+  top: -1px;
+  transition: transform 0.2s ease;
+}
+
+.markdown a[target="_blank"]:hover::after {
+  transform: translate(2px, -2px); /* Arrow flies up-right */
+  color: var(--neon-blue);
+  opacity: 1;
+}
+
+/* 4. ACTIVE / CLICK STATE (Green Confirmation) */
+.markdown a:active {
+  background-color: rgba(48, 186, 120, 0.15);
+  border-color: var(--ifm-color-primary);
+  color: var(--ifm-color-primary) !important;
+
+  transform: translateY(1px); /* Tactile press */
+  box-shadow: none;
 }
 
 /* ==========================================================================
@@ -1159,13 +1609,13 @@ html[data-theme='light'] article .markdown p:has(img):hover::after {
   display: flex;
   align-items: center;
   justify-content: center;
-  height: 100vh; /* Force full screen height */
-  width: 100vw;
+  height: 100vh;
+  width: 100%; /* CHANGED from 100vw to 100% to fix horizontal scroll */
   background: #000;
-  position: fixed; /* Lock it to the screen */
+  position: fixed;
   top: 0;
   left: 0;
-  z-index: 99999; /* Sit on top of absolutely everything */
+  z-index: 99999;
   overflow: hidden;
   font-family: var(--vintage-mono);
   color: #ccc;
@@ -1175,8 +1625,14 @@ html[data-theme='light'] article .markdown p:has(img):hover::after {
 /* Red "Emergency" Scanlines */
 .panic-overlay {
   position: absolute;
-  top: 0; left: 0; width: 100%; height: 100%;
-  background: linear-gradient(rgba(255, 0, 0, 0) 50%, rgba(255, 0, 0, 0.05) 50%);
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(
+    rgba(255, 0, 0, 0) 50%,
+    rgba(255, 0, 0, 0.05) 50%
+  );
   background-size: 100% 4px;
   pointer-events: none;
   z-index: 1;
@@ -1216,8 +1672,14 @@ html[data-theme='light'] article .markdown p:has(img):hover::after {
   color: #888;
 }
 
-.trace-time { color: #007fff; }
-.text-danger { color: #ff3e3e; font-weight: bold; text-shadow: 0 0 5px #ff3e3e; }
+.trace-time {
+  color: #007fff;
+}
+.text-danger {
+  color: #ff3e3e;
+  font-weight: bold;
+  text-shadow: 0 0 5px #ff3e3e;
+}
 
 /* Action Buttons */
 .panic-actions {
@@ -1273,12 +1735,12 @@ html[data-theme='light'] article .markdown p:has(img):hover::after {
 /* The Invisible Track */
 .buffer-track {
   position: fixed;
-  top: auto; 
+  top: auto;
   bottom: 28px; /* Default: Sits above Status Bar */
   left: 0;
   width: 100%;
-  height: 2px; 
-  z-index: 11000; 
+  height: 2px;
+  z-index: 11000;
   background: transparent;
   pointer-events: none;
   transition: bottom 0.3s cubic-bezier(0.4, 0, 0.2, 1);
@@ -1286,21 +1748,21 @@ html[data-theme='light'] article .markdown p:has(img):hover::after {
 
 /* SMART SYNC: Sits on collapsed rail */
 body:has(.nunix-status-bar.is-collapsed) .buffer-track {
-  bottom: 6px; 
+  bottom: 6px;
 }
 
 /* The Filling Bar */
 .buffer-bar {
   height: 100%;
-  background: var(--neon-blue); 
-  box-shadow: 0 0 10px var(--neon-blue); 
+  background: var(--neon-blue);
+  box-shadow: 0 0 10px var(--neon-blue);
   transition: width 0.1s linear;
 }
 
 /* The "EOF" Signal Badge */
 .buffer-eof {
-  position: fixed; 
-  bottom: 40px; 
+  position: fixed;
+  bottom: 40px;
   right: 10px;
   font-family: var(--vintage-mono);
   font-size: 0.7rem;
@@ -1320,7 +1782,7 @@ body:has(.nunix-status-bar.is-collapsed) .buffer-track {
 .buffer-eof.eof-active {
   opacity: 1;
   transform: translateY(0);
-  animation: neon-blink 2s infinite; 
+  animation: neon-blink 2s infinite;
   box-shadow: 0 0 15px var(--neon-blue-glow);
 }
 
@@ -1361,21 +1823,21 @@ body:has(.nunix-status-bar.is-collapsed) .buffer-track {
   visibility: hidden;
   opacity: 0;
   position: absolute;
-  bottom: 130%; 
+  bottom: 130%;
   left: 50%;
-  transform: translateX(-50%) translateY(10px); 
-  
-  width: 280px; 
+  transform: translateX(-50%) translateY(10px);
+
+  width: 280px;
   background: rgba(10, 13, 16, 0.95); /* Dark Glass */
   backdrop-filter: blur(12px);
   border: 1px solid rgba(48, 186, 120, 0.4);
   border-radius: 4px;
   padding: 0;
-  
+
   box-shadow: 0 10px 30px rgba(0, 0, 0, 0.6);
   z-index: 1000;
   transition: all 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-  pointer-events: none; 
+  pointer-events: none;
 }
 
 /* Show on Hover */
@@ -1391,7 +1853,7 @@ body:has(.nunix-status-bar.is-collapsed) .buffer-track {
   background: rgba(48, 186, 120, 0.1);
   border-bottom: 1px solid rgba(48, 186, 120, 0.2);
   padding: 8px 12px;
-  overflow: hidden; 
+  overflow: hidden;
 }
 
 /* Typewriter Title */
@@ -1402,16 +1864,16 @@ body:has(.nunix-status-bar.is-collapsed) .buffer-track {
   font-weight: bold;
   color: var(--ifm-color-primary);
   letter-spacing: 1px;
-  white-space: nowrap; 
-  overflow: hidden;    
-  width: 0%;           
+  white-space: nowrap;
+  overflow: hidden;
+  width: 0%;
   border-right: none;
   vertical-align: bottom;
 }
 
 /* Hover Animation Trigger */
 .glossary-wrapper:hover .tooltip-title {
-  animation: typewriter-wipe 1.5s steps(40, end) forwards; 
+  animation: typewriter-wipe 1.5s steps(40, end) forwards;
 }
 
 /* The Blinking Cursor */
@@ -1436,7 +1898,7 @@ body:has(.nunix-status-bar.is-collapsed) .buffer-track {
 .glossary-tooltip::after {
   content: "";
   position: absolute;
-  top: 100%; 
+  top: 100%;
   left: 50%;
   margin-left: -6px;
   border-width: 6px;
@@ -1445,38 +1907,47 @@ body:has(.nunix-status-bar.is-collapsed) .buffer-track {
 }
 
 /* 3. LIGHT MODE OVERRIDES (The Fix) */
-[data-theme='light'] .glossary-tooltip {
+[data-theme="light"] .glossary-tooltip {
   background: rgba(255, 255, 255, 0.95); /* White Glass */
   border-color: var(--ifm-color-primary); /* Solid Green Border */
   box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15); /* Softer Shadow */
 }
 
-[data-theme='light'] .tooltip-body {
+[data-theme="light"] .tooltip-body {
   color: #1a1a1a; /* Dark Text */
 }
 
 /* Use a darker blue for the trigger in light mode (better contrast) */
-[data-theme='light'] .glossary-wrapper:hover .glossary-trigger {
-  color: #0056b3; 
+[data-theme="light"] .glossary-wrapper:hover .glossary-trigger {
+  color: #0056b3;
   text-shadow: none; /* Remove glow for clarity */
   background: rgba(0, 86, 179, 0.1);
   border-color: #0056b3;
 }
 
 /* Invert the pointer triangle color */
-[data-theme='light'] .glossary-tooltip::after {
+[data-theme="light"] .glossary-tooltip::after {
   border-color: var(--ifm-color-primary) transparent transparent transparent;
 }
 
 /* 4. ANIMATIONS */
 @keyframes typewriter-wipe {
-  from { width: 0%; }
-  to { width: 100%; }
+  from {
+    width: 0%;
+  }
+  to {
+    width: 100%;
+  }
 }
 
 @keyframes cursor-blink {
-  from, to { opacity: 1; }
-  50% { opacity: 0; }
+  from,
+  to {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0;
+  }
 }
 
 /* ==========================================================================
@@ -1494,19 +1965,19 @@ body:has(.nunix-status-bar.is-collapsed) .buffer-track {
   appearance: none;
   background: rgba(10, 13, 16, 0.6) !important; /* Default Dark Glass */
   backdrop-filter: blur(4px);
-  border: 1px solid rgba(48, 186, 120, 0.4) !important; 
+  border: 1px solid rgba(48, 186, 120, 0.4) !important;
   border-radius: 4px !important;
-  
+
   color: var(--ifm-color-primary) !important;
   font-family: var(--vintage-mono) !important;
   font-size: 0.8rem !important;
   font-weight: bold;
-  
+
   /* Space for the ">" prompt character */
-  padding: 0.4rem 0.8rem 0.4rem 2rem !important; 
+  padding: 0.4rem 0.8rem 0.4rem 2rem !important;
   width: 12rem;
   transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-  background-image: none !important; 
+  background-image: none !important;
 }
 
 /* Placeholder Styling */
@@ -1523,23 +1994,23 @@ body:has(.nunix-status-bar.is-collapsed) .buffer-track {
   left: 12px;
   top: 50%;
   transform: translateY(-50%);
-  
+
   color: var(--ifm-color-primary);
   font-family: var(--vintage-mono);
   font-weight: 800;
   font-size: 0.9rem;
   z-index: 5;
   pointer-events: none;
-  
+
   animation: prompt-blink 3s infinite;
 }
 
 /* 4. ACTIVE / FOCUS STATE (Electric Blue) */
 .navbar__search-input:focus {
-  width: 18rem; 
+  width: 18rem;
   outline: none;
   background: rgba(0, 0, 0, 0.9) !important;
-  
+
   border-color: var(--neon-blue) !important;
   color: var(--neon-blue) !important;
   box-shadow: 0 0 15px rgba(0, 127, 255, 0.3) !important;
@@ -1549,7 +2020,7 @@ body:has(.nunix-status-bar.is-collapsed) .buffer-track {
 .navbar__search:focus-within::before {
   color: var(--neon-blue);
   text-shadow: 0 0 8px var(--neon-blue-glow);
-  animation: none; 
+  animation: none;
 }
 
 /* 5. SEARCH RESULTS DROPDOWN (System Log Style) */
@@ -1560,7 +2031,7 @@ body:has(.nunix-status-bar.is-collapsed) .buffer-track {
   box-shadow: 0 10px 40px rgba(0, 0, 0, 0.8) !important;
   margin-top: 12px;
   font-family: var(--vintage-mono) !important;
-  width: 300px !important; 
+  width: 300px !important;
 }
 
 /* Individual Result Item */
@@ -1574,7 +2045,7 @@ body:has(.nunix-status-bar.is-collapsed) .buffer-track {
 .search-result-item[aria-selected="true"] {
   background: rgba(48, 186, 120, 0.15) !important;
   border-left: 3px solid var(--ifm-color-primary);
-  padding-left: 9px !important; 
+  padding-left: 9px !important;
 }
 
 .search-result-title {
@@ -1595,7 +2066,7 @@ mark {
 .search-no-results {
   padding: 20px;
   text-align: center;
-  color: #ff3e3e; 
+  color: #ff3e3e;
   font-weight: bold;
   text-transform: uppercase;
 }
@@ -1604,68 +2075,77 @@ mark {
    LIGHT MODE OVERRIDES
    ========================================================================== */
 
-[data-theme='light'] .navbar__search-input {
+[data-theme="light"] .navbar__search-input {
   /* GLASS FIX: Semi-transparent white with heavy blur */
-  background: rgba(255, 255, 255, 0.5) !important; 
+  background: rgba(255, 255, 255, 0.5) !important;
   backdrop-filter: blur(8px) saturate(120%);
-  
+
   border-color: #1a4d32 !important; /* Dark Green Border */
-  color: #1a4d32 !important; 
+  color: #1a4d32 !important;
 }
 
-[data-theme='light'] .navbar__search-input::placeholder {
-  color: rgba(26, 77, 50, 0.6); 
+[data-theme="light"] .navbar__search-input::placeholder {
+  color: rgba(26, 77, 50, 0.6);
 }
 
-[data-theme='light'] .navbar__search::before {
-  color: #1a4d32; 
+[data-theme="light"] .navbar__search::before {
+  color: #1a4d32;
 }
 
 /* Light Mode Focus */
-[data-theme='light'] .navbar__search-input:focus {
+[data-theme="light"] .navbar__search-input:focus {
   /* Slightly more solid on focus for readability */
   background: rgba(255, 255, 255, 0.85) !important;
-  border-color: #0056b3 !important; 
+  border-color: #0056b3 !important;
   color: #0056b3 !important;
   box-shadow: 0 0 15px rgba(0, 86, 179, 0.2) !important;
 }
 
-[data-theme='light'] .navbar__search:focus-within::before {
+[data-theme="light"] .navbar__search:focus-within::before {
   color: #0056b3;
-  text-shadow: none; 
+  text-shadow: none;
 }
 
 /* Light Mode Dropdown (Glassy Paper) */
-[data-theme='light'] .search-result-container {
+[data-theme="light"] .search-result-container {
   background: rgba(255, 255, 255, 0.85) !important;
   backdrop-filter: blur(12px);
   border-color: #1a4d32 !important;
   box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15) !important;
 }
 
-[data-theme='light'] .search-result-item {
+[data-theme="light"] .search-result-item {
   border-bottom: 1px solid rgba(26, 77, 50, 0.1);
 }
 
-[data-theme='light'] .search-result-item:hover,
-[data-theme='light'] .search-result-item[aria-selected="true"] {
+[data-theme="light"] .search-result-item:hover,
+[data-theme="light"] .search-result-item[aria-selected="true"] {
   background: rgba(26, 77, 50, 0.08) !important;
   border-left-color: #1a4d32;
 }
 
-[data-theme='light'] .search-result-title {
-  color: #1a4d32 !important; 
+[data-theme="light"] .search-result-title {
+  color: #1a4d32 !important;
 }
 
 /* Mobile Fix */
 @media (max-width: 996px) {
-  .navbar__search-input { width: 8rem; }
-  .navbar__search-input:focus { width: 12rem; }
+  .navbar__search-input {
+    width: 8rem;
+  }
+  .navbar__search-input:focus {
+    width: 12rem;
+  }
 }
 
 @keyframes prompt-blink {
-  0%, 100% { opacity: 1; }
-  50% { opacity: 0.4; }
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.4;
+  }
 }
 
 /* ==========================================================================
@@ -1683,23 +2163,23 @@ mark {
 /* 2. THE "<<" INDICATOR (Moved to End) */
 :target::after {
   content: "<<";
-  display: inline-block; 
+  display: inline-block;
   vertical-align: middle;
-  margin-left: 12px; 
-  
+  margin-left: 12px;
+
   font-family: var(--vintage-mono);
   font-weight: bold;
-  font-size: 0.8em; 
+  font-size: 0.8em;
   color: var(--ifm-color-primary);
   opacity: 0;
-  
+
   /* Matches the header animation exactly */
   animation: indicator-slide-out 2s cubic-bezier(0.25, 1, 0.5, 1) forwards;
 }
 
 /* 3. LIGHT MODE ADJUSTMENT */
-[data-theme='light'] :target::after {
-  color: #1a4d32; 
+[data-theme="light"] :target::after {
+  color: #1a4d32;
 }
 
 /* --- ANIMATIONS --- */
@@ -1740,7 +2220,7 @@ mark {
 .zen-mode-trigger {
   background: transparent;
   border: none;
-  color: inherit; 
+  color: inherit;
   font-family: var(--vintage-mono);
   font-size: 0.65rem;
   font-weight: bold;
@@ -1756,37 +2236,58 @@ mark {
   text-shadow: 0 0 8px var(--neon-blue-glow);
 }
 
-/* 2. MODE ACTIVE: SYSTEM OVERRIDES (Grouped) */
-html[data-single-user='true'] {
-  /* Hide Interface Elements */
+/* 2. MODE ACTIVE: SYSTEM OVERRIDES (Hide Interface) */
+html[data-single-user="true"] {
+  /* Hide UI Elements */
   & .navbar,
   & .theme-doc-sidebar-container,
   & .table-of-contents,
   & .pagination-nav,
   & footer,
-  & .nunix-status-bar { 
-    display: none !important; 
+  & .nunix-status-bar {
+    display: none !important;
   }
 
-  /* Force Buffer Bar to Bottom (The Section 21 Fix moved here) */
+  /* Force Buffer Bar to Bottom */
   & .buffer-track {
     bottom: 0 !important;
   }
-  
+
   /* Reset Layout Constraints */
-  & .container { max-width: 100% !important; padding: 0 !important; }
-  & .row { display: block !important; margin: 0 !important; }
-  & .col { max-width: 100% !important; flex: 0 0 100% !important; padding: 0 !important; }
+  & .container {
+    max-width: 100% !important;
+    padding: 0 !important;
+  }
+  & .row {
+    display: block !important;
+    margin: 0 !important;
+  }
+  & .col {
+    max-width: 100% !important;
+    flex: 0 0 100% !important;
+    padding: 0 !important;
+  }
 }
 
-/* 3. MODE ACTIVE: CENTER CONTENT */
-html[data-single-user='true'] main {
+/* 3. MODE ACTIVE: CENTER CONTENT (The Width Fix) */
+html[data-single-user="true"] main {
   margin: 0 auto !important;
-  max-width: 760px !important; 
+
+  /* UPDATED: Wide Format (was 760px) */
+  max-width: 1080px !important;
+
   padding-top: 6rem !important;
+  padding-bottom: 4rem !important;
 }
 
-/* 4. EMERGENCY EXIT BUTTON (Lower Left Fixed) */
+/* Responsive adjustment for laptops */
+@media (max-width: 1200px) {
+  html[data-single-user="true"] main {
+    max-width: 90% !important;
+  }
+}
+
+/* 4. EMERGENCY EXIT BUTTON */
 .zen-exit-hud {
   position: fixed;
   bottom: 20px;
@@ -1799,7 +2300,6 @@ html[data-single-user='true'] main {
   background: rgba(10, 13, 16, 0.9);
   color: var(--ifm-color-primary);
   border: 1px solid var(--ifm-color-primary);
-  
   font-family: var(--vintage-mono);
   font-weight: bold;
   font-size: 0.7rem;
@@ -1819,20 +2319,23 @@ html[data-single-user='true'] main {
 }
 
 /* Light Mode Overrides */
-[data-theme='light'] .zen-exit-btn {
+[data-theme="light"] .zen-exit-btn {
   background: rgba(255, 255, 255, 0.9);
   color: #1a4d32;
   border-color: #1a4d32;
 }
-
-[data-theme='light'] .zen-exit-btn:hover {
+[data-theme="light"] .zen-exit-btn:hover {
   background: #1a4d32;
   color: #fff;
 }
 
 @keyframes hud-fade-in {
-  from { opacity: 0; }
-  to { opacity: 1; }
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
 }
 
 /* ==========================================================================
@@ -1842,22 +2345,22 @@ html[data-single-user='true'] main {
 .inode-status-wrapper {
   display: inline-flex;
   align-items: center;
-  gap: 8px; 
+  gap: 8px;
   font-family: var(--vintage-mono);
-  font-size: 0.65rem; 
+  font-size: 0.65rem;
   font-weight: bold;
   letter-spacing: 1px;
 }
 
 .inode-label {
-  color: inherit; 
+  color: inherit;
   opacity: 0.7;
 }
 
 .inode-value {
   padding: 0 4px;
   border-radius: 2px;
-  min-width: 50px; 
+  min-width: 50px;
   text-align: center;
   transition: all 0.5s ease;
 }
@@ -1887,7 +2390,7 @@ html[data-single-user='true'] main {
 }
 
 /* Light Mode Override */
-[data-theme='light'] .inode-value.is-locked {
+[data-theme="light"] .inode-value.is-locked {
   color: #1a4d32;
   background: rgba(26, 77, 50, 0.08);
   text-shadow: none;
@@ -1903,7 +2406,7 @@ html[data-single-user='true'] main {
   color: #fff;
   text-shadow: 0 0 2px #000;
 }
-[data-theme='light'] ::selection {
+[data-theme="light"] ::selection {
   background: rgba(48, 186, 120, 0.3); /* Green Selection */
   color: #000;
 }
@@ -1933,13 +2436,13 @@ body::-webkit-scrollbar-thumb:hover {
 }
 
 /* Light Mode Scrollbar */
-[data-theme='light'] html {
+[data-theme="light"] html {
   scrollbar-color: #1a4d32 #e2e8f0;
 }
-[data-theme='light'] body::-webkit-scrollbar-track {
+[data-theme="light"] body::-webkit-scrollbar-track {
   background: #e2e8f0;
 }
-[data-theme='light'] body::-webkit-scrollbar-thumb {
+[data-theme="light"] body::-webkit-scrollbar-thumb {
   background-color: rgba(26, 77, 50, 0.4);
   border-color: #e2e8f0;
 }
@@ -1957,11 +2460,11 @@ body::-webkit-scrollbar-thumb:hover {
 .nunix-jump-top {
   /* Positioning: Centered, floating above Status Bar */
   position: fixed;
-  bottom: 40px; 
+  bottom: 40px;
   left: 50%;
   transform: translateX(-50%) translateY(20px); /* Start hidden (lower) */
   z-index: 12000;
-  
+
   /* Geometry */
   width: 40px;
   height: 40px;
@@ -1971,18 +2474,18 @@ body::-webkit-scrollbar-thumb:hover {
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  
+
   /* Visuals: Glass & Border */
-  background: rgba(10, 13, 16, 0.4); 
+  background: rgba(10, 13, 16, 0.4);
   backdrop-filter: blur(2px);
   border: 1px solid rgba(255, 255, 255, 0.15);
   box-shadow: none;
-  
+
   /* State: Hidden by default */
   opacity: 0;
   visibility: hidden;
   pointer-events: none;
-  
+
   transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
 }
 
@@ -1999,7 +2502,9 @@ body::-webkit-scrollbar-thumb:hover {
   opacity: 1; /* Full Power */
   background: rgba(10, 13, 16, 0.95);
   border-color: var(--neon-blue);
-  box-shadow: 0 0 20px var(--neon-blue-glow), inset 0 0 10px rgba(0, 127, 255, 0.2);
+  box-shadow:
+    0 0 20px var(--neon-blue-glow),
+    inset 0 0 10px rgba(0, 127, 255, 0.2);
   transform: translateX(-50%) translateY(-5px); /* Lift */
 }
 
@@ -2019,15 +2524,19 @@ body::-webkit-scrollbar-thumb:hover {
 }
 
 /* 6. LIGHT MODE OVERRIDES */
-[data-theme='light'] .nunix-jump-top {
+[data-theme="light"] .nunix-jump-top {
   background: rgba(255, 255, 255, 0.4);
   border-color: rgba(0, 0, 0, 0.2);
 }
-[data-theme='light'] .nunix-jump-top svg { color: #000; }
+[data-theme="light"] .nunix-jump-top svg {
+  color: #000;
+}
 
-[data-theme='light'] .nunix-jump-top:hover {
+[data-theme="light"] .nunix-jump-top:hover {
   background: rgba(255, 255, 255, 0.95);
   border-color: var(--ifm-color-primary);
   box-shadow: 0 0 20px rgba(48, 186, 120, 0.4);
 }
-[data-theme='light'] .nunix-jump-top:hover svg { color: var(--ifm-color-primary); }
+[data-theme="light"] .nunix-jump-top:hover svg {
+  color: var(--ifm-color-primary);
+}

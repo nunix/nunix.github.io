@@ -1,0 +1,71 @@
+---
+title: System Style Guide
+description: NUNIX Interface Component Library & Unit Tests
+hide_table_of_contents: false
+---
+
+# SYSTEM_STYLE_GUIDE :: v1.0
+
+> **MISSION:** This page serves as a visual unit test for the Nunix Design System. Use this as a reference when drafting new documentation.
+
+---
+
+## 01. TYPOGRAPHY & TEXT
+
+This is a standard paragraph. The font should be readable, optimized for long-form technical reading. It should have sufficient contrast against the background.
+
+* **Bold Text:** Used for emphasis.
+* *Italic Text:* Used for subtle emphasis.
+* `Inline Code`: Used for variables, paths, or short commands.
+* [Hyperlink]: Should light up Neon Blue on hover.
+
+> **Blockquote:** This is a blockquote. It should look distinct from regular text, often used for quotes or side notes.
+
+---
+
+## 02. SYSTEM ALERTS (Admonitions)
+
+These are your primary communication tools for warnings and tips.
+
+:::note [ SYSTEM NOTE ]
+This is a standard note. Useful for general information that isn't critical but helpful context.
+:::
+
+:::tip [ OPTIMIZATION ]
+This is a tip. Use this for "Pro Tips" or best practices. It usually renders in **Green**.
+:::
+
+:::info [ RAW_DATA ]
+This is an info block. Useful for technical details, specs, or dry data. usually renders in **Blue**.
+:::
+
+:::warning [ CAUTION ]
+This is a warning. Use when the user needs to be careful. Renders in **Amber/Orange**.
+:::
+
+:::danger [ CRITICAL ERROR ]
+This is a danger block. Use for destructive actions (e.g., deleting a database). Renders in **Red**.
+:::
+
+---
+
+## 03. CODE TERMINALS
+
+Testing the custom scrollbars, "Mac-style" buttons, and copy-paste functionality.
+
+```ts title="/src/components/SystemCore.ts"
+// TypeScript Example
+import React from 'react';
+
+interface SystemProps {
+  status: 'online' | 'offline';
+  latency: number;
+}
+
+export const checkSystem = (props: SystemProps): boolean => {
+  if (props.latency > 500) {
+    console.warn('High Latency Detected');
+    return false;
+  }
+  return true;
+};
