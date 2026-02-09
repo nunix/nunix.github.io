@@ -14,5 +14,21 @@
   "shell": {
     "title": "SHELL",
     "def": "A computer program which exposes an operating system's services to a human user or other program."
+  },
+  "glassmorphism": {
+    "title": "GLASSMORPHISM",
+    "def": "A UI design trend emphasizing light/dark mode transparency, background blur, and floating layered objects."
+  },
+  "hud": {
+    "title": "HUD",
+    "def": "Heads-Up Display. A transparent display that presents data without requiring users to look away from their usual viewpoints."
+  },
+  "telemetry": {
+    "title": "TELEMETRY",
+    "def": "The automatic recording and transmission of data from remote or inaccessible sources to an IT system."
+  },
+  "buffer": {
+    "title": "BUFFER",
+    "def": "A region of physical memory storage used to temporarily store data while it is being moved from one place to another."
   }
 }

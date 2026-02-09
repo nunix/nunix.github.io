@@ -105,19 +105,19 @@ const config: Config = {
       items: [
         {
           type: 'docSidebar',
-          sidebarId: 'technical',
+          sidebarId: 'tech', // LINKS TO: sidebars.ts -> tech
           position: 'left',
-          label: '🛰️ Deep Space Intel',
+          label: '🛠️ Engineering Deck', 
         },
         {
           type: 'docSidebar',
-          sidebarId: 'personal',
+          sidebarId: 'log', // LINKS TO: sidebars.ts -> log
           position: 'left',
           label: '📓 Captain\'s Log',
         },
         {
           type: 'docSidebar',
-          sidebarId: 'archive',
+          sidebarId: 'archive', // LINKS TO: sidebars.ts -> archive
           position: 'left',
           label: '📂 WSL.dev Archive',
         },
