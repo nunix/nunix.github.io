@@ -123,6 +123,7 @@ html[data-theme="light"] .navbar::before {
   font-weight: 500 !important;
 }
 
+/* 1. ACTIVE STATE (Green Pulse) */
 .navbar__link--active {
   color: var(--ifm-color-primary) !important;
   background-color: rgba(48, 186, 120, 0.08) !important;
@@ -130,12 +131,24 @@ html[data-theme="light"] .navbar::before {
   animation: nav-pulse 3s infinite ease-in-out;
 }
 
-.navbar__item:hover, .navbar__link:hover {
+/* 2. HOVER STATE (Generic Items -> Neon Blue) */
+.navbar__item:not(.navbar__link--active):hover, 
+.navbar__link:not(.navbar__link--active):hover {
   color: var(--neon-blue) !important;
   background: rgba(0, 127, 255, 0.08) !important;
   border: 1px solid rgba(0, 127, 255, 0.3) !important;
   backdrop-filter: blur(4px);
   text-decoration: none !important;
+  box-shadow: 0 0 10px rgba(0, 127, 255, 0.15);
+}
+
+/* 3. ACTIVE HOVER STATE (Active Items -> Brighter Green, NO BLUE) */
+.navbar__link--active:hover {
+  color: var(--ifm-color-primary) !important;
+  background-color: rgba(48, 186, 120, 0.15) !important; /* Slightly brighter */
+  border-color: var(--ifm-color-primary) !important;
+  animation-play-state: paused; /* Pause pulse on hover */
+  box-shadow: 0 0 10px rgba(48, 186, 120, 0.25);
 }
 
 @keyframes nav-pulse {
@@ -1143,43 +1156,248 @@ body:has(.nunix-status-bar.is-collapsed) .buffer-track { bottom: 6px; }
    25. ZEN MODE (Single User Interface)
    ========================================================================== */
 .zen-mode-trigger {
-  background: transparent; border: none; color: inherit; font-family: var(--vintage-mono); font-size: 0.65rem; font-weight: bold; cursor: pointer; padding: 0; text-transform: uppercase; letter-spacing: 1px; transition: all 0.2s ease;
+  background: transparent; 
+  border: 1px solid transparent; 
+  color: inherit; 
+  font-family: var(--vintage-mono); 
+  font-size: 0.65rem; 
+  font-weight: bold; 
+  cursor: pointer; 
+  padding: 2px 6px; 
+  border-radius: 4px;
+  text-transform: uppercase; 
+  letter-spacing: 1px; 
+  transition: all 0.2s ease;
+  position: relative; /* Anchor for tooltip */
 }
-.zen-mode-trigger:hover { color: var(--neon-blue); text-shadow: 0 0 8px var(--neon-blue-glow); }
 
-html[data-single-user="true"] {
-  & .navbar, & .theme-doc-sidebar-container, & .table-of-contents, & .pagination-nav, & footer, & .nunix-status-bar { display: none !important; }
-  & .buffer-track { bottom: 0 !important; }
-  & .container { max-width: 100% !important; padding: 0 !important; }
-  & .row { display: block !important; margin: 0 !important; }
-  & .col { max-width: 100% !important; flex: 0 0 100% !important; padding: 0 !important; }
+/* HOVER STATE */
+.zen-mode-trigger:hover {
+  color: var(--neon-blue) !important;
+  background-color: rgba(0, 127, 255, 0.08);
+  border-color: rgba(0, 127, 255, 0.4);
+  text-shadow: 0 0 8px var(--neon-blue-glow);
+  box-shadow: 0 0 10px rgba(0, 127, 255, 0.15);
+  transform: translateY(-1px);
+  text-decoration: none;
 }
 
+html[data-theme="light"] .zen-mode-trigger:hover {
+  color: #0056b3 !important;
+  border-color: #0056b3;
+  background-color: rgba(0, 86, 179, 0.1);
+  text-shadow: none;
+}
+
+/* --- THE FOCUS MODE LOGIC (Flattened for Safety) --- */
+
+/* 1. Hide UI Elements */
+html[data-single-user="true"] .navbar,
+html[data-single-user="true"] .theme-doc-sidebar-container,
+html[data-single-user="true"] .table-of-contents,
+html[data-single-user="true"] .pagination-nav,
+html[data-single-user="true"] footer,
+html[data-single-user="true"] .nunix-status-bar {
+  display: none !important;
+}
+
+/* 2. Fix Buffer Bar Position */
+html[data-single-user="true"] .buffer-track {
+  bottom: 0 !important;
+}
+
+/* 3. Expand Layout to Full Width */
+html[data-single-user="true"] .container {
+  max-width: 100% !important;
+  padding: 0 !important;
+}
+
+html[data-single-user="true"] .row {
+  display: block !important;
+  margin: 0 !important;
+}
+
+html[data-single-user="true"] .col {
+  max-width: 100% !important;
+  flex: 0 0 100% !important;
+  padding: 0 !important;
+}
+
+/* 4. Center the Content */
 html[data-single-user="true"] main {
-  margin: 0 auto !important; max-width: 1080px !important; padding-top: 6rem !important; padding-bottom: 4rem !important;
+  margin: 0 auto !important;
+  max-width: 1080px !important; /* Reader Mode Width */
+  padding-top: 6rem !important;
+  padding-bottom: 4rem !important;
 }
-@media (max-width: 1200px) { html[data-single-user="true"] main { max-width: 90% !important; } }
 
-.zen-exit-hud { position: fixed; bottom: 20px; left: 20px; z-index: 12000; animation: hud-fade-in 0.5s ease forwards; }
-.zen-exit-btn {
-  background: rgba(10, 13, 16, 0.9); color: var(--ifm-color-primary); border: 1px solid var(--ifm-color-primary); font-family: var(--vintage-mono);
-  font-weight: bold; font-size: 0.7rem; padding: 6px 12px; border-radius: 4px; cursor: pointer; backdrop-filter: blur(4px); box-shadow: 0 4px 15px rgba(0, 0, 0, 0.4); transition: all 0.2s ease;
+@media (max-width: 1200px) {
+  html[data-single-user="true"] main {
+    max-width: 90% !important;
+  }
 }
-.zen-exit-btn:hover { background: var(--ifm-color-primary); color: #000; box-shadow: 0 0 15px rgba(48, 186, 120, 0.6); transform: translateY(-2px); }
-[data-theme="light"] .zen-exit-btn { background: rgba(255, 255, 255, 0.9); color: #1a4d32; border-color: #1a4d32; }
-[data-theme="light"] .zen-exit-btn:hover { background: #1a4d32; color: #fff; }
-@keyframes hud-fade-in { from { opacity: 0; } to { opacity: 1; } }
+
+/* --- EXIT BUTTON --- */
+.zen-exit-hud {
+  position: fixed;
+  bottom: 20px;
+  left: 20px;
+  z-index: 12000;
+  animation: hud-fade-in 0.5s ease forwards;
+}
+
+.zen-exit-btn {
+  background: rgba(10, 13, 16, 0.9);
+  color: var(--ifm-color-primary);
+  border: 1px solid var(--ifm-color-primary);
+  font-family: var(--vintage-mono);
+  font-weight: bold;
+  font-size: 0.7rem;
+  padding: 6px 12px;
+  border-radius: 4px;
+  cursor: pointer;
+  backdrop-filter: blur(4px);
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.4);
+  transition: all 0.2s ease;
+}
+
+/* HOVER STATE: NEON BLUE (Standardized) */
+.zen-exit-btn:hover {
+  color: var(--neon-blue) !important;
+  border-color: var(--neon-blue) !important;
+  background-color: rgba(10, 13, 16, 0.95); /* Keep opaque for readability */
+  box-shadow: 0 0 15px var(--neon-blue-glow);
+  text-shadow: 0 0 5px var(--neon-blue-glow);
+  transform: translateY(-2px);
+}
+
+[data-theme="light"] .zen-exit-btn {
+  background: rgba(255, 255, 255, 0.9);
+  color: #1a4d32;
+  border-color: #1a4d32;
+}
+
+/* LIGHT MODE HOVER: DEEP BLUE */
+[data-theme="light"] .zen-exit-btn:hover {
+  background: #ffffff;
+  color: #0056b3 !important;
+  border-color: #0056b3 !important;
+  box-shadow: 0 0 15px rgba(0, 86, 179, 0.25);
+}
+
+@keyframes hud-fade-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
 
 /* ==========================================================================
    26. INODE COUNTER (Real Data Edition)
    ========================================================================== */
-.inode-status-wrapper { display: inline-flex; align-items: center; gap: 8px; font-family: var(--vintage-mono); font-size: 0.65rem; font-weight: bold; letter-spacing: 1px; }
+.inode-status-wrapper { 
+  display: inline-flex; 
+  align-items: center; 
+  gap: 8px; 
+  font-family: var(--vintage-mono); 
+  font-size: 0.65rem; 
+  font-weight: bold; 
+  letter-spacing: 1px;
+  
+  position: relative; /* Anchor for tooltip */
+  cursor: help;
+  padding: 2px 6px;
+  border: 1px solid transparent;
+  border-radius: 4px;
+  transition: all 0.2s ease;
+}
+
+/* HOVER STATE (Matches .markdown a:hover) */
+.inode-status-wrapper:hover {
+  color: var(--neon-blue) !important;
+  background-color: rgba(0, 127, 255, 0.08);
+  border-color: rgba(0, 127, 255, 0.4);
+  text-shadow: 0 0 8px var(--neon-blue-glow);
+  box-shadow: 0 0 10px rgba(0, 127, 255, 0.15);
+  transform: translateY(-1px);
+}
+
+html[data-theme="light"] .inode-status-wrapper:hover {
+  color: #0056b3 !important;
+  border-color: #0056b3;
+  background-color: rgba(0, 86, 179, 0.1);
+  text-shadow: none;
+}
+
 .inode-label { color: inherit; opacity: 0.7; }
-.inode-value { padding: 0 4px; border-radius: 2px; min-width: 50px; text-align: center; transition: all 0.5s ease; }
-.inode-value.is-booting { color: rgba(48, 186, 120, 0.5); background: transparent; text-shadow: none; filter: blur(0.5px); }
-.inode-value.is-locked { color: var(--ifm-color-primary); background: rgba(48, 186, 120, 0.1); text-shadow: 0 0 2px var(--ifm-color-primary); filter: none; }
-.inode-status-wrapper:hover .inode-value { color: var(--neon-blue); background: rgba(0, 127, 255, 0.1); text-shadow: 0 0 8px var(--neon-blue-glow); cursor: help; }
-[data-theme="light"] .inode-value.is-locked { color: #1a4d32; background: rgba(26, 77, 50, 0.08); text-shadow: none; }
+.inode-value { padding: 0 4px; border-radius: 2px; min-width: 50px; text-align: center; }
+
+/* ==========================================================================
+   27. GLOBAL STATUS TOOLTIPS (Centralized Logic)
+   ========================================================================== */
+.nunix-status-tooltip {
+  position: absolute;
+  bottom: 140%; /* Push above the bar */
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 13000;
+  pointer-events: none;
+  white-space: nowrap;
+  
+  /* BASE STYLE (Dark Mode Default) */
+  background: rgba(10, 13, 16, 0.95); 
+  backdrop-filter: blur(8px);
+  border: 1px solid var(--neon-blue); 
+  border-radius: 4px; 
+  padding: 4px 8px; 
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.5);
+  animation: tooltip-pop 0.15s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+.tooltip-text {
+  font-family: var(--vintage-mono);
+  font-size: 0.65rem;
+  font-weight: bold;
+  color: #fff;
+}
+
+.tooltip-highlight {
+  color: var(--neon-blue);
+}
+
+.tooltip-arrow-down {
+  position: absolute; 
+  top: 100%; 
+  left: 50%; 
+  margin-left: -5px; 
+  width: 0; 
+  height: 0; 
+  border-left: 5px solid transparent; 
+  border-right: 5px solid transparent; 
+  border-top: 5px solid var(--neon-blue); 
+}
+
+/* LIGHT MODE OVERRIDES (Readable High-Contrast) */
+html[data-theme="light"] .nunix-status-tooltip {
+  background: rgba(255, 255, 255, 0.95);
+  border-color: #0056b3; /* Deep Blue Border */
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.15);
+}
+
+html[data-theme="light"] .tooltip-text {
+  color: #1a1a1a; /* Dark Text */
+}
+
+html[data-theme="light"] .tooltip-highlight {
+  color: #0056b3; /* Deep Blue Highlight */
+}
+
+html[data-theme="light"] .tooltip-arrow-down {
+  border-top-color: #0056b3;
+}
+
+@keyframes tooltip-pop { 
+  from { opacity: 0; transform: translateX(-50%) translateY(5px) scale(0.95); } 
+  to { opacity: 1; transform: translateX(-50%) translateY(0) scale(1); } 
+}
 
 /* ==========================================================================
    28. GLOBAL TERMINAL UI (Scrollbars & Selection)
