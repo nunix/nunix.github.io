@@ -1,6 +1,6 @@
 /**
  * NUNIX ALPHA - Global Stylesheet (Finalized)
- * Optimized for: Core, Layout, Navigation, Codeblocks, & Admonitions
+ * Optimized for: Core, Layout, Navigation, Codeblocks, Admonitions & Search
  */
 
 @import url("https://fonts.googleapis.com/css2?family=Share+Tech+Mono&display=swap");
@@ -61,108 +61,87 @@ body {
 /* ==========================================================================
    2. GLOBAL LAYOUT & NAVIGATION
    ========================================================================== */
-.footer {
-  display: none;
-}
-.main-wrapper {
-  padding-top: 1rem;
-  overflow-x: clip;
-  width: 100%;
-}
+.footer { display: none; }
+.main-wrapper { padding-top: 1rem; overflow-x: clip; width: 100%; }
 
+/* --- BASE NAVBAR --- */
 .navbar {
-  /* ... existing styles ... */
-  background-image: var(--nunix-banner);
-  background-size: cover;
-  background-position: center 20%;
-  border-bottom: 2px solid var(--ifm-color-primary);
-  backdrop-filter: blur(12px) saturate(160%);
-  background-color: var(--nunix-glass-bg);
+  border-bottom: 2px solid transparent;
   transition: all 0.3s ease;
   padding: 0.5rem 1rem;
-
-  /* THE FIX: Clips the scaled background image so it doesn't scroll the page */
-  overflow: hidden !important;
+  overflow: visible !important;
+  background: transparent !important; /* Let the pseudo-element handle the background */
 }
 
+/* THE SHARED GLASS LAYER */
 .navbar::before {
   content: "";
   position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
+  top: 0; left: 0; right: 0; bottom: 0;
   z-index: -1;
-  background-image: var(--nunix-banner);
   background-size: cover;
   background-position: center 20%;
-  filter: blur(6px) saturate(40%) brightness(0.8);
-  opacity: 0.9;
-  transform: scale(1.1);
+  pointer-events: none;
+  transition: all 0.3s ease;
 }
 
-.navbar__brand,
-.navbar__item,
-.navbar__link {
+/* --- DARK MODE --- */
+html[data-theme="dark"] .navbar {
+  border-bottom-color: var(--ifm-color-primary);
+  background-color: rgba(10, 13, 11, 0.6) !important;
+}
+
+html[data-theme="dark"] .navbar::before {
+  background-image: url("/img/nunix-banner.png");
+  filter: blur(6px) saturate(40%) brightness(0.8);
+  opacity: 0.9;
+}
+
+/* --- LIGHT MODE (Fixed Blur) --- */
+html[data-theme="light"] .navbar {
+  border-bottom-color: #1a4d32;
+  /* Make the tint slightly more transparent so the blur shows through */
+  background-color: rgba(255, 255, 255, 0.65) !important; 
+}
+
+html[data-theme="light"] .navbar::before {
+  background-image: url("/img/nunix-banner-light.png");
+  /* Increased Blur & Saturation */
+  filter: blur(10px) saturate(180%) brightness(1.1);
+  opacity: 1; /* Full opacity on the background image */
+  transform: scale(1.05); /* Slight scale to prevent blur edges */
+}
+
+/* --- NAV ITEMS --- */
+.navbar__brand, .navbar__item, .navbar__link {
   position: relative;
   overflow: hidden;
   transition: all 0.2s ease-out;
-  border-radius: 4px; /* Standard Box Radius */
+  border-radius: 4px; 
   margin: 0 4px;
   padding: 0.4rem 0.8rem !important;
-
-  /* Reset Typography to Elegant Standard */
   font-weight: 500 !important;
-  text-transform: none !important; /* No CAPS */
-  letter-spacing: normal !important;
 }
 
-/* --- ACTIVE STATE (Standardized Box) --- */
 .navbar__link--active {
   color: var(--ifm-color-primary) !important;
   background-color: rgba(48, 186, 120, 0.08) !important;
-
-  /* Full Border Box (Not just bottom) */
   border: 1px solid rgba(48, 186, 120, 0.3) !important;
-
-  /* The Pulse */
   animation: nav-pulse 3s infinite ease-in-out;
-  box-shadow: 0 0 10px rgba(48, 186, 120, 0.15);
 }
 
-/* --- HOVER STATE --- */
-.navbar__item:hover,
-.navbar__link:hover {
+.navbar__item:hover, .navbar__link:hover {
   color: var(--neon-blue) !important;
   background: rgba(0, 127, 255, 0.08) !important;
   border: 1px solid rgba(0, 127, 255, 0.3) !important;
-  box-shadow: 0 0 10px rgba(0, 127, 255, 0.15);
   backdrop-filter: blur(4px);
   text-decoration: none !important;
 }
 
-/* Ensure Active + Hover stays Green (System Stability) */
-.navbar__link--active:hover {
-  background-color: rgba(48, 186, 120, 0.12) !important;
-  border-color: var(--ifm-color-primary) !important;
-  color: var(--ifm-color-primary) !important;
-  animation-play-state: paused; /* Freeze pulse on interaction */
-}
-
-/* SHARED PULSE ANIMATION (Used by Nav, Sidebar, TOC) */
 @keyframes nav-pulse {
-  0% {
-    border-color: rgba(48, 186, 120, 0.3);
-    box-shadow: 0 0 0px rgba(48, 186, 120, 0);
-  }
-  50% {
-    border-color: var(--ifm-color-primary);
-    box-shadow: 0 0 8px rgba(48, 186, 120, 0.25);
-  }
-  100% {
-    border-color: rgba(48, 186, 120, 0.3);
-    box-shadow: 0 0 0px rgba(48, 186, 120, 0);
-  }
+  0% { border-color: rgba(48, 186, 120, 0.3); }
+  50% { border-color: var(--ifm-color-primary); }
+  100% { border-color: rgba(48, 186, 120, 0.3); }
 }
 
 /* ==========================================================================
@@ -170,7 +149,6 @@ body {
    ========================================================================== */
 
 /* 1. PARENT CONTAINER RESET (The Double Border Fix) */
-/* Forces the list item to be invisible so only the link inside lights up */
 .theme-doc-sidebar-item-category-level-1,
 .menu__list-item {
   border: none !important;
@@ -185,28 +163,17 @@ body {
   transition: all 0.2s ease;
   border-radius: 4px;
   margin: 2px 0;
-
-  /* Layout: Transparent border to prevent jump on hover */
   border: 1px solid transparent;
-  outline: none !important; /* Kills default focus ring */
-
-  /* Typography */
+  outline: none !important;
   font-weight: 500;
   color: var(--ifm-menu-color);
 }
 
 /* 3. HOVER STATE (Neon Blue Box) */
 .menu__link:not(.menu__link--active):hover {
-  /* Blue Text */
   color: var(--neon-blue) !important;
-
-  /* Blue Glass Background */
   background-color: rgba(0, 127, 255, 0.08) !important;
-
-  /* Blue Border (Single Line) */
   border-color: rgba(0, 127, 255, 0.3) !important;
-
-  /* Remove decoration */
   text-decoration: none !important;
   backdrop-filter: blur(4px);
   box-shadow: 0 0 10px rgba(0, 127, 255, 0.1);
@@ -214,23 +181,14 @@ body {
 
 /* 4. ACTIVE STATE (Green Pulse Box) */
 .menu__link--active {
-  /* Green Text */
   color: var(--ifm-color-primary) !important;
-
-  /* Green Glass Background */
   background-color: rgba(48, 186, 120, 0.08) !important;
-
-  /* Green Border */
   border-color: rgba(48, 186, 120, 0.3) !important;
-
-  /* The Standard Pulse Animation */
   animation: nav-pulse 3s infinite ease-in-out;
   box-shadow: 0 0 10px rgba(48, 186, 120, 0.15);
-
   font-weight: 600 !important;
 }
 
-/* Stop Pulse on Hover (Stable Green) */
 .menu__link--active:hover {
   animation-play-state: paused;
   background-color: rgba(48, 186, 120, 0.12) !important;
@@ -238,7 +196,6 @@ body {
 }
 
 /* 5. COLLAPSIBLE ARROW FIX */
-/* Ensures the arrow inherits the color of the link state */
 .menu__list-item-collapsible:hover .menu__link,
 .menu__list-item-collapsible:hover .menu__caret {
   color: var(--neon-blue) !important;
@@ -255,7 +212,6 @@ body {
   border-bottom: 1px solid rgba(128, 128, 128, 0.2);
   margin-bottom: 20px;
   background: transparent;
-  /* Top padding brings items "down" so borders show */
   padding: 6px 0 10px 0;
   gap: 8px;
 }
@@ -265,8 +221,6 @@ body {
   font-weight: bold;
   font-size: 0.8rem;
   text-transform: uppercase;
-
-  /* Elegant Dimensions */
   padding: 6px 24px;
   border-radius: 6px;
   border: 1px solid transparent;
@@ -276,7 +230,6 @@ body {
   position: relative;
 }
 
-/* --- HOVER STATE --- */
 .tabs__item:not(.tabs__item--active):hover {
   opacity: 1;
   color: var(--neon-blue) !important;
@@ -290,7 +243,6 @@ body {
   z-index: 10;
 }
 
-/* --- ACTIVE STATE --- */
 .tabs__item--active {
   opacity: 1;
   font-weight: 700 !important;
@@ -310,27 +262,18 @@ body {
 }
 
 @keyframes tab-pulse {
-  0% {
-    border-color: rgba(48, 186, 120, 0.3);
-    box-shadow: 0 0 0px rgba(48, 186, 120, 0);
-  }
-  50% {
-    border-color: var(--ifm-color-primary);
-    box-shadow: 0 0 10px rgba(48, 186, 120, 0.3);
-  }
-  100% {
-    border-color: rgba(48, 186, 120, 0.3);
-    box-shadow: 0 0 0px rgba(48, 186, 120, 0);
-  }
+  0% { border-color: rgba(48, 186, 120, 0.3); box-shadow: 0 0 0px rgba(48, 186, 120, 0); }
+  50% { border-color: var(--ifm-color-primary); box-shadow: 0 0 10px rgba(48, 186, 120, 0.3); }
+  100% { border-color: rgba(48, 186, 120, 0.3); box-shadow: 0 0 0px rgba(48, 186, 120, 0); }
 }
 
 /* ==========================================================================
-   5. CODEBLOCKS (High-Contrast Numbers & Clean Hover)
+   5. CODEBLOCKS (Theme-Aware & Fixed Hover)
    ========================================================================== */
 
-/* 1. THE OUTER SHELL (Ghost Anchor) */
+/* 1. THE OUTER SHELL */
 .nunix-code-wrapper {
-  position: relative;
+  position: relative !important;
   margin-top: 15px !important;
   margin-bottom: 15px !important;
   background: transparent !important;
@@ -340,63 +283,27 @@ body {
   cursor: text !important;
 }
 
-/* 2. THE INNER BOX (The Shell) */
+/* 2. THE INNER BOX */
 .nunix-code-wrapper .prism-code,
 .nunix-code-wrapper pre {
   position: relative !important;
   background: var(--nunix-glass-bg) !important;
   border: 1px solid rgba(48, 186, 120, 0.2) !important;
   border-radius: 4px !important;
-
-  /* PADDING */
   padding: 1rem 0.5rem 0rem 0.5rem !important;
-
   margin: 0 !important;
   display: block;
   vertical-align: top;
-  transition:
-    border-color 0.2s ease,
-    box-shadow 0.2s ease;
-
-  /* SMART SCROLLBAR LOGIC */
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
   overflow-x: auto !important;
   overflow-y: hidden !important;
   white-space: pre !important;
   word-wrap: normal !important;
-
-  /* Scrollbar Styling */
   scrollbar-width: thin;
   scrollbar-color: rgba(48, 186, 120, 0.4) transparent;
 }
 
-/* --- SCROLLBAR STYLING --- */
-.nunix-code-wrapper .prism-code::-webkit-scrollbar,
-.nunix-code-wrapper pre::-webkit-scrollbar {
-  height: 6px;
-  background: transparent;
-}
-.nunix-code-wrapper .prism-code::-webkit-scrollbar-corner,
-.nunix-code-wrapper pre::-webkit-scrollbar-corner {
-  background: transparent;
-}
-
-.nunix-code-wrapper .prism-code::-webkit-scrollbar-thumb,
-.nunix-code-wrapper pre::-webkit-scrollbar-thumb {
-  background-color: rgba(48, 186, 120, 0.2);
-  border-radius: 4px;
-  transition: background-color 0.2s ease;
-}
-.nunix-code-wrapper:hover .prism-code::-webkit-scrollbar-thumb,
-.nunix-code-wrapper:hover pre::-webkit-scrollbar-thumb {
-  background-color: rgba(48, 186, 120, 0.5);
-}
-.nunix-code-wrapper .prism-code::-webkit-scrollbar-thumb:hover,
-.nunix-code-wrapper pre::-webkit-scrollbar-thumb:hover {
-  background-color: var(--ifm-color-primary) !important;
-  cursor: grab;
-}
-
-/* 3. TERMINAL HEADER */
+/* 3. TERMINAL HEADER STRIP ("CODE") */
 .prism-code::before {
   content: "CODE";
   position: absolute;
@@ -406,157 +313,162 @@ body {
   width: calc(100% + 1rem);
   height: 1.6rem;
   line-height: 1.6rem;
-  background: rgba(10, 13, 16, 0.85);
-  backdrop-filter: blur(4px);
-  border-bottom: 1px solid rgba(0, 127, 255, 0.3);
+  padding-left: 16px;
   border-radius: 4px 4px 0 0;
-
+  
   font-family: var(--vintage-mono);
   font-size: 0.65rem;
   font-weight: bold;
-  color: var(--neon-blue);
-  padding-left: 16px;
   letter-spacing: 0.5px;
   pointer-events: none;
   text-transform: uppercase;
   text-align: left;
-}
-
-/* Right Side: Hint Box */
-.nunix-terminal-hint {
-  position: absolute;
-  top: 0;
-  z-index: 11;
-  right: -0.5rem;
-  height: 1.6rem;
-  line-height: 1.6rem;
-  background: transparent;
-  padding-right: 16px;
-  font-family: var(--vintage-mono);
-  font-size: 0.65rem;
-  font-weight: bold;
-  color: var(--neon-blue);
-  border: none;
-  letter-spacing: 0.5px;
-  pointer-events: none;
-  text-transform: uppercase;
-  text-align: right;
+  
   transition: all 0.2s ease;
 }
 
-/* 4. ANIMATIONS & INTERACTIONS */
+/* Dark Mode Header */
+html[data-theme="dark"] .prism-code::before {
+  background: rgba(10, 13, 16, 0.85);
+  backdrop-filter: blur(4px);
+  border-bottom: 1px solid rgba(0, 127, 255, 0.3);
+  color: var(--neon-blue);
+}
+
+/* Light Mode Header */
+html[data-theme="light"] .prism-code::before {
+  background: rgba(240, 242, 245, 0.95);
+  backdrop-filter: blur(4px);
+  border-bottom: 1px solid #1a4d32;
+  color: #1a4d32;
+}
+
+/* 4. THE INSTRUCTION HINT */
+.nunix-terminal-hint {
+  position: absolute !important;
+  top: 0 !important;
+  right: 0 !important;
+  z-index: 20 !important;
+  height: 1.6rem !important;
+  line-height: 1.6rem !important;
+  padding-right: 12px !important;
+  
+  font-family: var(--vintage-mono);
+  font-size: 0.65rem !important;
+  font-weight: bold !important;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  text-align: right !important;
+  pointer-events: none !important;
+  
+  transition: opacity 0.2s ease, color 0.2s ease;
+}
+
+/* Dark Mode Hint */
+html[data-theme="dark"] .nunix-terminal-hint {
+  color: var(--neon-blue);
+  opacity: 0.7;
+}
+
+/* Light Mode Hint */
+html[data-theme="light"] .nunix-terminal-hint {
+  color: #1a4d32;
+  opacity: 0.8;
+}
+
+/* 5. HOVER EFFECTS (Border Glow & White Text) */
+
+/* Border Glow on Hover */
 .nunix-code-wrapper:hover .prism-code,
 .nunix-code-wrapper:hover pre {
-  animation: code-border-pulse 0.5s infinite ease-in-out;
   border-color: var(--neon-blue) !important;
-  box-shadow: 0 0 15px var(--neon-blue) !important;
+  box-shadow: 0 0 15px rgba(0, 127, 255, 0.4) !important;
 }
 
-/* Header Text Turns White on Hover */
-.nunix-code-wrapper:hover .prism-code::before {
+/* Header Text White on Hover */
+html[data-theme="dark"] .nunix-code-wrapper:hover .prism-code::before {
   border-bottom-color: var(--neon-blue);
   color: #fff !important;
-  text-shadow: 0 0 5px var(--neon-blue-glow);
+  text-shadow: 0 0 8px var(--neon-blue-glow);
 }
 
-.nunix-code-wrapper:hover .nunix-terminal-hint,
-.nunix-code-wrapper:hover button {
-  color: #ffffff !important;
-  text-shadow: 0 0 5px rgba(255, 255, 255, 0.8);
+/* Hint Text White on Hover */
+html[data-theme="dark"] .nunix-code-wrapper:hover .nunix-terminal-hint {
+  opacity: 1;
+  color: #fff !important; /* Force White Override */
+  text-shadow: 0 0 8px rgba(255, 255, 255, 0.8);
+}
+
+/* Light Mode Hover States */
+html[data-theme="light"] .nunix-code-wrapper:hover .prism-code,
+html[data-theme="light"] .nunix-code-wrapper:hover pre {
+  border-color: #0056b3 !important;
+  box-shadow: 0 0 15px rgba(0, 86, 179, 0.2) !important;
+}
+
+html[data-theme="light"] .nunix-code-wrapper:hover .prism-code::before {
+  border-bottom-color: #0056b3;
+  color: #0056b3 !important;
+}
+
+html[data-theme="light"] .nunix-code-wrapper:hover .nunix-terminal-hint {
+  color: #0056b3 !important;
   opacity: 1;
 }
 
-@keyframes thick-pulse {
-  0% {
-    box-shadow:
-      0 0 0 0px var(--neon-blue),
-      0 0 0px var(--neon-blue-glow);
-  }
-  50% {
-    box-shadow:
-      0 0 0 1.5px var(--neon-blue),
-      0 0 20px var(--neon-blue);
-  }
-  100% {
-    box-shadow:
-      0 0 0 0px var(--neon-blue),
-      0 0 0px var(--neon-blue-glow);
-  }
+/* 6. STATUS BADGE ("COPIED") */
+.nunix-copy-status {
+  position: absolute !important;
+  top: 0 !important;
+  right: 0 !important;
+  z-index: 21 !important;
+  height: 1.6rem !important;
+  line-height: 1.6rem !important;
+  padding-right: 12px !important;
+  
+  font-family: var(--vintage-mono);
+  font-size: 0.65rem !important;
+  font-weight: bold !important;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  text-align: right !important;
+  pointer-events: none !important;
+  
+  opacity: 0;
+  transform: scale(0.95);
+  transition: all 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
 }
 
-/* 5. CODE CONTENT STYLING */
-.prism-code .token-line {
-  font-family: var(--vintage-mono) !important;
-  font-size: 0.95rem !important;
-  line-height: 1.1 !important;
-  letter-spacing: 0.03rem;
-  width: fit-content;
-  min-width: 100%;
+html[data-theme="dark"] .nunix-copy-status {
+  color: var(--ifm-color-primary) !important;
+  text-shadow: 0 0 5px var(--ifm-color-primary);
+}
+html[data-theme="light"] .nunix-copy-status {
+  color: #1a4d32 !important;
 }
 
-/* --- LINE NUMBERS (The Fix) --- */
+/* Toggle Logic */
+.nunix-code-wrapper.alert-active .nunix-terminal-hint { opacity: 0 !important; }
+.nunix-code-wrapper.alert-active .nunix-copy-status { opacity: 1 !important; transform: scale(1); }
+
+/* 7. SCROLLBARS */
+.prism-code::-webkit-scrollbar, pre::-webkit-scrollbar { height: 6px; background: transparent; }
+.prism-code::-webkit-scrollbar-thumb, pre::-webkit-scrollbar-thumb { background-color: rgba(48, 186, 120, 0.2); border-radius: 4px; }
+.nunix-code-wrapper:hover .prism-code::-webkit-scrollbar-thumb { background-color: var(--ifm-color-primary) !important; cursor: grab; }
+
+/* 8. LINE NUMBERS & HOVER */
 .code-line-number {
-  /* DARK THEME: Bright Mint Green (High Contrast) */
-  color: #b0f2c2 !important;
-  background-color: transparent !important; /* FIX: Prevents glitch */
-
-  font-family: var(--vintage-mono) !important;
-  font-size: 0.95rem !important;
-
-  padding-right: 0.8rem;
-  margin-right: 0.8rem;
-  border-right: 1px solid rgba(48, 186, 120, 0.3);
-  opacity: 1 !important; /* Fully visible */
-  min-width: 2.5rem;
-  text-align: right;
+  font-family: var(--vintage-mono) !important; font-size: 0.95rem !important; padding-right: 0.8rem; margin-right: 0.8rem;
+  border-right: 1px solid rgba(48, 186, 120, 0.3); opacity: 1 !important; min-width: 2.5rem; text-align: right; user-select: none;
 }
+html[data-theme="dark"] .code-line-number { color: #b0f2c2 !important; }
+html[data-theme="light"] .code-line-number { color: #0f3d26 !important; border-right-color: rgba(26, 77, 50, 0.2); }
 
-/* LIGHT THEME OVERRIDE */
-html[data-theme="light"] .code-line-number {
-  /* LIGHT THEME: Deep Forest Green (High Contrast against White) */
-  color: #0f3d26 !important;
-  border-right-color: rgba(26, 77, 50, 0.2);
-  background-color: transparent !important;
-}
-
-/* Hover Highlight for Code Lines */
+.prism-code .token-line { font-family: var(--vintage-mono) !important; font-size: 0.95rem !important; line-height: 1.1 !important; letter-spacing: 0.03rem; width: fit-content; min-width: 100%; }
 .prism-code .token-line:hover {
   background-color: rgba(48, 186, 120, 0.1) !important;
-  box-shadow:
-    -1rem 0 0 rgba(48, 186, 120, 0.1),
-    1rem 0 0 rgba(48, 186, 120, 0.1);
-  filter: brightness(1.1);
-  z-index: 5;
-  position: relative;
-}
-
-/* LINE COPY HINT */
-.prism-code .token-line:hover::after {
-  content: "COPY";
-  position: absolute;
-  right: 0;
-  font-family: var(--vintage-mono);
-  font-size: 0.6rem;
-  font-weight: bold;
-  color: #ffffff !important;
-  text-shadow: 0 0 5px rgba(255, 255, 255, 0.8);
-  opacity: 1;
-  pointer-events: none;
-  margin-top: 2px;
-}
-
-::selection {
-  background: rgba(0, 127, 255, 0.3);
-  color: #ffffff;
-}
-.prism-code ::selection {
-  background: rgba(48, 186, 120, 0.3);
-}
-
-.block-copied-flash {
-  outline: 1px solid var(--neon-blue) !important;
-  box-shadow: 0 0 15px rgba(0, 127, 255, 0.4) !important;
-  transition: all 0.2s ease;
+  box-shadow: -1rem 0 0 rgba(48, 186, 120, 0.1), 1rem 0 0 rgba(48, 186, 120, 0.1);
+  filter: brightness(1.1); z-index: 5; position: relative; cursor: copy;
 }
 
 /* 6. LANGUAGE MAPPINGS */
@@ -626,58 +538,44 @@ html[data-theme="light"] .code-line-number {
 /* ==========================================================================
    6. INLINE CODE (Mini-Terminal Style)
    ========================================================================== */
-
 code:not(pre code) {
-  /* Typography */
   font-family: var(--vintage-mono) !important;
   font-size: 0.85em !important;
   font-weight: bold;
-  
-  /* Visuals - Default State (System Green) */
   color: var(--ifm-color-primary) !important;
   background: rgba(48, 186, 120, 0.1) !important;
   border: 1px solid rgba(48, 186, 120, 0.25) !important;
-  
-  /* Box Model */
   padding: 2px 6px;
   border-radius: 4px;
   vertical-align: middle;
-  
-  /* Interaction Prep */
-  cursor: copy; /* Signals the click-to-copy feature */
+  cursor: copy;
   transition: all 0.2s ease;
   box-shadow: none;
 }
 
-/* Hover State (Neon Blue Interaction) */
 code:not(pre code):hover {
   color: var(--neon-blue) !important;
   background: rgba(0, 127, 255, 0.1) !important;
   border-color: var(--neon-blue) !important;
-  
-  /* Glow */
   box-shadow: 0 0 10px rgba(0, 127, 255, 0.2);
   text-shadow: 0 0 5px var(--neon-blue-glow);
-  
   transform: translateY(-1px);
 }
 
-/* Light Mode Overrides */
 [data-theme="light"] code:not(pre code) {
-  color: #1a4d32 !important; /* Darker Green for readability */
+  color: #1a4d32 !important;
   background: rgba(26, 77, 50, 0.08) !important;
   border-color: rgba(26, 77, 50, 0.2) !important;
 }
 
 [data-theme="light"] code:not(pre code):hover {
-  color: #0056b3 !important; /* Darker Blue */
+  color: #0056b3 !important;
   background: rgba(0, 86, 179, 0.1) !important;
   border-color: #0056b3 !important;
   box-shadow: 0 0 10px rgba(0, 86, 179, 0.15);
   text-shadow: none;
 }
 
-/* Copied Flash State (Handled by Root.tsx logic) */
 .inline-copied-flash {
   background-color: var(--ifm-color-primary) !important;
   color: #000 !important;
@@ -689,18 +587,13 @@ code:not(pre code):hover {
 /* ==========================================================================
    7. ADMONITIONS (SYSTEM ALERT LOGS)
    ========================================================================== */
-/* The Container */
-[class*="admonition_"],
-.alert {
-  --ifm-alert-border-radius: 2px; /* Sharp, technical corners */
+[class*="admonition_"], .alert {
+  --ifm-alert-border-radius: 2px;
   --ifm-alert-padding-vertical: 1rem;
   --ifm-alert-padding-horizontal: 1.2rem;
-
   position: relative;
   border: 1px solid var(--nunix-admonition-border) !important;
   border-left: 4px solid var(--nunix-admonition-color) !important;
-
-  /* Dark Glass + Scanline Effect */
   background-color: rgba(10, 13, 16, 0.7) !important;
   backdrop-filter: blur(12px);
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
@@ -708,14 +601,10 @@ code:not(pre code):hover {
   overflow: hidden;
 }
 
-/* Subtle Scanline Texture Overlay */
 [class*="admonition_"]::before {
   content: "";
   position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
+  top: 0; left: 0; right: 0; bottom: 0;
   background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.1) 50%);
   background-size: 100% 4px;
   pointer-events: none;
@@ -723,9 +612,7 @@ code:not(pre code):hover {
   opacity: 0.6;
 }
 
-/* The Header (Title) */
-[class*="admonitionHeading_"],
-.alert__heading {
+[class*="admonitionHeading_"], .alert__heading {
   position: relative;
   z-index: 1;
   font-family: var(--vintage-mono);
@@ -734,18 +621,14 @@ code:not(pre code):hover {
   text-transform: uppercase;
   letter-spacing: 1px;
   color: var(--nunix-admonition-color);
-
   display: flex;
   align-items: center;
   gap: 10px;
-
-  /* Divider Line */
   border-bottom: 1px solid var(--nunix-admonition-border);
   padding-bottom: 8px;
   margin-bottom: 12px;
 }
 
-/* Icons (SVG) - Neon Glow */
 [class*="admonitionHeading_"] svg {
   fill: var(--nunix-admonition-color) !important;
   filter: drop-shadow(0 0 3px var(--nunix-admonition-glow));
@@ -753,9 +636,7 @@ code:not(pre code):hover {
   width: 1rem;
 }
 
-/* The Content */
-[class*="admonitionContent_"],
-.alert p {
+[class*="admonitionContent_"], .alert p {
   position: relative;
   z-index: 1;
   font-size: 0.95rem;
@@ -763,81 +644,45 @@ code:not(pre code):hover {
   color: var(--ifm-font-color-base);
 }
 
-/* Color Variables */
-.alert--info,
-[class*="admonition-info"] {
-  --nunix-admonition-color: #007fff; /* Neon Blue */
+.alert--info, [class*="admonition-info"] {
+  --nunix-admonition-color: #007fff;
   --nunix-admonition-border: rgba(0, 127, 255, 0.25);
   --nunix-admonition-glow: rgba(0, 127, 255, 0.6);
 }
-.alert--success,
-[class*="admonition-tip"] {
-  --nunix-admonition-color: var(--ifm-color-primary); /* Neon Green */
+.alert--success, [class*="admonition-tip"] {
+  --nunix-admonition-color: var(--ifm-color-primary);
   --nunix-admonition-border: rgba(48, 186, 120, 0.25);
   --nunix-admonition-glow: rgba(48, 186, 120, 0.6);
 }
-.alert--warning,
-[class*="admonition-warning"] {
-  --nunix-admonition-color: #ffaa00; /* Amber */
+.alert--warning, [class*="admonition-warning"] {
+  --nunix-admonition-color: #ffaa00;
   --nunix-admonition-border: rgba(255, 170, 0, 0.25);
   --nunix-admonition-glow: rgba(255, 170, 0, 0.6);
 }
-.alert--danger,
-[class*="admonition-danger"] {
-  --nunix-admonition-color: #ff3e3e; /* Red */
+.alert--danger, [class*="admonition-danger"] {
+  --nunix-admonition-color: #ff3e3e;
   --nunix-admonition-border: rgba(255, 62, 62, 0.3);
   --nunix-admonition-glow: rgba(255, 62, 62, 0.6);
 }
 
-/* Light Mode Override (Clean Technical Look) */
 [data-theme="light"] [class*="admonition_"] {
   background-color: rgba(255, 255, 255, 0.8) !important;
   border: 1px solid var(--nunix-admonition-color) !important;
 }
 [data-theme="light"] [class*="admonition_"]::before {
-  display: none; /* No scanlines in light mode */
+  display: none;
 }
 
 /* ==========================================================================
    8. GLOBAL ANIMATIONS
    ========================================================================== */
-@keyframes hint-fade-in {
-  from {
-    opacity: 0;
-    transform: translateY(5px);
-  }
-  to {
-    opacity: 0.7;
-    transform: translateY(0);
-  }
-}
-@keyframes neon-blink {
-  0%,
-  100% {
-    opacity: 1;
-    text-shadow: 0 0 5px var(--ifm-color-primary);
-  }
-  50% {
-    opacity: 0.3;
-    text-shadow: none;
-  }
-}
-@keyframes float-up {
-  from {
-    opacity: 1;
-    transform: translateY(0);
-  }
-  to {
-    opacity: 0;
-    transform: translateY(-15px);
-  }
-}
+@keyframes hint-fade-in { from { opacity: 0; transform: translateY(5px); } to { opacity: 0.7; transform: translateY(0); } }
+@keyframes neon-blink { 0%, 100% { opacity: 1; text-shadow: 0 0 5px var(--ifm-color-primary); } 50% { opacity: 0.3; text-shadow: none; } }
+@keyframes float-up { from { opacity: 1; transform: translateY(0); } to { opacity: 0; transform: translateY(-15px); } }
 
 /* ==========================================================================
    9. IMAGES & LIGHTBOX (Stealth Blue Frame + Theme-Aware Hints)
    ========================================================================== */
-
-/* 1. THE IMAGE (The Stealth Container) */
 [class*="blog-post"] .markdown p > img:not(.img-zoom-overlay img),
 .blog-wrapper .markdown p > img:not(.img-zoom-overlay img),
 article .markdown p > img:not(.img-zoom-overlay img) {
@@ -845,37 +690,24 @@ article .markdown p > img:not(.img-zoom-overlay img) {
   display: block;
   margin: 2.5rem auto 0 auto;
   max-width: 100%;
-
-  /* INNER BOX GAP */
   padding: 6px;
-
-  /* IDLE STATE: Transparent (No grey box) */
   background: transparent !important;
   border: 1px solid transparent;
   border-radius: 2px;
-
   transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
   position: relative;
   z-index: 10;
 }
 
-/* 2. HOVER STATE (Activation - Shared Blue for ALL Themes) */
 [class*="blog-post"] .markdown p:has(img):hover img:not(.img-zoom-overlay img),
 .blog-wrapper .markdown p:has(img):hover img:not(.img-zoom-overlay img),
 article .markdown p:has(img):hover img:not(.img-zoom-overlay img) {
-  /* Neon Blue Border */
   border-color: var(--neon-blue);
-
-  /* Blue Glow */
   box-shadow: 0 0 25px rgba(0, 127, 255, 0.6);
-
-  /* Keep background transparent */
   background: transparent !important;
-
   transform: translateY(-2px);
 }
 
-/* 3. THE CONNECTED HINT (Default / Dark Mode) */
 [class*="blog-post"] .markdown p:has(img)::after,
 .blog-wrapper .markdown p:has(img)::after,
 article .markdown p:has(img)::after {
@@ -883,33 +715,23 @@ article .markdown p:has(img)::after {
   display: block;
   width: fit-content;
   margin: 0 auto;
-
-  /* LOCK POSITION: Center on the border line */
   transform: translateY(-50%) scale(0.9);
-
   position: relative;
   z-index: 11;
-
-  /* TYPOGRAPHY */
   font-family: var(--vintage-mono);
   font-size: 0.6rem;
   font-weight: bold;
   letter-spacing: 1px;
-
-  /* DARK THEME STYLING (The Default) */
   color: var(--neon-blue);
-  background: #0a0d10; /* Dark BG to mask border */
+  background: #0a0d10;
   padding: 3px 10px;
   border: 1px solid var(--neon-blue);
   border-radius: 2px;
-
-  /* BASE STATE: Hidden */
   opacity: 0;
   transition: all 0.2s ease;
   pointer-events: none;
 }
 
-/* 4. HOVER STATE (Label Reveal) */
 [class*="blog-post"] .markdown p:has(img):hover::after,
 .blog-wrapper .markdown p:has(img):hover::after,
 article .markdown p:has(img):hover::after {
@@ -919,75 +741,31 @@ article .markdown p:has(img):hover::after {
   text-shadow: 0 0 8px var(--neon-blue-glow);
 }
 
-/* ==========================================================================
-   LIGHT MODE OVERRIDES (Forced High Specificity)
-   ========================================================================== */
-
-/* 1. Ensure Image Background stays transparent */
-html[data-theme="light"]
-  [class*="blog-post"]
-  .markdown
-  p
-  > img:not(.img-zoom-overlay img),
-html[data-theme="light"]
-  .blog-wrapper
-  .markdown
-  p
-  > img:not(.img-zoom-overlay img),
+/* Light Mode Image Overrides */
+html[data-theme="light"] [class*="blog-post"] .markdown p > img:not(.img-zoom-overlay img),
+html[data-theme="light"] .blog-wrapper .markdown p > img:not(.img-zoom-overlay img),
 html[data-theme="light"] article .markdown p > img:not(.img-zoom-overlay img) {
   background: transparent !important;
   border-color: transparent;
 }
-
-/* 2. Keep Hover Blue (Re-asserting just in case) */
-html[data-theme="light"]
-  [class*="blog-post"]
-  .markdown
-  p:has(img):hover
-  img:not(.img-zoom-overlay img),
-html[data-theme="light"]
-  .blog-wrapper
-  .markdown
-  p:has(img):hover
-  img:not(.img-zoom-overlay img),
-html[data-theme="light"]
-  article
-  .markdown
-  p:has(img):hover
-  img:not(.img-zoom-overlay img) {
+html[data-theme="light"] [class*="blog-post"] .markdown p:has(img):hover img:not(.img-zoom-overlay img),
+html[data-theme="light"] .blog-wrapper .markdown p:has(img):hover img:not(.img-zoom-overlay img),
+html[data-theme="light"] article .markdown p:has(img):hover img:not(.img-zoom-overlay img) {
   border-color: var(--neon-blue) !important;
   box-shadow: 0 0 25px rgba(0, 127, 255, 0.6) !important;
 }
-
-/* 3. THE HINT BOX (White Background, Blue Text) */
 html[data-theme="light"] [class*="blog-post"] .markdown p:has(img)::after,
 html[data-theme="light"] .blog-wrapper .markdown p:has(img)::after,
 html[data-theme="light"] article .markdown p:has(img)::after {
-  /* FORCE WHITE BACKGROUND to mask the line on light pages */
   background: #ffffff !important;
-
-  /* KEEP NEON BLUE TEXT & BORDER */
   color: var(--neon-blue) !important;
   border-color: var(--neon-blue) !important;
 }
 
-/* Light Mode Hint Hover */
-html[data-theme="light"] [class*="blog-post"] .markdown p:has(img):hover::after,
-html[data-theme="light"] .blog-wrapper .markdown p:has(img):hover::after,
-html[data-theme="light"] article .markdown p:has(img):hover::after {
-  text-shadow: none; /* Cleaner text for light mode */
-  box-shadow: 0 2px 15px rgba(0, 0, 0, 0.15); /* Softer shadow */
-}
-
-/* ==========================================================================
-   LIGHTBOX OVERLAY (Zoom Logic)
-   ========================================================================== */
+/* Lightbox Overlay */
 .img-zoom-overlay {
   position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
+  top: 0; left: 0; width: 100%; height: 100%;
   background: var(--nunix-img-overlay);
   backdrop-filter: blur(10px);
   display: flex;
@@ -1004,7 +782,6 @@ html[data-theme="light"] article .markdown p:has(img):hover::after {
   visibility: visible;
   opacity: 1;
 }
-
 .img-zoom-overlay img {
   max-width: 95vw;
   max-height: 95vh;
@@ -1017,27 +794,15 @@ html[data-theme="light"] article .markdown p:has(img):hover::after {
   background: transparent !important;
   margin: 0 !important;
 }
-
-/* Zoom Logic Classes */
-.zoomable-content {
-  cursor: zoom-in;
-  transition:
-    transform 0.3s cubic-bezier(0.165, 0.84, 0.44, 1),
-    max-width 0.3s ease,
-    max-height 0.3s ease !important;
-}
 .zoomable-content.is-magnified {
   cursor: zoom-out;
   max-width: none !important;
   max-height: none !important;
   transform: scale(1.5) !important;
 }
-
-/* HUD Exit Button */
 .zoom-hud-exit {
   position: fixed;
-  top: 2rem;
-  right: 2rem;
+  top: 2rem; right: 2rem;
   font-family: var(--vintage-mono);
   font-size: 0.75rem;
   color: var(--ifm-color-primary);
@@ -1053,13 +818,11 @@ html[data-theme="light"] article .markdown p:has(img):hover::after {
    ========================================================================== */
 .table-of-contents__link {
   transition: all 0.2s ease;
-  border-radius: 4px; /* Box shape */
+  border-radius: 4px;
   padding: 4px 10px !important;
   margin: 2px 0;
-  border: 1px solid transparent; /* Reserve space for border */
+  border: 1px solid transparent;
 }
-
-/* --- HOVER STATE --- */
 .table-of-contents__link:not(.table-of-contents__link--active):hover {
   color: var(--neon-blue) !important;
   text-decoration: none !important;
@@ -1067,23 +830,13 @@ html[data-theme="light"] article .markdown p:has(img):hover::after {
   border: 1px solid rgba(0, 127, 255, 0.3) !important;
   backdrop-filter: blur(4px);
 }
-
-/* --- ACTIVE STATE (Standardized Box) --- */
 .table-of-contents__link--active {
   color: var(--ifm-color-primary) !important;
   background-color: rgba(48, 186, 120, 0.08) !important;
-
-  /* The Standard Box */
   border: 1px solid rgba(48, 186, 120, 0.3) !important;
-  /* Removed left-border override */
-
   font-weight: 500 !important;
-
-  /* The Pulse */
   animation: nav-pulse 3s infinite ease-in-out;
 }
-
-/* Active Hover - Stays Green */
 .table-of-contents__link--active:hover {
   color: var(--ifm-color-primary) !important;
   background-color: rgba(48, 186, 120, 0.12) !important;
@@ -1102,32 +855,24 @@ html[data-theme="light"] article .markdown p:has(img):hover::after {
   padding: 1rem !important;
   box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
 }
-
 .pagination-nav__link:hover {
   text-decoration: none !important;
   background: rgba(0, 127, 255, 0.1) !important;
   border-color: rgba(0, 127, 255, 0.3) !important;
   box-shadow: 0 0 15px rgba(0, 127, 255, 0.2);
 }
-
 .pagination-nav__link:hover .pagination-nav__label {
   color: var(--neon-blue);
   text-shadow: 0 0 8px var(--neon-blue-glow);
 }
-
-.tag,
-[class*="tag_"],
-.margin-vert--md .margin-horiz--sm a {
+.tag, [class*="tag_"], .margin-vert--md .margin-horiz--sm a {
   --ifm-tag-border-radius: 0px !important;
   border-radius: 0px !important;
   transition: all 0.2s ease !important;
   text-decoration: none !important;
   border: 1px solid transparent !important;
 }
-
-.tag:hover,
-[class*="tag_"]:hover,
-.margin-vert--md .margin-horiz--sm a:hover {
+.tag:hover, [class*="tag_"]:hover, .margin-vert--md .margin-horiz--sm a:hover {
   color: var(--neon-blue) !important;
   background: rgba(0, 127, 255, 0.1) !important;
   box-shadow: 0 0 10px rgba(0, 127, 255, 0.2);
@@ -1138,16 +883,9 @@ html[data-theme="light"] article .markdown p:has(img):hover::after {
 /* ==========================================================================
    12. FILE-PATH BREADCRUMBS
    ========================================================================== */
-.breadcrumbs__separator,
-.breadcrumbs__item--separator,
-[class*="separator"],
-.breadcrumbs li::before,
-.breadcrumbs li::after,
-.breadcrumbs svg {
-  display: none !important;
-  content: none !important;
+.breadcrumbs__separator, .breadcrumbs__item--separator, [class*="separator"], .breadcrumbs li::before, .breadcrumbs li::after, .breadcrumbs svg {
+  display: none !important; content: none !important;
 }
-
 .breadcrumbs {
   font-family: var(--vintage-mono);
   font-size: 0.85rem;
@@ -1158,1654 +896,615 @@ html[data-theme="light"] article .markdown p:has(img):hover::after {
   list-style: none !important;
   margin: 0 !important;
 }
-
-.breadcrumbs__item {
-  display: inline-flex !important;
-  align-items: center !important;
-}
-
+.breadcrumbs__item { display: inline-flex !important; align-items: center !important; }
 .breadcrumbs__item + .breadcrumbs__item::before {
-  display: inline-block !important;
-  content: "/" !important;
-  margin: 0 12px !important;
-  font-size: 1.1rem !important;
-  font-weight: bold !important;
-  color: var(--ifm-color-primary) !important;
-  opacity: 0.6;
-  visibility: visible !important;
+  display: inline-block !important; content: "/" !important; margin: 0 12px !important;
+  font-size: 1.1rem !important; font-weight: bold !important; color: var(--ifm-color-primary) !important; opacity: 0.6; visibility: visible !important;
 }
-
 .breadcrumbs__link {
-  display: inline-flex;
-  align-items: center;
-  border: 1px solid transparent !important;
-  padding: 4px 10px !important;
-  border-radius: 3px;
-  line-height: 1 !important;
-  color: inherit;
-  transition: all 0.2s ease;
+  display: inline-flex; align-items: center; border: 1px solid transparent !important;
+  padding: 4px 10px !important; border-radius: 3px; line-height: 1 !important; color: inherit; transition: all 0.2s ease;
 }
-
-.breadcrumbs__item:first-child .breadcrumbs__link::before {
-  content: "nunix@os:~$";
-  font-weight: bold;
-  color: var(--ifm-color-primary);
-  margin-right: 4px;
-}
-
-.breadcrumbs__item:first-child .breadcrumbs__link::after {
-  content: "_";
-  color: var(--ifm-color-primary);
-  animation: neon-blink 1.2s infinite ease-in-out;
-  text-shadow: 0 0 8px var(--ifm-color-primary);
-  font-weight: bold;
-}
-
+.breadcrumbs__item:first-child .breadcrumbs__link::before { content: "nunix@os:~$"; font-weight: bold; color: var(--ifm-color-primary); margin-right: 4px; }
+.breadcrumbs__item:first-child .breadcrumbs__link::after { content: "_"; color: var(--ifm-color-primary); animation: neon-blink 1.2s infinite ease-in-out; text-shadow: 0 0 8px var(--ifm-color-primary); font-weight: bold; }
 .breadcrumbs__item:first-child .breadcrumbs__link:hover {
-  background: rgba(0, 127, 255, 0.1) !important;
-  border: 1px solid rgba(0, 127, 255, 0.3) !important;
+  background: rgba(0, 127, 255, 0.1) !important; border: 1px solid rgba(0, 127, 255, 0.3) !important;
 }
-
-.breadcrumbs__item:first-child .breadcrumbs__link:hover::before,
-.breadcrumbs__item:first-child .breadcrumbs__link:hover::after {
-  color: var(--neon-blue) !important;
-  text-shadow: 0 0 5px var(--neon-blue-glow) !important;
+.breadcrumbs__item:first-child .breadcrumbs__link:hover::before, .breadcrumbs__item:first-child .breadcrumbs__link:hover::after {
+  color: var(--neon-blue) !important; text-shadow: 0 0 5px var(--neon-blue-glow) !important;
 }
-
 .breadcrumbs__item--active .breadcrumbs__link {
-  color: var(--ifm-color-primary) !important;
-  font-weight: 700 !important;
-  text-transform: uppercase !important;
-  background-color: rgba(48, 186, 120, 0.12) !important;
-  backdrop-filter: blur(8px);
-  border: 1px solid rgba(48, 186, 120, 0.2) !important;
+  color: var(--ifm-color-primary) !important; font-weight: 700 !important; text-transform: uppercase !important;
+  background-color: rgba(48, 186, 120, 0.12) !important; backdrop-filter: blur(8px); border: 1px solid rgba(48, 186, 120, 0.2) !important;
 }
-
 .breadcrumbs__link:not(.breadcrumbs__item--active .breadcrumbs__link):hover {
-  color: var(--neon-blue) !important;
-  text-decoration: none !important;
-  background: rgba(0, 127, 255, 0.1) !important;
-  border: 1px solid rgba(0, 127, 255, 0.3) !important;
+  color: var(--neon-blue) !important; text-decoration: none !important; background: rgba(0, 127, 255, 0.1) !important; border: 1px solid rgba(0, 127, 255, 0.3) !important;
 }
 
 /* ==========================================================================
    13. SYSTEM STATUS BAR (Ghost Container)
    ========================================================================== */
-
 .nunix-status-bar {
-  position: fixed;
-  bottom: 0;
-  left: 0;
-  width: 100%;
-  height: 28px;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 0 15px;
-  font-family: var(--vintage-mono);
-  font-size: 0.65rem;
-  z-index: 10000;
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  letter-spacing: 1px;
-  text-transform: uppercase;
-
-  /* NUCLEAR: No border, no shadow, no outline */
-  border: none !important;
-  border-top: none !important;
-  box-shadow: none !important;
-  outline: none !important;
-  background-clip: padding-box;
+  position: fixed; bottom: 0; left: 0; width: 100%; height: 28px;
+  display: flex; justify-content: space-between; align-items: center; padding: 0 15px;
+  font-family: var(--vintage-mono); font-size: 0.65rem; z-index: 10000;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); letter-spacing: 1px; text-transform: uppercase;
+  border: none !important; border-top: none !important; box-shadow: none !important; outline: none !important; background-clip: padding-box;
 }
-
-/* Kill pseudo-elements */
-.nunix-status-bar::before,
-.nunix-status-bar::after {
-  display: none !important;
-  content: none !important;
-}
-
-/* Section Logic */
-.status-section {
-  display: flex;
-  align-items: center;
-  flex: 1;
-}
-.section-center {
-  justify-content: center;
-  flex: 0 0 auto;
-}
-.section-right {
-  justify-content: flex-end;
-  gap: 20px;
-}
-.status-node {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  white-space: nowrap;
-}
-
-/* Theme Colors */
-[data-theme="dark"] .nunix-status-bar {
-  background: rgba(10, 15, 20, 0.95);
-  color: var(--ifm-color-primary);
-}
-[data-theme="light"] .nunix-status-bar {
-  background: rgba(245, 247, 250, 0.9);
-  color: #1a4d32;
-}
-
-.status-active-value {
-  color: var(--ifm-color-primary);
-  font-weight: bold;
-}
-.status-toggle {
-  background: transparent;
-  border: none;
-  color: inherit;
-  font-family: inherit;
-  font-size: 0.6rem;
-  font-weight: bold;
-  cursor: pointer;
-  padding: 2px 8px;
-}
-
-/* --- COLLAPSED STATE --- */
-.nunix-status-bar.is-collapsed {
-  height: 6px;
-  background: rgba(0, 0, 0, 0.8) !important;
-  backdrop-filter: blur(4px);
-}
+.nunix-status-bar::before, .nunix-status-bar::after { display: none !important; content: none !important; }
+.status-section { display: flex; align-items: center; flex: 1; }
+.section-center { justify-content: center; flex: 0 0 auto; }
+.section-right { justify-content: flex-end; gap: 20px; }
+.status-node { display: flex; align-items: center; gap: 8px; white-space: nowrap; }
+[data-theme="dark"] .nunix-status-bar { background: rgba(10, 15, 20, 0.95); color: var(--ifm-color-primary); }
+[data-theme="light"] .nunix-status-bar { background: rgba(245, 247, 250, 0.9); color: #1a4d32; }
+.status-active-value { color: var(--ifm-color-primary); font-weight: bold; }
+.status-toggle { background: transparent; border: none; color: inherit; font-family: inherit; font-size: 0.6rem; font-weight: bold; cursor: pointer; padding: 2px 8px; }
+.nunix-status-bar.is-collapsed { height: 6px; background: rgba(0, 0, 0, 0.8) !important; backdrop-filter: blur(4px); }
 
 /* ==========================================================================
    14. LOCALIZED CRT EFFECT (Safety Patch)
    ========================================================================== */
-/* Ensure this element never triggers layout overflow */
 .crt-overlay-localized {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  pointer-events: none;
-  z-index: 9999;
-  background: transparent; /* Ensure it's not a visible glass box by default */
+  position: fixed; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 9999; background: transparent;
 }
-
-.navbar__brand {
-  position: relative;
-  display: flex;
-  align-items: center;
-  overflow: hidden;
-}
-
+.navbar__brand { position: relative; display: flex; align-items: center; overflow: hidden; }
 .navbar__brand::after {
-  content: "";
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
+  content: ""; position: absolute; top: 0; left: 0; width: 100%; height: 100%;
   background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.15) 50%);
-  background-size: 100% 3px;
-  z-index: 2;
-  pointer-events: none;
-  transition: opacity 0.3s ease;
+  background-size: 100% 3px; z-index: 2; pointer-events: none; transition: opacity 0.3s ease;
 }
-
 [data-theme="light"] .navbar__brand::after {
-  opacity: 0.2;
-  background: linear-gradient(
-    rgba(26, 77, 50, 0) 50%,
-    rgba(26, 77, 50, 0.1) 50%
-  );
+  opacity: 0.2; background: linear-gradient(rgba(26, 77, 50, 0) 50%, rgba(26, 77, 50, 0.1) 50%);
 }
 
 /* ==========================================================================
    15. HARDWARE HICCUP
    ========================================================================== */
 @keyframes hardware-hiccup {
-  0% {
-    opacity: 1;
-    filter: brightness(1);
-  }
-  92% {
-    opacity: 1;
-    filter: brightness(1);
-  }
-  93% {
-    opacity: 0.8;
-    filter: brightness(1.4) contrast(1.2);
-    transform: translateX(1px);
-  }
-  94% {
-    opacity: 1;
-    filter: brightness(1);
-    transform: translateX(0);
-  }
-  95% {
-    opacity: 0.7;
-    filter: brightness(0.8);
-    transform: translateX(-1px);
-  }
-  96% {
-    opacity: 1;
-    filter: brightness(1);
-    transform: translateX(0);
-  }
-  100% {
-    opacity: 1;
-    filter: brightness(1);
-  }
+  0%, 92% { opacity: 1; filter: brightness(1); }
+  93% { opacity: 0.8; filter: brightness(1.4) contrast(1.2); transform: translateX(1px); }
+  94% { opacity: 1; filter: brightness(1); transform: translateX(0); }
+  95% { opacity: 0.7; filter: brightness(0.8); transform: translateX(-1px); }
+  96%, 100% { opacity: 1; filter: brightness(1); transform: translateX(0); }
 }
-
-.navbar__brand img {
-  animation: hardware-hiccup 7s infinite;
-  display: block;
-}
+.navbar__brand img { animation: hardware-hiccup 7s infinite; display: block; }
 
 /* ==========================================================================
    16. SYSTEM LOG CONSOLE
    ========================================================================== */
 .nunix-log-console {
-  position: fixed;
-  bottom: 40px;
-  right: 20px;
-  width: 340px;
-  font-family: var(--vintage-mono);
-  font-size: 0.7rem;
-  z-index: 11000;
-  border-radius: 4px;
-  overflow: hidden;
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
-  transition: all 0.3s ease;
+  position: fixed; bottom: 40px; right: 20px; width: 340px; font-family: var(--vintage-mono); font-size: 0.7rem; z-index: 11000;
+  border-radius: 4px; overflow: hidden; box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5); transition: all 0.3s ease;
 }
-
-[data-theme="dark"] .nunix-log-console {
-  background: #0a0f14;
-  border: 1px solid #30ba78;
-  color: #30ba78;
-}
-[data-theme="light"] .nunix-log-console {
-  background: #f0f4f2;
-  border: 1px solid #1a4d32;
-  color: #1a4d32;
-  box-shadow: 0 10px 30px rgba(26, 77, 50, 0.2);
-}
-
-.log-header {
-  padding: 6px 12px;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  font-weight: bold;
-  text-transform: uppercase;
-  letter-spacing: 1px;
-}
-[data-theme="dark"] .log-header {
-  background: #30ba78;
-  color: #000;
-}
-[data-theme="light"] .log-header {
-  background: #1a4d32;
-  color: #fff;
-}
-
-.log-body {
-  padding: 12px;
-  max-height: 220px;
-  overflow-y: auto;
-  line-height: 1.4;
-}
-.log-line {
-  margin-bottom: 6px;
-  animation: log-fade-in 0.1s ease-out forwards;
-}
-.text-success {
-  color: #30ba78;
-  font-weight: bold;
-}
-[data-theme="light"] .text-success {
-  color: #238655;
-}
-
+[data-theme="dark"] .nunix-log-console { background: #0a0f14; border: 1px solid #30ba78; color: #30ba78; }
+[data-theme="light"] .nunix-log-console { background: #f0f4f2; border: 1px solid #1a4d32; color: #1a4d32; box-shadow: 0 10px 30px rgba(26, 77, 50, 0.2); }
+.log-header { padding: 6px 12px; display: flex; justify-content: space-between; align-items: center; font-weight: bold; text-transform: uppercase; letter-spacing: 1px; }
+[data-theme="dark"] .log-header { background: #30ba78; color: #000; }
+[data-theme="light"] .log-header { background: #1a4d32; color: #fff; }
+.log-body { padding: 12px; max-height: 220px; overflow-y: auto; line-height: 1.4; }
+.log-line { margin-bottom: 6px; animation: log-fade-in 0.1s ease-out forwards; }
+.text-success { color: #30ba78; font-weight: bold; }
+[data-theme="light"] .text-success { color: #238655; }
 .geminix-link {
-  transition: all 0.2s ease;
-  cursor: pointer;
-  display: inline-block;
-  padding: 0 6px;
-  border-radius: 3px;
-  font-weight: bold;
-  color: var(--ifm-color-primary) !important;
-  text-decoration: none !important;
-  border: 1px solid transparent;
+  transition: all 0.2s ease; cursor: pointer; display: inline-block; padding: 0 6px; border-radius: 3px;
+  font-weight: bold; color: var(--ifm-color-primary) !important; text-decoration: none !important; border: 1px solid transparent;
 }
-
 .geminix-link:hover {
-  color: var(--neon-blue) !important;
-  background: rgba(0, 127, 255, 0.1) !important;
-  backdrop-filter: blur(4px);
-  border: 1px solid rgba(0, 127, 255, 0.3) !important;
-  box-shadow: 0 0 10px rgba(0, 127, 255, 0.2);
-  text-shadow: 0 0 5px var(--neon-blue-glow);
-  text-decoration: none !important;
+  color: var(--neon-blue) !important; background: rgba(0, 127, 255, 0.1) !important; backdrop-filter: blur(4px);
+  border: 1px solid rgba(0, 127, 255, 0.3) !important; box-shadow: 0 0 10px rgba(0, 127, 255, 0.2); text-shadow: 0 0 5px var(--neon-blue-glow);
 }
-
-.author-trigger:hover .status-label {
-  color: inherit;
-  text-shadow: none;
-}
-.log-close-btn {
-  background: transparent;
-  border: none;
-  cursor: pointer;
-  font-family: inherit;
-  font-weight: bold;
-  color: inherit;
-  font-size: 0.8rem;
-}
-
-/* Log Console Animation */
+.author-trigger:hover .status-label { color: inherit; text-shadow: none; }
+.log-close-btn { background: transparent; border: none; cursor: pointer; font-family: inherit; font-weight: bold; color: inherit; font-size: 0.8rem; }
 .log-cursor {
-  display: inline-block;
-  width: 8px;
-  height: 12px;
-  background: var(--ifm-color-primary);
-  margin-left: 4px;
-  animation: terminal-blink 1s steps(2, start) infinite;
-  box-shadow: 0 0 5px var(--ifm-color-primary);
+  display: inline-block; width: 8px; height: 12px; background: var(--ifm-color-primary); margin-left: 4px;
+  animation: terminal-blink 1s steps(2, start) infinite; box-shadow: 0 0 5px var(--ifm-color-primary);
 }
-
-@keyframes terminal-blink {
-  to {
-    visibility: hidden;
-  }
-}
-@keyframes log-fade-in {
-  from {
-    opacity: 0;
-    transform: translateY(2px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
+@keyframes terminal-blink { to { visibility: hidden; } }
+@keyframes log-fade-in { from { opacity: 0; transform: translateY(2px); } to { opacity: 1; transform: translateY(0); } }
 
 /* ==========================================================================
    17. ELEGANT HUD TOGGLE (Lifted Tab)
    ========================================================================== */
-
 .status-toggle.is-collapsed-btn {
-  position: fixed;
-
-  /* LIFTED: Sits on top of the 6px collapsed rail */
-  bottom: 6px !important;
-
-  right: 30px;
-  height: 20px; /* Slightly tighter height */
-  padding: 0 12px;
-
-  background: var(--ifm-color-primary) !important;
-  color: #000 !important;
-  border: none;
-  border-radius: 4px 4px 0 0; /* Rounded top corners only */
-
-  font-family: var(--vintage-mono);
-  font-weight: 700;
-  font-size: 0.55rem;
-  z-index: 12000;
-  cursor: pointer;
-  box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.3);
-  opacity: 0.8;
-  transition: all 0.2s ease;
-  letter-spacing: 1px;
+  position: fixed; bottom: 6px !important; right: 30px; height: 20px; padding: 0 12px;
+  background: var(--ifm-color-primary) !important; color: #000 !important; border: none; border-radius: 4px 4px 0 0;
+  font-family: var(--vintage-mono); font-weight: 700; font-size: 0.55rem; z-index: 12000; cursor: pointer;
+  box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.3); opacity: 0.8; transition: all 0.2s ease; letter-spacing: 1px;
 }
-
 .status-toggle.is-collapsed-btn:hover {
-  opacity: 1;
-  height: 24px; /* Grows UPWARD on hover */
-  padding-bottom: 4px; /* Keeps text centered as it grows */
-  filter: brightness(1.1);
-  box-shadow: 0 -4px 15px rgba(48, 186, 120, 0.4);
+  opacity: 1; height: 24px; padding-bottom: 4px; filter: brightness(1.1); box-shadow: 0 -4px 15px rgba(48, 186, 120, 0.4);
 }
-
-[data-theme="light"] .status-toggle.is-collapsed-btn {
-  background: #1a4d32 !important;
-  color: #fff !important;
-  opacity: 1;
-}
+[data-theme="light"] .status-toggle.is-collapsed-btn { background: #1a4d32 !important; color: #fff !important; opacity: 1; }
 
 /* ==========================================================================
    18. CONTENT LINKS (Standardized: Boxed UI Style)
    ========================================================================== */
-
-/* 1. BASE STATE (Invisible Box) */
 .markdown a {
-  display: inline-block; /* Allows box model rendering */
-  color: var(--ifm-color-primary); /* Default Theme Green */
-  text-decoration: none !important; /* Kill default underlines */
-
-  /* The Box Structure */
-  border: 1px solid transparent; /* Reserve space for border */
-  border-radius: 4px; /* Standard NUNIX radius */
-  padding: 0 6px; /* Breathing room inside the box */
-  margin: 0 1px; /* prevent touching neighbors */
-
-  transition: all 0.2s ease;
-  line-height: inherit;
+  display: inline-block; color: var(--ifm-color-primary); text-decoration: none !important;
+  border: 1px solid transparent; border-radius: 4px; padding: 0 6px; margin: 0 1px; transition: all 0.2s ease; line-height: inherit;
 }
-
-/* 2. HOVER STATE (Neon Blue Box) */
 .markdown a:hover {
-  color: var(--neon-blue) !important;
-  background-color: rgba(0, 127, 255, 0.08); /* Blue Glass */
-  border-color: rgba(0, 127, 255, 0.4); /* Blue Border */
-
-  /* The Glow */
-  text-shadow: 0 0 8px var(--neon-blue-glow);
-  box-shadow: 0 0 10px rgba(0, 127, 255, 0.15);
-
-  transform: translateY(-1px); /* Tactile lift */
+  color: var(--neon-blue) !important; background-color: rgba(0, 127, 255, 0.08); border-color: rgba(0, 127, 255, 0.4);
+  text-shadow: 0 0 8px var(--neon-blue-glow); box-shadow: 0 0 10px rgba(0, 127, 255, 0.15); transform: translateY(-1px);
 }
-
-/* 3. EXTERNAL LINKS (The Icon) */
 .markdown a[target="_blank"]::after {
-  content: "↗";
-  font-family: var(--vintage-mono);
-  font-weight: bold;
-  font-size: 0.7em;
-  opacity: 0.7;
-  display: inline-block;
-  vertical-align: middle;
-  margin-left: 4px;
-  position: relative;
-  top: -1px;
-  transition: transform 0.2s ease;
+  content: "↗"; font-family: var(--vintage-mono); font-weight: bold; font-size: 0.7em; opacity: 0.7; display: inline-block; vertical-align: middle; margin-left: 4px; position: relative; top: -1px; transition: transform 0.2s ease;
 }
-
-.markdown a[target="_blank"]:hover::after {
-  transform: translate(2px, -2px); /* Arrow flies up-right */
-  color: var(--neon-blue);
-  opacity: 1;
-}
-
-/* 4. ACTIVE / CLICK STATE (Green Confirmation) */
+.markdown a[target="_blank"]:hover::after { transform: translate(2px, -2px); color: var(--neon-blue); opacity: 1; }
 .markdown a:active {
-  background-color: rgba(48, 186, 120, 0.15);
-  border-color: var(--ifm-color-primary);
-  color: var(--ifm-color-primary) !important;
-
-  transform: translateY(1px); /* Tactile press */
-  box-shadow: none;
+  background-color: rgba(48, 186, 120, 0.15); border-color: var(--ifm-color-primary); color: var(--ifm-color-primary) !important; transform: translateY(1px); box-shadow: none;
 }
 
 /* ==========================================================================
    20. 404 KERNEL PANIC PAGE
    ========================================================================== */
-
 .panic-container {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  height: 100vh;
-  width: 100%; /* CHANGED from 100vw to 100% to fix horizontal scroll */
-  background: #000;
-  position: fixed;
-  top: 0;
-  left: 0;
-  z-index: 99999;
-  overflow: hidden;
-  font-family: var(--vintage-mono);
-  color: #ccc;
-  padding: 20px;
+  display: flex; align-items: center; justify-content: center; height: 100vh; width: 100%;
+  background: #000; position: fixed; top: 0; left: 0; z-index: 99999; overflow: hidden; font-family: var(--vintage-mono); color: #ccc; padding: 20px;
 }
-
-/* Red "Emergency" Scanlines */
 .panic-overlay {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background: linear-gradient(
-    rgba(255, 0, 0, 0) 50%,
-    rgba(255, 0, 0, 0.05) 50%
-  );
-  background-size: 100% 4px;
-  pointer-events: none;
-  z-index: 1;
+  position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+  background: linear-gradient(rgba(255, 0, 0, 0) 50%, rgba(255, 0, 0, 0.05) 50%); background-size: 100% 4px; pointer-events: none; z-index: 1;
 }
-
 .panic-content {
-  z-index: 2;
-  max-width: 800px;
-  width: 100%;
-  border: 1px solid #b00; /* Red Border */
-  background: rgba(20, 0, 0, 0.8);
-  padding: 2rem;
-  box-shadow: 0 0 30px rgba(180, 0, 0, 0.2);
+  z-index: 2; max-width: 800px; width: 100%; border: 1px solid #b00; background: rgba(20, 0, 0, 0.8); padding: 2rem; box-shadow: 0 0 30px rgba(180, 0, 0, 0.2);
 }
-
 .panic-title {
-  color: #fff;
-  background: #b00; /* White text on Red background */
-  padding: 5px 10px;
-  font-size: 1.2rem;
-  margin-bottom: 2rem;
-  display: inline-block;
-  font-weight: bold;
-  letter-spacing: 1px;
+  color: #fff; background: #b00; padding: 5px 10px; font-size: 1.2rem; margin-bottom: 2rem; display: inline-block; font-weight: bold; letter-spacing: 1px;
 }
-
-.panic-console {
-  font-size: 0.9rem;
-  line-height: 1.6;
-  margin-bottom: 2rem;
-  border-left: 2px solid #555;
-  padding-left: 1rem;
-}
-
-.panic-trace {
-  margin: 15px 0;
-  color: #888;
-}
-
-.trace-time {
-  color: #007fff;
-}
-.text-danger {
-  color: #ff3e3e;
-  font-weight: bold;
-  text-shadow: 0 0 5px #ff3e3e;
-}
-
-/* Action Buttons */
-.panic-actions {
-  display: flex;
-  gap: 15px;
-  margin-bottom: 2rem;
-}
-
-.panic-btn {
-  font-family: var(--vintage-mono);
-  font-weight: bold;
-  text-decoration: none !important;
-  padding: 10px 20px;
-  border: 1px solid transparent;
-  transition: all 0.2s ease;
-  text-transform: uppercase;
-}
-
-.reboot-btn {
-  background: var(--ifm-color-primary);
-  color: #000 !important;
-  box-shadow: 0 0 15px rgba(48, 186, 120, 0.4);
-}
-
-.reboot-btn:hover {
-  background: #fff;
-  box-shadow: 0 0 25px rgba(255, 255, 255, 0.6);
-  transform: translateY(-2px);
-}
-
-.back-btn {
-  border: 1px solid #555;
-  color: #888 !important;
-}
-
-.back-btn:hover {
-  border-color: #aaa;
-  color: #fff !important;
-}
-
-.panic-footer {
-  border-top: 1px solid #333;
-  padding-top: 10px;
-  font-size: 0.7rem;
-  color: #555;
-  text-align: right;
-}
+.panic-console { font-size: 0.9rem; line-height: 1.6; margin-bottom: 2rem; border-left: 2px solid #555; padding-left: 1rem; }
+.panic-trace { margin: 15px 0; color: #888; }
+.trace-time { color: #007fff; }
+.text-danger { color: #ff3e3e; font-weight: bold; text-shadow: 0 0 5px #ff3e3e; }
+.panic-actions { display: flex; gap: 15px; margin-bottom: 2rem; }
+.panic-btn { font-family: var(--vintage-mono); font-weight: bold; text-decoration: none !important; padding: 10px 20px; border: 1px solid transparent; transition: all 0.2s ease; text-transform: uppercase; }
+.reboot-btn { background: var(--ifm-color-primary); color: #000 !important; box-shadow: 0 0 15px rgba(48, 186, 120, 0.4); }
+.reboot-btn:hover { background: #fff; box-shadow: 0 0 25px rgba(255, 255, 255, 0.6); transform: translateY(-2px); }
+.back-btn { border: 1px solid #555; color: #888 !important; }
+.back-btn:hover { border-color: #aaa; color: #fff !important; }
+.panic-footer { border-top: 1px solid #333; padding-top: 10px; font-size: 0.7rem; color: #555; text-align: right; }
 
 /* ==========================================================================
    21. BUFFER LOAD (Dynamic Glow Logic)
    ========================================================================== */
-
-/* The Invisible Track */
 .buffer-track {
-  position: fixed;
-  bottom: 28px; /* Sits on top of status bar */
-  left: 0;
-  width: 100%;
-  height: 2px;
-  z-index: 11000;
-
-  /* FORCE INVISIBLE CONTAINER */
-  background: transparent !important;
-  border: none !important;
-  box-shadow: none !important;
-
-  pointer-events: none;
-  transition: bottom 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  position: fixed; bottom: 28px; left: 0; width: 100%; height: 2px; z-index: 11000;
+  background: transparent !important; border: none !important; box-shadow: none !important; pointer-events: none; transition: bottom 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
-
-/* SMART SYNC: Sits on collapsed rail */
-body:has(.nunix-status-bar.is-collapsed) .buffer-track {
-  bottom: 6px;
-}
-
-/* The Filling Bar */
+body:has(.nunix-status-bar.is-collapsed) .buffer-track { bottom: 6px; }
 .buffer-bar {
-  height: 100%;
-  width: 0;
-
-  /* BASE STATE: Invisible, No Glow */
-  background: transparent;
-  box-shadow: none;
-  opacity: 0;
-
-  transition:
-    width 0.1s linear,
-    opacity 0.2s ease,
-    box-shadow 0.2s ease;
+  height: 100%; width: 0; background: transparent; box-shadow: none; opacity: 0; transition: width 0.1s linear, opacity 0.2s ease, box-shadow 0.2s ease;
 }
-
-/* ACTIVE STATE: Only applied when width > 0 */
 .buffer-bar.is-active {
-  background: var(--neon-blue);
-  opacity: 1;
-
-  /* THE GLOW: Only exists when active */
-  box-shadow:
-    0 0 10px var(--neon-blue),
-    0 0 20px var(--neon-blue-glow);
+  background: var(--neon-blue); opacity: 1; box-shadow: 0 0 10px var(--neon-blue), 0 0 20px var(--neon-blue-glow);
 }
-
-/* The "EOF" Signal Badge */
 .buffer-eof {
-  position: fixed;
-  bottom: 40px;
-  right: 10px;
-  font-family: var(--vintage-mono);
-  font-size: 0.7rem;
-  font-weight: bold;
-  color: var(--neon-blue);
-  background: rgba(0, 0, 0, 0.9);
-  padding: 2px 6px;
-  border: 1px solid var(--neon-blue);
-  opacity: 0;
-  transform: translateY(10px);
-  transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-  pointer-events: none;
-  z-index: 100000;
+  position: fixed; bottom: 40px; right: 10px; font-family: var(--vintage-mono); font-size: 0.7rem; font-weight: bold;
+  color: var(--neon-blue); background: rgba(0, 0, 0, 0.9); padding: 2px 6px; border: 1px solid var(--neon-blue);
+  opacity: 0; transform: translateY(10px); transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); pointer-events: none; z-index: 100000;
 }
-
-.buffer-eof.eof-active {
-  opacity: 1;
-  transform: translateY(0);
-  animation: neon-blink 2s infinite;
-  box-shadow: 0 0 15px var(--neon-blue-glow);
-}
+.buffer-eof.eof-active { opacity: 1; transform: translateY(0); animation: neon-blink 2s infinite; box-shadow: 0 0 15px var(--neon-blue-glow); }
 
 /* ==========================================================================
    22. GLOSSARY (Smart Tooltips & Retro Typewriter)
    ========================================================================== */
-
-/* 1. THE TRIGGER WORD */
-.glossary-wrapper {
-  position: relative;
-  display: inline-block;
-  cursor: help;
-}
-
-.glossary-trigger {
-  border-bottom: 1px dashed var(--ifm-color-primary);
-  transition: all 0.2s ease;
-  color: inherit;
-}
-
-/* Hover Interaction (Default / Dark Mode) */
+.glossary-wrapper { position: relative; display: inline-block; cursor: help; }
+.glossary-trigger { border-bottom: 1px dashed var(--ifm-color-primary); transition: all 0.2s ease; color: inherit; }
 .glossary-wrapper:hover .glossary-trigger {
-  color: var(--neon-blue);
-  border-bottom: 1px solid var(--neon-blue);
-  text-shadow: 0 0 5px var(--neon-blue-glow);
-  background: rgba(0, 127, 255, 0.1);
-  border-radius: 2px;
+  color: var(--neon-blue); border-bottom: 1px solid var(--neon-blue); text-shadow: 0 0 5px var(--neon-blue-glow); background: rgba(0, 127, 255, 0.1); border-radius: 2px;
 }
-
-/* Error State */
-.glossary-term.not-found {
-  border-bottom: 1px dotted #ff3e3e;
-  cursor: not-allowed;
-}
-
-/* 2. THE POPUP CARD (Default Dark Theme) */
+.glossary-term.not-found { border-bottom: 1px dotted #ff3e3e; cursor: not-allowed; }
 .glossary-tooltip {
-  visibility: hidden;
-  opacity: 0;
-  position: absolute;
-  bottom: 130%;
-  left: 50%;
-  transform: translateX(-50%) translateY(10px);
-
-  width: 280px;
-  background: rgba(10, 13, 16, 0.95); /* Dark Glass */
-  backdrop-filter: blur(12px);
-  border: 1px solid rgba(48, 186, 120, 0.4);
-  border-radius: 4px;
-  padding: 0;
-
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.6);
-  z-index: 1000;
-  transition: all 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-  pointer-events: none;
+  visibility: hidden; opacity: 0; position: absolute; bottom: 130%; left: 50%; transform: translateX(-50%) translateY(10px);
+  width: 280px; background: rgba(10, 13, 16, 0.95); backdrop-filter: blur(12px); border: 1px solid rgba(48, 186, 120, 0.4);
+  border-radius: 4px; padding: 0; box-shadow: 0 10px 30px rgba(0, 0, 0, 0.6); z-index: 1000; transition: all 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275); pointer-events: none;
 }
-
-/* Show on Hover */
-.glossary-wrapper:hover .glossary-tooltip {
-  visibility: visible;
-  opacity: 1;
-  transform: translateX(-50%) translateY(0);
-}
-
-/* Tooltip Header */
-.tooltip-header {
-  display: block;
-  background: rgba(48, 186, 120, 0.1);
-  border-bottom: 1px solid rgba(48, 186, 120, 0.2);
-  padding: 8px 12px;
-  overflow: hidden;
-}
-
-/* Typewriter Title */
+.glossary-wrapper:hover .glossary-tooltip { visibility: visible; opacity: 1; transform: translateX(-50%) translateY(0); }
+.tooltip-header { display: block; background: rgba(48, 186, 120, 0.1); border-bottom: 1px solid rgba(48, 186, 120, 0.2); padding: 8px 12px; overflow: hidden; }
 .tooltip-title {
-  display: inline-block;
-  font-family: var(--vintage-mono);
-  font-size: 0.7rem;
-  font-weight: bold;
-  color: var(--ifm-color-primary);
-  letter-spacing: 1px;
-  white-space: nowrap;
-  overflow: hidden;
-  width: 0%;
-  border-right: none;
-  vertical-align: bottom;
+  display: inline-block; font-family: var(--vintage-mono); font-size: 0.7rem; font-weight: bold; color: var(--ifm-color-primary); letter-spacing: 1px;
+  white-space: nowrap; overflow: hidden; width: 0%; border-right: none; vertical-align: bottom;
 }
-
-/* Hover Animation Trigger */
-.glossary-wrapper:hover .tooltip-title {
-  animation: typewriter-wipe 1.5s steps(40, end) forwards;
-}
-
-/* The Blinking Cursor */
-.tooltip-title::after {
-  content: "_";
-  color: var(--ifm-color-primary);
-  margin-left: 2px;
-  animation: cursor-blink 1s step-end infinite;
-}
-
-/* Tooltip Body */
-.tooltip-body {
-  display: block;
-  padding: 10px 12px;
-  font-family: var(--ifm-font-family-base);
-  font-size: 0.85rem;
-  line-height: 1.4;
-  color: #ddd; /* Light text for Dark Mode */
-}
-
-/* The "Pointer" Triangle (Default Dark) */
+.glossary-wrapper:hover .tooltip-title { animation: typewriter-wipe 1.5s steps(40, end) forwards; }
+.tooltip-title::after { content: "_"; color: var(--ifm-color-primary); margin-left: 2px; animation: cursor-blink 1s step-end infinite; }
+.tooltip-body { display: block; padding: 10px 12px; font-family: var(--ifm-font-family-base); font-size: 0.85rem; line-height: 1.4; color: #ddd; }
 .glossary-tooltip::after {
-  content: "";
-  position: absolute;
-  top: 100%;
-  left: 50%;
-  margin-left: -6px;
-  border-width: 6px;
-  border-style: solid;
-  border-color: rgba(48, 186, 120, 0.4) transparent transparent transparent;
+  content: ""; position: absolute; top: 100%; left: 50%; margin-left: -6px; border-width: 6px; border-style: solid; border-color: rgba(48, 186, 120, 0.4) transparent transparent transparent;
 }
-
-/* 3. LIGHT MODE OVERRIDES (The Fix) */
-[data-theme="light"] .glossary-tooltip {
-  background: rgba(255, 255, 255, 0.95); /* White Glass */
-  border-color: var(--ifm-color-primary); /* Solid Green Border */
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15); /* Softer Shadow */
-}
-
-[data-theme="light"] .tooltip-body {
-  color: #1a1a1a; /* Dark Text */
-}
-
-/* Use a darker blue for the trigger in light mode (better contrast) */
-[data-theme="light"] .glossary-wrapper:hover .glossary-trigger {
-  color: #0056b3;
-  text-shadow: none; /* Remove glow for clarity */
-  background: rgba(0, 86, 179, 0.1);
-  border-color: #0056b3;
-}
-
-/* Invert the pointer triangle color */
-[data-theme="light"] .glossary-tooltip::after {
-  border-color: var(--ifm-color-primary) transparent transparent transparent;
-}
-
-/* 4. ANIMATIONS */
-@keyframes typewriter-wipe {
-  from {
-    width: 0%;
-  }
-  to {
-    width: 100%;
-  }
-}
-
-@keyframes cursor-blink {
-  from,
-  to {
-    opacity: 1;
-  }
-  50% {
-    opacity: 0;
-  }
-}
+[data-theme="light"] .glossary-tooltip { background: rgba(255, 255, 255, 0.95); border-color: var(--ifm-color-primary); box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15); }
+[data-theme="light"] .tooltip-body { color: #1a1a1a; }
+[data-theme="light"] .glossary-wrapper:hover .glossary-trigger { color: #0056b3; text-shadow: none; background: rgba(0, 86, 179, 0.1); border-color: #0056b3; }
+[data-theme="light"] .glossary-tooltip::after { border-color: var(--ifm-color-primary) transparent transparent transparent; }
+@keyframes typewriter-wipe { from { width: 0%; } to { width: 100%; } }
+@keyframes cursor-blink { from, to { opacity: 1; } 50% { opacity: 0; } }
 
 /* ==========================================================================
-   23. TERMINAL SEARCH (Command Line Interface - Theme Aware)
+   23. SEARCH ENGINE & TERMINAL INTERFACE (DEPRECATED - Replaced by Sec. 33)
+   ========================================================================== */
+/* Note: Section 23 content is intentionally removed/superseded by Section 33 below */
+
+/* ==========================================================================
+   24. SMART ANCHORS (Target Lock System)
+   ========================================================================== */
+:target { animation: target-lock-flash 2s cubic-bezier(0.25, 1, 0.5, 1) forwards; position: relative; border-radius: 4px; }
+:target::after {
+  content: "<<"; display: inline-block; vertical-align: middle; margin-left: 12px; font-family: var(--vintage-mono);
+  font-weight: bold; font-size: 0.8em; color: var(--ifm-color-primary); opacity: 0; animation: indicator-slide-out 2s cubic-bezier(0.25, 1, 0.5, 1) forwards;
+}
+[data-theme="light"] :target::after { color: #1a4d32; }
+@keyframes target-lock-flash {
+  0% { background-color: rgba(48, 186, 120, 0.2); text-shadow: 0 0 10px var(--ifm-color-primary); color: var(--ifm-color-primary); padding-left: 15px; }
+  100% { background-color: transparent; text-shadow: none; color: inherit; padding-left: 0; }
+}
+@keyframes indicator-slide-out { 0% { opacity: 1; transform: translateX(10px); } 100% { opacity: 0; transform: translateX(0); } }
+
+/* ==========================================================================
+   25. ZEN MODE (Single User Interface)
+   ========================================================================== */
+.zen-mode-trigger {
+  background: transparent; border: none; color: inherit; font-family: var(--vintage-mono); font-size: 0.65rem; font-weight: bold; cursor: pointer; padding: 0; text-transform: uppercase; letter-spacing: 1px; transition: all 0.2s ease;
+}
+.zen-mode-trigger:hover { color: var(--neon-blue); text-shadow: 0 0 8px var(--neon-blue-glow); }
+
+html[data-single-user="true"] {
+  & .navbar, & .theme-doc-sidebar-container, & .table-of-contents, & .pagination-nav, & footer, & .nunix-status-bar { display: none !important; }
+  & .buffer-track { bottom: 0 !important; }
+  & .container { max-width: 100% !important; padding: 0 !important; }
+  & .row { display: block !important; margin: 0 !important; }
+  & .col { max-width: 100% !important; flex: 0 0 100% !important; padding: 0 !important; }
+}
+
+html[data-single-user="true"] main {
+  margin: 0 auto !important; max-width: 1080px !important; padding-top: 6rem !important; padding-bottom: 4rem !important;
+}
+@media (max-width: 1200px) { html[data-single-user="true"] main { max-width: 90% !important; } }
+
+.zen-exit-hud { position: fixed; bottom: 20px; left: 20px; z-index: 12000; animation: hud-fade-in 0.5s ease forwards; }
+.zen-exit-btn {
+  background: rgba(10, 13, 16, 0.9); color: var(--ifm-color-primary); border: 1px solid var(--ifm-color-primary); font-family: var(--vintage-mono);
+  font-weight: bold; font-size: 0.7rem; padding: 6px 12px; border-radius: 4px; cursor: pointer; backdrop-filter: blur(4px); box-shadow: 0 4px 15px rgba(0, 0, 0, 0.4); transition: all 0.2s ease;
+}
+.zen-exit-btn:hover { background: var(--ifm-color-primary); color: #000; box-shadow: 0 0 15px rgba(48, 186, 120, 0.6); transform: translateY(-2px); }
+[data-theme="light"] .zen-exit-btn { background: rgba(255, 255, 255, 0.9); color: #1a4d32; border-color: #1a4d32; }
+[data-theme="light"] .zen-exit-btn:hover { background: #1a4d32; color: #fff; }
+@keyframes hud-fade-in { from { opacity: 0; } to { opacity: 1; } }
+
+/* ==========================================================================
+   26. INODE COUNTER (Real Data Edition)
+   ========================================================================== */
+.inode-status-wrapper { display: inline-flex; align-items: center; gap: 8px; font-family: var(--vintage-mono); font-size: 0.65rem; font-weight: bold; letter-spacing: 1px; }
+.inode-label { color: inherit; opacity: 0.7; }
+.inode-value { padding: 0 4px; border-radius: 2px; min-width: 50px; text-align: center; transition: all 0.5s ease; }
+.inode-value.is-booting { color: rgba(48, 186, 120, 0.5); background: transparent; text-shadow: none; filter: blur(0.5px); }
+.inode-value.is-locked { color: var(--ifm-color-primary); background: rgba(48, 186, 120, 0.1); text-shadow: 0 0 2px var(--ifm-color-primary); filter: none; }
+.inode-status-wrapper:hover .inode-value { color: var(--neon-blue); background: rgba(0, 127, 255, 0.1); text-shadow: 0 0 8px var(--neon-blue-glow); cursor: help; }
+[data-theme="light"] .inode-value.is-locked { color: #1a4d32; background: rgba(26, 77, 50, 0.08); text-shadow: none; }
+
+/* ==========================================================================
+   28. GLOBAL TERMINAL UI (Scrollbars & Selection)
+   ========================================================================== */
+::selection { background: rgba(0, 127, 255, 0.3); color: #fff; text-shadow: 0 0 2px #000; }
+[data-theme="light"] ::selection { background: rgba(48, 186, 120, 0.3); color: #000; }
+
+html { scrollbar-width: thin; scrollbar-color: var(--ifm-color-primary) #0a0d10; }
+body::-webkit-scrollbar { width: 10px; }
+body::-webkit-scrollbar-track { background: #0a0d10; }
+body::-webkit-scrollbar-thumb { background-color: rgba(48, 186, 120, 0.4); border-radius: 2px; border: 2px solid #0a0d10; }
+body::-webkit-scrollbar-thumb:hover { background-color: var(--ifm-color-primary); }
+
+[data-theme="light"] html { scrollbar-color: #1a4d32 #e2e8f0; }
+[data-theme="light"] body::-webkit-scrollbar-track { background: #e2e8f0; }
+[data-theme="light"] body::-webkit-scrollbar-thumb { background-color: rgba(26, 77, 50, 0.4); border-color: #e2e8f0; }
+
+/* ==========================================================================
+   29. BACK TO TOP (NUNIX HUD CONTROLLER)
+   ========================================================================== */
+.clean-btn.theme-back-to-top-button { display: none !important; }
+.nunix-jump-top {
+  position: fixed; bottom: 40px; left: 50%; transform: translateX(-50%) translateY(20px); z-index: 12000;
+  width: 40px; height: 40px; border-radius: 4px; padding: 0; display: flex; align-items: center; justify-content: center; cursor: pointer;
+  background: rgba(10, 13, 16, 0.4); backdrop-filter: blur(2px); border: 1px solid rgba(255, 255, 255, 0.15); box-shadow: none;
+  opacity: 0; visibility: hidden; pointer-events: none; transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+.nunix-jump-top.show { opacity: 0.3; visibility: visible; pointer-events: auto; transform: translateX(-50%) translateY(0); }
+.nunix-jump-top:hover {
+  opacity: 1; background: rgba(10, 13, 16, 0.95); border-color: var(--neon-blue); box-shadow: 0 0 20px var(--neon-blue-glow), inset 0 0 10px rgba(0, 127, 255, 0.2); transform: translateX(-50%) translateY(-5px);
+}
+.nunix-jump-top svg { width: 20px; height: 20px; color: #fff; opacity: 0.7; transition: all 0.3s ease; }
+.nunix-jump-top:hover svg { color: var(--neon-blue); opacity: 1; filter: drop-shadow(0 0 5px var(--neon-blue)); }
+
+[data-theme="light"] .nunix-jump-top { background: rgba(255, 255, 255, 0.4); border-color: rgba(0, 0, 0, 0.2); }
+[data-theme="light"] .nunix-jump-top svg { color: #000; }
+[data-theme="light"] .nunix-jump-top:hover { background: rgba(255, 255, 255, 0.95); border-color: var(--neon-blue) !important; box-shadow: 0 0 20px rgba(0, 127, 255, 0.4) !important; }
+[data-theme="light"] .nunix-jump-top:hover svg { color: var(--neon-blue) !important; }
+
+/* ==========================================================================
+   30. SMART LINK TOOLTIP (Attached to Content)
+   ========================================================================== */
+.nunix-link-tooltip {
+  position: fixed; z-index: 12000; max-width: 320px; background: rgba(10, 13, 16, 0.95); backdrop-filter: blur(8px);
+  border: 1px solid var(--neon-blue); border-radius: 4px; padding: 4px 8px; display: flex; align-items: center;
+  font-family: var(--vintage-mono); font-size: 0.65rem; color: #fff; box-shadow: 0 5px 15px rgba(0, 0, 0, 0.5); pointer-events: none; animation: tooltip-pop 0.15s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+.tooltip-arrow { position: absolute; top: -5px; left: 10px; width: 0; height: 0; border-left: 5px solid transparent; border-right: 5px solid transparent; border-bottom: 5px solid var(--neon-blue); }
+.tooltip-url { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; color: var(--neon-blue); font-weight: bold; }
+@keyframes tooltip-pop { from { opacity: 0; transform: translateY(5px) scale(0.95); } to { opacity: 1; transform: translateY(0) scale(1); } }
+
+[data-theme="light"] .nunix-link-tooltip { background: rgba(255, 255, 255, 0.95); border-color: #1a4d32; box-shadow: 0 5px 15px rgba(0, 0, 0, 0.15); }
+[data-theme="light"] .tooltip-arrow { border-bottom-color: #1a4d32; }
+[data-theme="light"] .tooltip-url { color: #0056b3; }
+
+/* ==========================================================================
+   31. GLOBAL TYPOGRAPHY (Headlines & Titles)
+   ========================================================================== */
+h1, h2, h3, h4, h5, h6 {
+  font-family: var(--vintage-mono); color: var(--ifm-color-primary); font-weight: normal; text-transform: uppercase; letter-spacing: 1px; margin-top: 1.5em; margin-bottom: 0.8em; position: relative; scroll-margin-top: 5rem;
+}
+h1 { font-size: 2.5rem; border-bottom: 1px solid rgba(48, 186, 120, 0.2); padding-bottom: 0.5rem; margin-bottom: 1.5rem; text-shadow: 0 0 10px rgba(48, 186, 120, 0.2); }
+h2 { font-size: 1.8rem; border-left: 3px solid var(--ifm-color-primary); padding-left: 1rem; background: linear-gradient(90deg, rgba(48, 186, 120, 0.05) 0%, transparent 100%); }
+h3 { font-size: 1.4rem; color: var(--ifm-color-primary-light); }
+
+.hash-link { color: var(--neon-blue) !important; opacity: 0; transition: opacity 0.2s ease, transform 0.2s ease; padding-left: 8px; font-size: 0.8em; }
+h1:hover .hash-link, h2:hover .hash-link, h3:hover .hash-link, h4:hover .hash-link { opacity: 1; transform: translateX(0); }
+
+.markdown p, .markdown li { font-family: var(--ifm-font-family-base); font-size: 1.05rem; line-height: 1.7; color: var(--ifm-font-color-base); margin-bottom: 1.2rem; }
+
+[data-theme="light"] h1, [data-theme="light"] h2, [data-theme="light"] h3 { color: #1a4d32; }
+[data-theme="light"] h1 { border-bottom-color: rgba(26, 77, 50, 0.2); text-shadow: none; }
+[data-theme="light"] h2 { background: linear-gradient(90deg, rgba(26, 77, 50, 0.05) 0%, transparent 100%); }
+
+/* ==========================================================================
+   32. SYSTEM STATUS LED (The Glowing Diode)
+   ========================================================================== */
+.status-led {
+  display: inline-block; width: 8px; height: 8px; border-radius: 50%; background-color: var(--ifm-color-primary); box-shadow: 0 0 5px var(--ifm-color-primary), 0 0 10px var(--ifm-color-primary); margin-left: 8px; margin-bottom: 2px; vertical-align: middle; animation: led-pulse 2s infinite ease-in-out;
+}
+.status-led.error { background-color: #ff3e3e; box-shadow: 0 0 5px #ff3e3e, 0 0 10px #ff3e3e; }
+@keyframes led-pulse { 0% { opacity: 1; transform: scale(1); } 50% { opacity: 0.4; transform: scale(0.8); } 100% { opacity: 1; transform: scale(1); } }
+
+/* ==========================================================================
+   33. SEARCH ENGINE (Final Polish v7 - Ultra Glow)
    ========================================================================== */
 
-/* 1. THE SEARCH BAR CONTAINER */
-.navbar__search {
-  position: relative;
-  margin-left: 10px;
-}
+/* 0. NAVBAR CONTAINER */
+.navbar__search { display: flex; align-items: center; height: 100%; position: relative; }
 
-/* 2. THE INPUT FIELD (The Prompt) */
-.navbar__search-input {
-  appearance: none;
-  background: rgba(10, 13, 16, 0.6) !important; /* Default Dark Glass */
-  backdrop-filter: blur(4px);
-  border: 1px solid rgba(48, 186, 120, 0.4) !important;
-  border-radius: 4px !important;
-
-  color: var(--ifm-color-primary) !important;
-  font-family: var(--vintage-mono) !important;
-  font-size: 0.8rem !important;
-  font-weight: bold;
-
-  /* Space for the ">" prompt character */
-  padding: 0.4rem 0.8rem 0.4rem 2rem !important;
-  width: 12rem;
-  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-  background-image: none !important;
-}
-
-/* Placeholder Styling */
-.navbar__search-input::placeholder {
-  color: rgba(48, 186, 120, 0.5);
-  text-transform: uppercase;
-  font-size: 0.7rem;
-}
-
-/* 3. THE ">" PROMPT CHARACTER */
-.navbar__search::before {
-  content: ">";
+/* 1. SEARCH FORM CONTAINER (The Glowing Prompt) */
+.pagefind-ui__form::before {
+  content: ">" !important;
+  display: block !important;
   position: absolute;
-  left: 12px;
+  left: 16px;
   top: 50%;
-  transform: translateY(-50%);
-
-  color: var(--ifm-color-primary);
-  font-family: var(--vintage-mono);
-  font-weight: 800;
-  font-size: 0.9rem;
+  transform: translateY(-55%);
   z-index: 5;
+  
+  /* Reset interfering styles */
+  width: auto !important;
+  height: auto !important;
+  background: none !important;
+  mask: none !important;
+  -webkit-mask: none !important;
+  opacity: 1 !important;
+  
+  /* Typography */
+  font-family: var(--vintage-mono);
+  font-weight: 900;
+  font-size: 1rem;
   pointer-events: none;
-
-  animation: prompt-blink 3s infinite;
+  transition: all 0.2s ease;
 }
 
-/* 4. ACTIVE / FOCUS STATE (Electric Blue) */
-.navbar__search-input:focus {
-  width: 18rem;
-  outline: none;
-  background: rgba(0, 0, 0, 0.9) !important;
+/* Dark Mode: Intense Neon Blue Glow */
+html[data-theme="dark"] .pagefind-ui__form::before {
+  color: var(--neon-blue) !important;
+  text-shadow: 0 0 10px var(--neon-blue), 0 0 20px var(--neon-blue) !important; /* Double shadow for intensity */
+}
 
+/* Light Mode: Solid Deep Blue */
+html[data-theme="light"] .pagefind-ui__form::before {
+  color: #0056b3 !important;
+  text-shadow: none !important;
+}
+
+/* 2. INPUT FIELD */
+.pagefind-ui__search-input {
+  height: 2rem !important;
+  line-height: 2rem !important;
+  border-radius: 4px !important;
+  font-family: var(--vintage-mono) !important;
+  font-weight: bold;
+  font-size: 0.75rem !important;
+  
+  /* Padding */
+  padding-left: 2.2rem !important;
+  padding-right: 70px !important;
+  padding-top: 0 !important;
+  padding-bottom: 0 !important;
+  
+  width: 12rem !important;
+  transition: width 0.2s ease, background 0.2s ease;
+  
+  background-image: none !important;
+  background-color: transparent !important;
+  box-shadow: none !important;
+  opacity: 1 !important; 
+}
+
+/* Dark Mode Input */
+html[data-theme="dark"] .pagefind-ui__search-input {
+  background-color: rgba(10, 13, 16, 0.6) !important;
+  border: 1px solid rgba(48, 186, 120, 0.4) !important;
+  color: var(--ifm-color-primary) !important; 
+}
+
+/* Light Mode Input */
+html[data-theme="light"] .pagefind-ui__search-input {
+  background-color: rgba(255, 255, 255, 0.6) !important;
+  border: 1px solid #1a4d32 !important;
+  color: #1a4d32 !important; 
+}
+
+/* --- PLACEHOLDER --- */
+.pagefind-ui__search-input::placeholder {
+  font-weight: normal !important;
+  font-size: 0.75rem !important;
+  opacity: 1 !important;
+  transition: opacity 0.3s ease;
+  animation: placeholder-pulse 3s infinite ease-in-out;
+}
+
+html[data-theme="dark"] .pagefind-ui__search-input::placeholder {
+  color: var(--ifm-color-primary) !important; 
+  text-shadow: 0 0 2px rgba(0,0,0,0.5);
+}
+
+html[data-theme="light"] .pagefind-ui__search-input::placeholder {
+  color: #1a4d32 !important;
+  font-weight: 600 !important;
+}
+
+@keyframes placeholder-pulse {
+  0% { opacity: 1; }
+  50% { opacity: 0.7; }
+  100% { opacity: 1; }
+}
+
+.pagefind-ui__search-input:focus::placeholder {
+  animation: none;
+  opacity: 0.5 !important;
+}
+
+.pagefind-ui__search-input:focus {
+  width: 18rem !important;
+  outline: none;
+}
+
+html[data-theme="dark"] .pagefind-ui__search-input:focus {
+  background-color: rgba(0, 0, 0, 0.9) !important;
   border-color: var(--neon-blue) !important;
   color: var(--neon-blue) !important;
   box-shadow: 0 0 15px rgba(0, 127, 255, 0.3) !important;
 }
 
-/* Change Prompt Color on Focus */
-.navbar__search:focus-within::before {
-  color: var(--neon-blue);
-  text-shadow: 0 0 8px var(--neon-blue-glow);
-  animation: none;
-}
-
-/* 5. SEARCH RESULTS DROPDOWN (System Log Style) */
-.search-result-container {
-  background: rgba(15, 20, 25, 0.98) !important;
-  border: 1px solid var(--ifm-color-primary) !important;
-  border-radius: 4px !important;
-  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.8) !important;
-  margin-top: 12px;
-  font-family: var(--vintage-mono) !important;
-  width: 300px !important;
-}
-
-/* Individual Result Item */
-.search-result-item {
-  border-bottom: 1px solid rgba(48, 186, 120, 0.1);
-  padding: 8px 12px !important;
-  transition: all 0.1s ease;
-}
-
-.search-result-item:hover,
-.search-result-item[aria-selected="true"] {
-  background: rgba(48, 186, 120, 0.15) !important;
-  border-left: 3px solid var(--ifm-color-primary);
-  padding-left: 9px !important;
-}
-
-.search-result-title {
-  color: var(--ifm-color-primary) !important;
-  font-weight: bold;
-  font-size: 0.8rem;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-}
-
-mark {
-  color: #fff !important;
-  background: var(--neon-blue) !important;
-  padding: 0 2px;
-  border-radius: 2px;
-}
-
-.search-no-results {
-  padding: 20px;
-  text-align: center;
-  color: #ff3e3e;
-  font-weight: bold;
-  text-transform: uppercase;
-}
-
-/* ==========================================================================
-   LIGHT MODE OVERRIDES
-   ========================================================================== */
-
-[data-theme="light"] .navbar__search-input {
-  /* GLASS FIX: Semi-transparent white with heavy blur */
-  background: rgba(255, 255, 255, 0.5) !important;
-  backdrop-filter: blur(8px) saturate(120%);
-
-  border-color: #1a4d32 !important; /* Dark Green Border */
-  color: #1a4d32 !important;
-}
-
-[data-theme="light"] .navbar__search-input::placeholder {
-  color: rgba(26, 77, 50, 0.6);
-}
-
-[data-theme="light"] .navbar__search::before {
-  color: #1a4d32;
-}
-
-/* Light Mode Focus */
-[data-theme="light"] .navbar__search-input:focus {
-  /* Slightly more solid on focus for readability */
-  background: rgba(255, 255, 255, 0.85) !important;
+html[data-theme="light"] .pagefind-ui__search-input:focus {
+  background-color: rgba(255, 255, 255, 0.95) !important;
   border-color: #0056b3 !important;
   color: #0056b3 !important;
   box-shadow: 0 0 15px rgba(0, 86, 179, 0.2) !important;
 }
 
-[data-theme="light"] .navbar__search:focus-within::before {
-  color: #0056b3;
-  text-shadow: none;
+/* 3. CLEAR BUTTON */
+.pagefind-ui__search-clear {
+  background-color: transparent !important;
+  border: none !important;
+  padding: 0 !important;
+  top: 50% !important;
+  transform: translateY(-50%) !important;
+  margin-right: 10px !important;
+  cursor: pointer;
 }
+html[data-theme="dark"] .pagefind-ui__search-clear { color: var(--neon-blue) !important; }
+html[data-theme="light"] .pagefind-ui__search-clear { color: #0056b3 !important; }
 
-/* Light Mode Dropdown (Glassy Paper) */
-[data-theme="light"] .search-result-container {
-  background: rgba(255, 255, 255, 0.85) !important;
+/* 4. RESULTS DRAWER */
+.pagefind-ui__drawer {
+  position: fixed !important;
+  top: 65px !important;
+  right: 20px !important;
+  width: 450px !important;
+  max-width: 90vw !important;
+  max-height: 80vh !important;
+  overflow-y: auto !important;
   backdrop-filter: blur(12px);
-  border-color: #1a4d32 !important;
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15) !important;
+  border-radius: 4px !important;
+  z-index: 200000 !important;
+  display: block !important;
+  visibility: visible !important;
+  opacity: 1 !important;
+}
+.pagefind-ui__drawer:empty { display: none !important; }
+
+html[data-theme="dark"] .pagefind-ui__drawer {
+  background: rgba(10, 13, 16, 0.98) !important;
+  border: 1px solid var(--ifm-color-primary) !important;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.9) !important;
+}
+html[data-theme="light"] .pagefind-ui__drawer {
+  background: rgba(255, 255, 255, 0.98) !important;
+  border: 1px solid #1a4d32 !important;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2) !important;
 }
 
-[data-theme="light"] .search-result-item {
-  border-bottom: 1px solid rgba(26, 77, 50, 0.1);
+/* 5. RESULT ITEMS */
+.pagefind-ui__result {
+  padding: 12px 16px !important;
+  border: none !important;
+}
+html[data-theme="dark"] .pagefind-ui__result { border-bottom: 1px solid rgba(48, 186, 120, 0.1) !important; }
+html[data-theme="light"] .pagefind-ui__result { border-bottom: 1px solid rgba(26, 77, 50, 0.1) !important; }
+
+html[data-theme="dark"] .pagefind-ui__result:hover {
+  background: rgba(48, 186, 120, 0.05) !important;
+  border-left: 3px solid var(--neon-blue) !important;
+}
+html[data-theme="light"] .pagefind-ui__result:hover {
+  background: rgba(0, 86, 179, 0.05) !important;
+  border-left: 3px solid #0056b3 !important;
 }
 
-[data-theme="light"] .search-result-item:hover,
-[data-theme="light"] .search-result-item[aria-selected="true"] {
-  background: rgba(26, 77, 50, 0.08) !important;
-  border-left-color: #1a4d32;
+.pagefind-ui__result-title {
+  font-family: var(--vintage-mono) !important;
+  font-weight: bold !important;
+  font-size: 0.9rem !important;
 }
+html[data-theme="dark"] .pagefind-ui__result-title { color: var(--neon-blue) !important; }
+html[data-theme="light"] .pagefind-ui__result-title { color: #0056b3 !important; }
 
-[data-theme="light"] .search-result-title {
-  color: #1a4d32 !important;
-}
+.pagefind-ui__result-excerpt { font-size: 0.8rem !important; }
+html[data-theme="dark"] .pagefind-ui__result-excerpt { color: #ccc !important; }
+html[data-theme="light"] .pagefind-ui__result-excerpt { color: #333 !important; }
 
-/* Mobile Fix */
-@media (max-width: 996px) {
-  .navbar__search-input {
-    width: 8rem;
-  }
-  .navbar__search-input:focus {
-    width: 12rem;
-  }
-}
-
-@keyframes prompt-blink {
-  0%,
-  100% {
-    opacity: 1;
-  }
-  50% {
-    opacity: 0.4;
-  }
-}
-
-/* ==========================================================================
-   24. SMART ANCHORS (Target Lock System - Smooth Sync)
-   ========================================================================== */
-
-/* 1. THE TARGET ANIMATION (The Header Itself) */
-:target {
-  /* Continuous smooth animation from start to finish */
-  animation: target-lock-flash 2s cubic-bezier(0.25, 1, 0.5, 1) forwards;
-  position: relative;
-  border-radius: 4px;
-}
-
-/* 2. THE "<<" INDICATOR (Moved to End) */
-:target::after {
-  content: "<<";
-  display: inline-block;
-  vertical-align: middle;
-  margin-left: 12px;
-
-  font-family: var(--vintage-mono);
+.pagefind-ui__result-excerpt mark {
   font-weight: bold;
-  font-size: 0.8em;
-  color: var(--ifm-color-primary);
-  opacity: 0;
-
-  /* Matches the header animation exactly */
-  animation: indicator-slide-out 2s cubic-bezier(0.25, 1, 0.5, 1) forwards;
+}
+html[data-theme="dark"] .pagefind-ui__result-excerpt mark {
+  background: var(--ifm-color-primary) !important;
+  color: #000 !important;
+}
+html[data-theme="light"] .pagefind-ui__result-excerpt mark {
+  background: #1a4d32 !important;
+  color: #fff !important;
 }
 
-/* 3. LIGHT MODE ADJUSTMENT */
-[data-theme="light"] :target::after {
-  color: #1a4d32;
-}
-
-/* --- ANIMATIONS --- */
-
-/* Flash Background & Slide Text (Continuous) */
-@keyframes target-lock-flash {
-  0% {
-    background-color: rgba(48, 186, 120, 0.2);
-    text-shadow: 0 0 10px var(--ifm-color-primary);
-    color: var(--ifm-color-primary);
-    padding-left: 15px; /* Jump right */
-  }
-  100% {
-    background-color: transparent;
-    text-shadow: none;
-    color: inherit;
-    padding-left: 0; /* Slide back smoothly */
-  }
-}
-
-/* Slide Arrow & Fade Out (Continuous) */
-@keyframes indicator-slide-out {
-  0% {
-    opacity: 1; /* Visible immediately */
-    transform: translateX(10px); /* Start offset */
-  }
-  100% {
-    opacity: 0; /* Fade out smoothly */
-    transform: translateX(0); /* Slide into place */
-  }
-}
-
-/* ==========================================================================
-   25. ZEN MODE (Single User Interface)
-   ========================================================================== */
-
-/* 1. THE TRIGGER (Inside Status Bar) */
-.zen-mode-trigger {
-  background: transparent;
-  border: none;
-  color: inherit;
-  font-family: var(--vintage-mono);
-  font-size: 0.65rem;
-  font-weight: bold;
-  cursor: pointer;
-  padding: 0;
+/* 6. MESSAGES */
+.pagefind-ui__message {
+  padding: 20px !important;
+  text-align: center !important;
+  font-family: var(--vintage-mono) !important;
   text-transform: uppercase;
-  letter-spacing: 1px;
-  transition: all 0.2s ease;
+  color: #888 !important;
 }
 
-.zen-mode-trigger:hover {
-  color: var(--neon-blue);
-  text-shadow: 0 0 8px var(--neon-blue-glow);
+/* 7. SHORTCUT HINT */
+.search-shortcut-hint {
+  position: absolute; right: 12px; top: 50%; transform: translateY(-50%);
+  display: flex; gap: 4px; pointer-events: none; z-index: 10;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-/* 2. MODE ACTIVE: SYSTEM OVERRIDES (Hide Interface) */
-html[data-single-user="true"] {
-  /* Hide UI Elements */
-  & .navbar,
-  & .theme-doc-sidebar-container,
-  & .table-of-contents,
-  & .pagination-nav,
-  & footer,
-  & .nunix-status-bar {
-    display: none !important;
-  }
-
-  /* Force Buffer Bar to Bottom */
-  & .buffer-track {
-    bottom: 0 !important;
-  }
-
-  /* Reset Layout Constraints */
-  & .container {
-    max-width: 100% !important;
-    padding: 0 !important;
-  }
-  & .row {
-    display: block !important;
-    margin: 0 !important;
-  }
-  & .col {
-    max-width: 100% !important;
-    flex: 0 0 100% !important;
-    padding: 0 !important;
-  }
+.search-key {
+  font-family: var(--vintage-mono); font-size: 0.6rem; font-weight: bold; color: var(--ifm-color-primary);
+  background: rgba(10, 13, 16, 0.6); border: 1px solid rgba(48, 186, 120, 0.3); border-radius: 4px; padding: 2px 6px;
+  box-shadow: 0 0 5px rgba(48, 186, 120, 0.1); text-shadow: 0 0 2px rgba(48, 186, 120, 0.5);
+  min-width: 20px; text-align: center;
 }
 
-/* 3. MODE ACTIVE: CENTER CONTENT (The Width Fix) */
-html[data-single-user="true"] main {
-  margin: 0 auto !important;
-
-  /* UPDATED: Wide Format (was 760px) */
-  max-width: 1080px !important;
-
-  padding-top: 6rem !important;
-  padding-bottom: 4rem !important;
+html[data-theme="light"] .search-key {
+  color: #1a4d32; background: rgba(255, 255, 255, 0.7); border-color: rgba(26, 77, 50, 0.3); box-shadow: 0 0 5px rgba(0, 0, 0, 0.05); text-shadow: none;
 }
 
-/* Responsive adjustment for laptops */
-@media (max-width: 1200px) {
-  html[data-single-user="true"] main {
-    max-width: 90% !important;
-  }
-}
-
-/* 4. EMERGENCY EXIT BUTTON */
-.zen-exit-hud {
-  position: fixed;
-  bottom: 20px;
-  left: 20px;
-  z-index: 12000;
-  animation: hud-fade-in 0.5s ease forwards;
-}
-
-.zen-exit-btn {
-  background: rgba(10, 13, 16, 0.9);
-  color: var(--ifm-color-primary);
-  border: 1px solid var(--ifm-color-primary);
-  font-family: var(--vintage-mono);
-  font-weight: bold;
-  font-size: 0.7rem;
-  padding: 6px 12px;
-  border-radius: 4px;
-  cursor: pointer;
-  backdrop-filter: blur(4px);
-  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.4);
-  transition: all 0.2s ease;
-}
-
-.zen-exit-btn:hover {
-  background: var(--ifm-color-primary);
-  color: #000;
-  box-shadow: 0 0 15px rgba(48, 186, 120, 0.6);
-  transform: translateY(-2px);
-}
-
-/* Light Mode Overrides */
-[data-theme="light"] .zen-exit-btn {
-  background: rgba(255, 255, 255, 0.9);
-  color: #1a4d32;
-  border-color: #1a4d32;
-}
-[data-theme="light"] .zen-exit-btn:hover {
-  background: #1a4d32;
-  color: #fff;
-}
-
-@keyframes hud-fade-in {
-  from {
-    opacity: 0;
-  }
-  to {
-    opacity: 1;
-  }
-}
-
-/* ==========================================================================
-   26. INODE COUNTER (Real Data Edition)
-   ========================================================================== */
-
-.inode-status-wrapper {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  font-family: var(--vintage-mono);
-  font-size: 0.65rem;
-  font-weight: bold;
-  letter-spacing: 1px;
-}
-
-.inode-label {
-  color: inherit;
-  opacity: 0.7;
-}
-
-.inode-value {
-  padding: 0 4px;
-  border-radius: 2px;
-  min-width: 50px;
-  text-align: center;
-  transition: all 0.5s ease;
-}
-
-/* STATE 1: BOOTING (Waiting for API) */
-.inode-value.is-booting {
-  color: rgba(48, 186, 120, 0.5); /* Dim Green */
-  background: transparent;
-  text-shadow: none;
-  filter: blur(0.5px); /* Slight motion blur effect */
-}
-
-/* STATE 2: LOCKED (Real Data Received) */
-.inode-value.is-locked {
-  color: var(--ifm-color-primary);
-  background: rgba(48, 186, 120, 0.1);
-  text-shadow: 0 0 2px var(--ifm-color-primary);
-  filter: none;
-}
-
-/* Hover Effect */
-.inode-status-wrapper:hover .inode-value {
-  color: var(--neon-blue);
-  background: rgba(0, 127, 255, 0.1);
-  text-shadow: 0 0 8px var(--neon-blue-glow);
-  cursor: help;
-}
-
-/* Light Mode Override */
-[data-theme="light"] .inode-value.is-locked {
-  color: #1a4d32;
-  background: rgba(26, 77, 50, 0.08);
-  text-shadow: none;
-}
-
-/* ==========================================================================
-   28. GLOBAL TERMINAL UI (Scrollbars & Selection)
-   ========================================================================== */
-
-/* 1. TEXT SELECTION (High Contrast) */
-::selection {
-  background: rgba(0, 127, 255, 0.3); /* Electric Blue Selection */
-  color: #fff;
-  text-shadow: 0 0 2px #000;
-}
-[data-theme="light"] ::selection {
-  background: rgba(48, 186, 120, 0.3); /* Green Selection */
-  color: #000;
-}
-
-/* 2. GLOBAL SCROLLBAR (Chrome/Edge/Safari) */
-html {
-  scrollbar-width: thin;
-  scrollbar-color: var(--ifm-color-primary) #0a0d10;
-}
-
-body::-webkit-scrollbar {
-  width: 10px;
-}
-
-body::-webkit-scrollbar-track {
-  background: #0a0d10; /* Dark Track */
-}
-
-body::-webkit-scrollbar-thumb {
-  background-color: rgba(48, 186, 120, 0.4); /* Green Thumb */
-  border-radius: 2px;
-  border: 2px solid #0a0d10; /* Creates padding effect */
-}
-
-body::-webkit-scrollbar-thumb:hover {
-  background-color: var(--ifm-color-primary);
-}
-
-/* Light Mode Scrollbar */
-[data-theme="light"] html {
-  scrollbar-color: #1a4d32 #e2e8f0;
-}
-[data-theme="light"] body::-webkit-scrollbar-track {
-  background: #e2e8f0;
-}
-[data-theme="light"] body::-webkit-scrollbar-thumb {
-  background-color: rgba(26, 77, 50, 0.4);
-  border-color: #e2e8f0;
-}
-
-/* ==========================================================================
-   29. BACK TO TOP (NUNIX HUD CONTROLLER)
-   ========================================================================== */
-
-/* 1. HIDE NATIVE DOCUSAURUS BUTTON (The override) */
-.clean-btn.theme-back-to-top-button {
-  display: none !important;
-}
-
-/* 2. NUNIX JUMP BUTTON (The Replacement) */
-.nunix-jump-top {
-  /* Positioning: Centered, floating above Status Bar */
-  position: fixed;
-  bottom: 40px;
-  left: 50%;
-  transform: translateX(-50%) translateY(20px); /* Start hidden (lower) */
-  z-index: 12000;
-
-  /* Geometry */
-  width: 40px;
-  height: 40px;
-  border-radius: 4px;
-  padding: 0;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-
-  /* Visuals: Glass & Border */
-  background: rgba(10, 13, 16, 0.4);
-  backdrop-filter: blur(2px);
-  border: 1px solid rgba(255, 255, 255, 0.15);
-  box-shadow: none;
-
-  /* State: Hidden by default */
-  opacity: 0;
-  visibility: hidden;
-  pointer-events: none;
-
-  transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-}
-
-/* 3. ACTIVE STATE (Scrolled > 300px) */
-.nunix-jump-top.show {
-  opacity: 0.3; /* Ghost Mode */
-  visibility: visible;
-  pointer-events: auto;
-  transform: translateX(-50%) translateY(0); /* Slide up */
-}
-
-/* 4. HOVER STATE (Power On - NEON BLUE) */
-.nunix-jump-top:hover {
-  opacity: 1; /* Full Power */
-  background: rgba(10, 13, 16, 0.95);
-
-  /* FORCE BLUE BORDER & GLOW */
-  border-color: var(--neon-blue);
-  box-shadow:
-    0 0 20px var(--neon-blue-glow),
-    inset 0 0 10px rgba(0, 127, 255, 0.2);
-
-  transform: translateX(-50%) translateY(-5px); /* Lift */
-}
-
-/* 5. ICON STYLING */
-.nunix-jump-top svg {
-  width: 20px;
-  height: 20px;
-  color: #fff;
-  opacity: 0.7;
-  transition: all 0.3s ease;
-}
-
-/* Icon turns Blue on Hover */
-.nunix-jump-top:hover svg {
-  color: var(--neon-blue);
-  opacity: 1;
-  filter: drop-shadow(0 0 5px var(--neon-blue));
-}
-
-/* 6. LIGHT MODE OVERRIDES (The Fix: Force Blue) */
-[data-theme="light"] .nunix-jump-top {
-  background: rgba(255, 255, 255, 0.4);
-  border-color: rgba(0, 0, 0, 0.2);
-}
-[data-theme="light"] .nunix-jump-top svg {
-  color: #000;
-}
-
-/* FIX: Hover in Light Mode now uses NEON BLUE instead of Green */
-[data-theme="light"] .nunix-jump-top:hover {
-  background: rgba(255, 255, 255, 0.95);
-
-  /* Changed from var(--ifm-color-primary) to var(--neon-blue) */
-  border-color: var(--neon-blue) !important;
-  box-shadow: 0 0 20px rgba(0, 127, 255, 0.4) !important;
-}
-
-[data-theme="light"] .nunix-jump-top:hover svg {
-  /* Changed from var(--ifm-color-primary) to var(--neon-blue) */
-  color: var(--neon-blue) !important;
-}
-
-/* ==========================================================================
-   30. SMART LINK TOOLTIP (Attached to Content)
-   ========================================================================== */
-
-.nunix-link-tooltip {
-  position: fixed; /* JS sets top/left */
-  z-index: 12000;
-
-  max-width: 320px;
-  background: rgba(10, 13, 16, 0.95);
-  backdrop-filter: blur(8px);
-
-  /* Neon Blue Border */
-  border: 1px solid var(--neon-blue);
-  border-radius: 4px;
-
-  padding: 4px 8px;
-  display: flex;
-  align-items: center;
-
-  /* Typography */
-  font-family: var(--vintage-mono);
-  font-size: 0.65rem;
-  color: #fff;
-
-  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.5);
-  pointer-events: none; /* Let mouse pass through */
-  animation: tooltip-pop 0.15s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-}
-
-/* The Triangle Pointer (Up) */
-.tooltip-arrow {
-  position: absolute;
-  top: -5px; /* Sit on top edge */
-  left: 10px; /* Offset slightly */
-  width: 0;
-  height: 0;
-  border-left: 5px solid transparent;
-  border-right: 5px solid transparent;
-  border-bottom: 5px solid var(--neon-blue);
-}
-
-/* URL Text Truncation */
-.tooltip-url {
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  color: var(--neon-blue);
-  font-weight: bold;
-}
-
-/* Animation */
-@keyframes tooltip-pop {
-  from {
-    opacity: 0;
-    transform: translateY(5px) scale(0.95);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0) scale(1);
-  }
-}
-
-/* LIGHT MODE OVERRIDE */
-[data-theme="light"] .nunix-link-tooltip {
-  background: rgba(255, 255, 255, 0.95);
-  border-color: #1a4d32; /* Dark Green */
-  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.15);
-}
-
-[data-theme="light"] .tooltip-arrow {
-  border-bottom-color: #1a4d32;
-}
-
-[data-theme="light"] .tooltip-url {
-  color: #0056b3; /* Standard Blue */
-}
-
-/* ==========================================================================
-   31. GLOBAL TYPOGRAPHY (Headlines & Titles)
-   ========================================================================== */
-
-/* 1. THE HEADLINES (H1 - H6) */
-h1, h2, h3, h4, h5, h6 {
-  font-family: var(--vintage-mono);
-  color: var(--ifm-color-primary); /* System Green */
-  font-weight: normal; /* Let the font carry the weight */
-  text-transform: uppercase;
-  letter-spacing: 1px;
-  margin-top: 1.5em;
-  margin-bottom: 0.8em;
-  position: relative;
-  scroll-margin-top: 5rem; /* Fixes anchor jump height */
-}
-
-/* 2. SPECIFIC SIZES (Fine-tuning) */
-h1 {
-  font-size: 2.5rem;
-  border-bottom: 1px solid rgba(48, 186, 120, 0.2);
-  padding-bottom: 0.5rem;
-  margin-bottom: 1.5rem;
-  text-shadow: 0 0 10px rgba(48, 186, 120, 0.2); /* Subtle glow */
-}
-
-h2 {
-  font-size: 1.8rem;
-  border-left: 3px solid var(--ifm-color-primary);
-  padding-left: 1rem; /* "Data Block" look */
-  background: linear-gradient(90deg, rgba(48, 186, 120, 0.05) 0%, transparent 100%);
-}
-
-h3 {
-  font-size: 1.4rem;
-  color: var(--ifm-color-primary-light); /* Slightly lighter green */
-}
-
-/* 3. THE ANCHOR HASH (#) - Interactive Blue */
-.hash-link {
-  color: var(--neon-blue) !important;
-  opacity: 0;
-  transition: opacity 0.2s ease, transform 0.2s ease;
-  padding-left: 8px;
-  font-size: 0.8em;
-}
-
-/* Reveal on Hover */
-h1:hover .hash-link,
-h2:hover .hash-link,
-h3:hover .hash-link,
-h4:hover .hash-link {
-  opacity: 1;
-  transform: translateX(0);
-}
-
-/* 4. PARAGRAPH & LIST ADJUSTMENTS */
-/* Ensure body text is readable against the strong headers */
-.markdown p, 
-.markdown li {
-  font-family: var(--ifm-font-family-base); /* Keep standard sans for readability */
-  font-size: 1.05rem;
-  line-height: 1.7;
-  color: var(--ifm-font-color-base);
-  margin-bottom: 1.2rem;
-}
-
-/* 5. LIGHT MODE OVERRIDES */
-[data-theme="light"] h1,
-[data-theme="light"] h2,
-[data-theme="light"] h3 {
-  color: #1a4d32; /* Darker Green for contrast */
-}
-
-[data-theme="light"] h1 {
-  border-bottom-color: rgba(26, 77, 50, 0.2);
-  text-shadow: none;
-}
-
-[data-theme="light"] h2 {
-  background: linear-gradient(90deg, rgba(26, 77, 50, 0.05) 0%, transparent 100%);
-}
-
-/* ==========================================================================
-   32. SYSTEM STATUS LED (The Glowing Diode)
-   ========================================================================== */
-
-.status-led {
-  display: inline-block;
-  width: 8px;
-  height: 8px;
-  border-radius: 50%;
-  
-  /* System Green Core */
-  background-color: var(--ifm-color-primary);
-  
-  /* The Glow Field */
-  box-shadow: 
-    0 0 5px var(--ifm-color-primary),
-    0 0 10px var(--ifm-color-primary);
-    
-  margin-left: 8px; /* Spacing from text */
-  margin-bottom: 2px; /* Optical alignment */
-  vertical-align: middle;
-  
-  /* The Heartbeat */
-  animation: led-pulse 2s infinite ease-in-out;
-}
-
-/* Error State (Red LED) - For future use */
-.status-led.error {
-  background-color: #ff3e3e;
-  box-shadow: 0 0 5px #ff3e3e, 0 0 10px #ff3e3e;
-}
-
-@keyframes led-pulse {
-  0% { opacity: 1; transform: scale(1); }
-  50% { opacity: 0.4; transform: scale(0.8); }
-  100% { opacity: 1; transform: scale(1); }
+.navbar__search:focus-within .search-shortcut-hint {
+  opacity: 0; transform: translateY(-50%) translateX(10px);
 }

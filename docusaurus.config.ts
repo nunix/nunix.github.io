@@ -65,23 +65,6 @@ const config: Config = {
     },
   ],
 
-  themes: [
-    [
-      require.resolve("@easyops-cn/docusaurus-search-local"),
-      /** @type {import("@easyops-cn/docusaurus-search-local").PluginOptions} */
-      ({
-        hashed: true,
-        language: ["en"],
-        highlightSearchTermsOnTargetPage: true,
-        explicitSearchResultPath: true,
-        indexDocs: true,
-        indexBlog: true,
-        // styling: false // Keep this TRUE (default) so we inherit basic structure, 
-                          // we will override the visuals in custom.css
-      }),
-    ],
-  ],
-
   themeConfig: {
     colorMode: {
       respectPrefersColorScheme: true,

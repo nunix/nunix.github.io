@@ -1,0 +1,20 @@
+.searchBox {
+  min-width: 200px;
+  /* Use CSS variables to bridge Pagefind with our Design System */
+  --pagefind-ui-scale: 0.8;
+  --pagefind-ui-primary: var(--ifm-color-primary);
+  --pagefind-ui-text: var(--ifm-font-color-base);
+  --pagefind-ui-background: var(--nunix-glass-bg);
+  --pagefind-ui-border: var(--ifm-color-primary);
+  --pagefind-ui-tag: var(--ifm-color-primary);
+  --pagefind-ui-border-width: 1px;
+  --pagefind-ui-border-radius: 4px;
+  --pagefind-ui-font: var(--vintage-mono);
+}
+
+/* Mobile Adjustments */
+@media (max-width: 996px) {
+  .searchBox {
+    min-width: 150px;
+  }
+}
