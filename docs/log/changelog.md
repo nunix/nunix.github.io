@@ -63,6 +63,34 @@ The final polish focused on how the pilot moves through the data stream.
 
 ---
 
+## v5.0: System Polish (HUD Integration)
+**"Calibrating the Instrumentation"**
+
+This cycle focused on refining the Pilot's interface, merging the HUD elements into a cohesive visual language and eliminating signal noise.
+
+* **HUD Unification:**
+    * **Active State:** Corrected navigation signal logic; active frequencies (links) now maintain a steady "Signal Green" lock instead of drifting to blue.
+    * **Global Tooltips:** Implemented a universal `.nunix-status-tooltip` class, ensuring all HUD elements (Hit Counter & Focus Mode) share the same holographic data projection.
+* **Search Engine Overhaul:**
+    * **Lens Killer:** Replaced the standard magnifying glass artifact with a live command prompt (`>`).
+    * **High-Contrast Protocol:** Calibrated text visibility for both Light (Deep Green) and Dark (Neon Green) environments.
+    * **Target Lock:** Centralized focus states to match the "Neon Blue" border logic used in the main data streams.
+
+---
+
+## v6.0: The Codeblock Refit (Interaction Fixes)
+**"Stabilizing the Core"**
+
+We detected instability in the data containment units (Codeblocks). Immediate structural reinforcements were deployed.
+
+* **Layout Stabilizers:**
+    * **Zero-Shift Feedback:** The "COMMAND SUCCESSFUL" copy message is now projected via a pseudo-element overlay, preventing the code container from physically shifting during operation.
+    * **Header Sync:** The "CODE" header now correctly depowers (turns white) when the user engages the block, matching the border's energy surge.
+* **Theme Synchronization:**
+    * **Glow Logic:** Borders now emit a specific frequency based on ambient light conditions: Neon Blue for Dark Mode, Deep Blue for Light Mode.
+
+---
+
 ## 👾 BONUS LEVEL: Alien Invasion
 **"The Bug War"**
 
@@ -87,6 +115,18 @@ Multiple anomalies were detected during the implementation of the Guidance Syste
 #### 4. The Blue Horizon Line
 * **The Threat:** A persistent, 1px Blue Line appeared across the bottom of the screen. It was a `box-shadow` artifact bleeding through the transparency.
 * **The Fix:** We stripped the shadow from the idle state and added an `.is-active` class. The glow is now only calculated when the bar effectively has width.
+
+#### 5. The Ghost in the Machine (Inode Counter)
+* **The Threat:** The `InodeCounter` was returning "1" or `NaN` errors, causing the hit counter to flatline. The system was misinterpreting raw numerical data as strings.
+* **The Fix:** We rewrote the parsing logic to handle both data types and added a "Silencer" protocol to catch 403/404 errors gracefully.
+
+#### 6. The Invisible Exit
+* **The Threat:** The "Exit Focus Mode" button would vanish into the void when the HUD was disabled, leaving the pilot trapped in Zen Mode.
+* **The Fix:** We implemented a **Teleport Protocol**. The button is now portaled directly to the `<body>` tag, ensuring it remains visible outside the hidden navigation container.
+
+#### 7. The Nested CSS Paradox
+* **The Threat:** The Focus Mode toggle logic failed on certain browsers due to nested CSS selectors (`& .navbar`) not parsing correctly.
+* **The Fix:** We flattened the CSS architecture, un-nesting all selectors to guarantee universal browser compliance.
 
 ---
 
