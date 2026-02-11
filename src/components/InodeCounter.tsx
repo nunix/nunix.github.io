@@ -12,8 +12,10 @@ const InodeCounter: React.FC = () => {
   const realCountRef = useRef<number | null>(null);
   const location = useLocation();
 
+  // 1. FETCH LOGIC
   useEffect(() => {
     if (!ExecutionEnvironment.canUseDOM) return;
+
     setIsLocked(false);
     realCountRef.current = null;
     setDisplayCount('------'); 
@@ -24,32 +26,68 @@ const InodeCounter: React.FC = () => {
         if (requestPath !== '/' && requestPath.endsWith('/')) {
           requestPath = requestPath.slice(0, -1);
         }
-        const endpoint = `https://${GOAT_USER}.goatcounter.com/counter/${encodeURIComponent(requestPath)}.json`;
+
+        // FIX: Use the 'Reading' endpoint (/count), not the 'Tracking' endpoint (/counter)
+        // param 'p' = path
+        // param 't' = json (returns { count: "1,234" })
+        const endpoint = `https://${GOAT_USER}.goatcounter.com/count?p=${encodeURIComponent(requestPath)}&t=json`;
+        
         const res = await fetch(endpoint);
-        if (!res.ok) throw new Error('API Error');
+        
+        if (!res.ok) {
+           // If 404, it just means no stats yet -> 0
+           if (res.status === 404) {
+             realCountRef.current = 0;
+             return;
+           }
+           throw new Error(`API Error: ${res.status}`);
+        }
         
         const data = await res.json();
-        const count = parseInt(String(data?.count || 0).replace(/\D/g, ''), 10);
-        realCountRef.current = count || 0;
+        
+        // GoatCounter returns numbers with commas (e.g. "1,200") -> Remove non-digits
+        if (data?.count) {
+          const countStr = String(data.count).replace(/\D/g, '');
+          realCountRef.current = parseInt(countStr, 10) || 0;
+        } else {
+          realCountRef.current = 0;
+        }
+
       } catch (err) {
-        realCountRef.current = 1;
+        console.warn("Counter Fetch Failed:", err);
+        // Fallback to 1 purely for aesthetics
+        realCountRef.current = 1; 
       }
     };
+
     fetchData();
   }, [location.pathname]);
 
+  // 2. ANIMATION LOGIC
   useEffect(() => {
+    const fps = 30;
+    const intervalTime = 1000 / fps;
+    const startTime = Date.now();
+    const SAFETY_TIMEOUT = 3000; 
+
     const interval = setInterval(() => {
-      if (realCountRef.current !== null) {
-        const val = realCountRef.current;
-        setDisplayCount(val.toString().padStart(6, '0'));
-        setFormattedTotal(val.toLocaleString());
+      const elapsed = Date.now() - startTime;
+
+      if (realCountRef.current !== null || elapsed > SAFETY_TIMEOUT) {
+        const finalValue = realCountRef.current !== null ? realCountRef.current : 1;
+        
+        setDisplayCount(finalValue.toString().padStart(6, '0'));
+        setFormattedTotal(finalValue.toLocaleString());
+        
         setIsLocked(true);
-        clearInterval(interval);
-      } else {
-        setDisplayCount(Math.floor(Math.random() * 999999).toString().padStart(6, '0'));
+        clearInterval(interval); 
+      } 
+      else {
+        const random = Math.floor(Math.random() * 999999);
+        setDisplayCount(random.toString().padStart(6, '0'));
       }
-    }, 33);
+    }, intervalTime);
+
     return () => clearInterval(interval);
   }, [location.pathname]);
 
