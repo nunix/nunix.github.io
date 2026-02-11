@@ -27,15 +27,13 @@ const InodeCounter: React.FC = () => {
           requestPath = requestPath.slice(0, -1);
         }
 
-        // FIX: Use the 'Reading' endpoint (/count), not the 'Tracking' endpoint (/counter)
-        // param 'p' = path
-        // param 't' = json (returns { count: "1,234" })
+        // CORRECT ENDPOINT: '/count' (Reading) instead of '/counter/' (Dashboard)
         const endpoint = `https://${GOAT_USER}.goatcounter.com/count?p=${encodeURIComponent(requestPath)}&t=json`;
         
         const res = await fetch(endpoint);
         
         if (!res.ok) {
-           // If 404, it just means no stats yet -> 0
+           // 404 means 0 views
            if (res.status === 404) {
              realCountRef.current = 0;
              return;
@@ -55,8 +53,7 @@ const InodeCounter: React.FC = () => {
 
       } catch (err) {
         console.warn("Counter Fetch Failed:", err);
-        // Fallback to 1 purely for aesthetics
-        realCountRef.current = 1; 
+        realCountRef.current = 1; // Fallback
       }
     };
 
