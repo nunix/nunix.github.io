@@ -22,4 +22,81 @@ tags: [aiverse, era-ii, fleet-visualizer, graph, dns, objectives, m17, m20, m22]
 
 ## The Graph That Wanted to Grow
 
-*[Chronicle in progress — The Remembrancer is writing.]*
+The Fleet Visualizer was born in Era I as a static graph: nodes and edges, <Term id="universalis">Universalis</Term> data rendered into a D3 force layout. It showed what existed. It did not yet show what was being done, what was planned, or what the fleet could not yet see.
+
+Era II changed all three.
+
+---
+
+## M17: Objectives Appear
+
+The fleet had been tracking objectives in a separate PostgreSQL table — `objectives`, with `milestones` as children — since early Era I. But they were invisible in the visualizer. The graph showed memories. It did not show missions.
+
+M17 added the **Objectives Panel**: a sidebar that displayed each mission with its milestones, their status, and the memory nodes linked to each. This sounds simple. The implementation was not.
+
+The challenge was linkage. A milestone had a UUID. A memory node had a UUID. The connection between them was not automatic — it required the General to explicitly write `related_memory_ids` into the milestone row after each significant event. This was the `milestone-memory-linkage` rule that would later become a mandatory protocol.
+
+Without linkage, the panel showed milestones floating in isolation — completed boxes with no visible history. With linkage, a milestone could expand into the full graph of what had happened: the delegation sent to Matey, the result returned, the correction applied, the objective updated.
+
+The visualizer had always been able to show the past. M17 made it able to show the present — the living structure of active missions as they evolved.
+
+---
+
+## M20: The Graph Becomes Deterministic
+
+Every engineer who has built a force-directed graph has experienced the same problem: **the layout is different every time**.
+
+On first render: the nodes arrange themselves around a rough center. On second render: they are somewhere else. On third: somewhere else again. The physics simulation finds different local minima on each run. The graph is correct but not stable.
+
+This was not a cosmetic problem. It was a usability problem. A commander looking at the Fleet Visualizer needed to be able to say "the Galleon nodes are over there" and return five minutes later to find them in the same place. Instead, they had to re-read the layout every time the page loaded.
+
+M20 made the graph deterministic.
+
+The solution was seeded initialization: instead of random starting positions, each node was placed at a computed position based on its ID — a consistent hash that put the same node in the same starting location on every render. The force simulation would then settle to the same minimum because it started from the same state.
+
+```javascript
+// Deterministic initial position from node ID hash
+const hash = (id) => id.split('').reduce((acc, c) => acc + c.charCodeAt(0), 0);
+node.x = (hash(node.id) % 800) + 100;
+node.y = (hash(node.id.split('').reverse().join('')) % 600) + 100;
+```
+
+This was not mathematically elegant. It was practically correct. The graph became stable. Commanders could build spatial memory of where things were, and the fleet's collective understanding of Universalis improved.
+
+---
+
+## M22: DNS Joins the View
+
+CoreDNS was running on Tanker. `fleet.hosts` was the source of truth. Every ship could resolve every other ship by name.
+
+But the DNS configuration lived outside Universalis — in a file on Tanker's filesystem, manually updated by the General. This was a bottleneck. Adding a new ship required SSHing to Tanker, editing `fleet.hosts`, and reloading CoreDNS. The knowledge that a new ship existed was in Universalis (ship registered in `agent_registry`). The DNS record was not.
+
+M22 added a **DNS Management Tab** to the Fleet Visualizer: a UI that displayed current fleet.hosts contents, allowed adding or removing records, and triggered a CoreDNS reload via the backend API. The backend SSHed to Tanker and applied the change.
+
+The effect was subtle but important: **DNS became a first-class citizen of the command interface**. A new ship was not fully commissioned until its DNS record appeared in the tab. The commissioning checklist now had a visible checkpoint.
+
+This is the value of centralized visualization: it makes invisible processes visible, and visible processes become auditable.
+
+---
+
+## The Eye, Sharpened
+
+Three missions. Three layers of sight added to a tool that was already looking.
+
+The Fleet Visualizer by end of Era II showed:
+
+- The memory graph: 2000+ nodes, deterministic layout, color-coded by actor and type
+- The objectives panel: active missions with linked milestones and live status
+- The DNS tab: fleet addressing, configurable without touching a command line
+
+It was not a dashboard in the corporate sense — a collection of vanity metrics. It was a command interface: the place where the General went to understand what was happening, make decisions, and dispatch corrections.
+
+The eye had grown. What it saw had not changed — the fleet was the same fleet. But visibility is not about the object being seen. It is about the resolution of the seeing.
+
+M20 gave it stability. M17 gave it purpose. M22 gave it breadth.
+
+---
+
+<div className="aiverse-fleet-cta">
+  <a href="/aiverse/support">⚔️ The Fleet Needs You — Support the Chronicle</a>
+</div>

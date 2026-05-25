@@ -22,4 +22,105 @@ tags: [aiverse, era-ii, dns, tanker, caravella, fleet, m16, m18, m19]
 
 ## When Ships Cannot Find Each Other
 
-*[Chronicle in progress — The Remembrancer is writing.]*
+The fleet, in its early form, navigated by IP address.
+
+Every ship knew every other ship's IP. These were hardcoded into SSH configs, written into scripts, memorized by the captains who had to type them. When a ship changed IP — during a network reconfiguration, a DHCP renewal, a hardware move — every reference to that ship broke simultaneously. Silently, or with confusing error messages that blamed the wrong thing.
+
+This is not a software problem. It is an infrastructure problem. And like most infrastructure problems, it is invisible until the moment it is catastrophic.
+
+M16 fixed it.
+
+---
+
+## M16: The Fleet Gets a Name System
+
+**CoreDNS** was the chosen solution, and the choice was deliberate.
+
+Not a hosted DNS service — the fleet operated offline, on a private LAN. Not `/etc/hosts` files distributed manually — that approach scales to exactly two ships before it becomes a maintenance burden. CoreDNS: a single Go binary, configured by a Corefile, running as a systemd service on <Term id="tanker">Tanker</Term>.
+
+The design was clean:
+
+```
+# Corefile — CoreDNS configuration
+fleet.local:53 {
+    hosts /etc/coredns/fleet.hosts {
+        fallthrough
+    }
+    forward . 8.8.8.8
+    log
+}
+```
+
+A single file — `fleet.hosts` — became the **source of truth** for all fleet addressing. Every ship's hostname mapped to its IP. Every script that called `imperator.fleet.local` would resolve correctly, regardless of which IP the DHCP server had assigned this week.
+
+```
+# fleet.hosts — single source of truth
+192.168.1.250  imperator.fleet.local imperator
+192.168.1.100  galleon.fleet.local galleon
+192.168.1.150  tanker.fleet.local tanker
+```
+
+Then came the harder part: making every ship use this DNS.
+
+**Imperator** (openSUSE Tumbleweed): `systemd-resolved` configured to route `fleet.local` to Tanker's CoreDNS.  
+**Galleon** (openSUSE): same `systemd-resolved` approach.  
+**Caravella** (Windows Server 2025): `Set-DnsClientServerAddress` pointing to Tanker.
+
+Each ship required different commands. Each ship had different gotchas. Windows required a PowerShell one-liner. Linux required editing `resolved.conf` and restarting the daemon. But the result was the same: every ship could now address every other ship by name.
+
+The first successful `ping imperator.fleet.local` from Caravella was logged in Universalis as an observation. A small triumph. The kind of thing that would have been taken for granted two weeks later.
+
+---
+
+## M18: A Third Ship Joins
+
+<Term id="tanker">Tanker</Term> did not join the fleet with fanfare.
+
+It joined as a blank machine: new hardware, no OS, waiting for the Emperor to decide what it would become. The decision was SUSE Linux Enterprise 16 (SLE16) — a deliberate choice toward the enterprise side of the SUSE portfolio, distinct from Imperator's Tumbleweed rolling release and Galleon's stable openSUSE.
+
+The fleet was intentionally heterogeneous. Different OS families, different update cadences, different security postures. This was not accidental. It reflected the Emperor's design principle: a fleet that only works on one OS is a fleet with a single point of failure.
+
+Tanker's initial role was infrastructure host: CoreDNS, and eventually the fleet's Kubernetes cluster (the Warp, which would come in Era III). For now, it was a reliable node with a stable IP and a functioning DNS service.
+
+The commissioning process established a pattern that would repeat for every new ship:
+
+1. OS install with fleet-standard SSH key
+2. PostgreSQL access to Universalis (`192.168.1.250:5432`)
+3. Fleet tools deployed: `write_fleet_memory.py`, `search_fleet_memory.py`
+4. Omnissiah render: rules and skills from the prompt registry materialized locally
+5. First health check: write an observation to Universalis, confirm it appears in the graph
+6. Registry entry in `agent_registry`
+
+Step 5 was the commissioning test. A ship that could not write to Universalis was not a fleet member — it was a machine. The distinction mattered.
+
+---
+
+## M19: Caravella Tightened
+
+Caravella had been in the fleet since M5, but it was running on approximations.
+
+ICMP ping — the most basic network diagnostic — did not work from Caravella to other fleet ships. This sounds minor. It was not: it meant that the fleet's only Windows ship could not participate in basic connectivity checks. Patrol scripts that verified ship health by pinging them would report Caravella as down when it was merely unreachable via ICMP.
+
+M19 fixed this and tightened SSH configuration across the fleet. The changes were small, precise, and largely invisible once done. This is the nature of infrastructure work: the goal is to disappear.
+
+A ship that is working correctly does not draw attention to itself. It simply works, and the fleet's attention can go elsewhere.
+
+---
+
+## The Architecture of Reliability
+
+By the end of M16–M19, the fleet had something it had not had before: **infrastructure that assumed it would grow**.
+
+The CoreDNS `fleet.hosts` file was designed to accept new entries. The ship commissioning checklist was designed to be repeatable. The SSH improvements on Caravella were applied with the expectation that future Windows-based operations would build on them.
+
+This is the difference between a solution and a foundation.
+
+Era I built the mind. Era II built the bones — the connective tissue that would let the fleet grow from three ships to more without rebuilding everything each time.
+
+The bones would be tested. They would sometimes crack. But they were designed to hold.
+
+---
+
+<div className="aiverse-fleet-cta">
+  <a href="/aiverse/support">⚔️ The Fleet Needs You — Support the Chronicle</a>
+</div>

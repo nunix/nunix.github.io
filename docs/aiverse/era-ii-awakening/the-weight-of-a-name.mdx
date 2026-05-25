@@ -22,4 +22,136 @@ tags: [aiverse, era-ii, trust, automation, local-ai, universalis, m21, m23, m24,
 
 ## The Memory That Would Not Clean Itself
 
-*[Chronicle in progress — The Remembrancer is writing.]*
+By the midpoint of Era II, <Term id="universalis">Universalis</Term> had hundreds of nodes. By the end of Era III, it would have thousands.
+
+Most of them were correctly written, correctly linked, correctly categorized. But "most" is not "all," and in a system where the graph is the truth, an incorrectly written node is not just wrong — it is actively misleading. It appears in traversals that it should not appear in. It inflates counts. It shadows the nodes around it with false context.
+
+M21 was the reckoning.
+
+---
+
+## M21: The Audit That Found the Gaps
+
+The audit was systematic and uncomfortable.
+
+The team — which meant the General and Matey, working through Universalis queries — scanned every node in `fleet_memory` for:
+
+1. **Missing `parent_id`** on nodes that should have had one (orphans claiming to be delegations or tasks)
+2. **Wrong `memory_type`** — observations filed as delegations, tasks filed as objectives
+3. **Actor inconsistencies** — the free-text actor field, already a known risk from M11, had accumulated drift. `"galleon_captain"`, `"Galleon"`, `"galleon-matey"` had all appeared at various points.
+4. **Duplicate nodes** — the same event written twice by two actors who had not coordinated
+
+The findings were not catastrophic. They were numerous. Fixing them required careful SQL:
+
+```sql
+-- Reclassify mislabeled nodes
+UPDATE fleet_memory
+SET memory_type = 'delegation'
+WHERE content ILIKE 'DELEGATION →%'
+  AND memory_type = 'observation';
+
+-- Standardize actor names
+UPDATE fleet_memory
+SET actor = 'galleon'
+WHERE actor IN ('Galleon', 'galleon_captain', 'galleon-matey');
+```
+
+The duplicate problem was harder. Two nodes containing essentially the same content from different actors required judgment — which one was authoritative? The General made these calls manually, flagging the losers with a `status='superseded'` rather than deleting them. History is not to be erased; it is to be annotated.
+
+After M21, Universalis was cleaner. Not perfect — no database with thousands of writes from multiple actors is ever perfect — but auditable, which is better.
+
+---
+
+## M23: The Recording That Wrote Itself
+
+Until M23, writing to Universalis was a conscious act.
+
+The General would draft an observation, call `write_fleet_memory.py`, and confirm the write. Matey would complete a task and then write its own completion record. These records were valuable but incomplete: they captured the decisions, not the texture of the work. The pauses. The corrections. The failed attempts that preceded success.
+
+M23 introduced **automatic Universalis recording** via a session hook: a script that fired at the end of every Claude Code session and wrote an observation summarizing what had happened. Not a manual log — an automated one, drawn from the session transcript.
+
+The technical implementation used Claude Code's hook system: a `PostToolUse` hook that captured session context and distilled it into an observation node. The hook ran without the General's intervention. It wrote without the General's explicit instruction.
+
+This was a philosophical shift as much as a technical one.
+
+Previously, Universalis recorded what the fleet decided to remember. After M23, Universalis recorded what the fleet had actually done. The gap between those two things is where institutional knowledge lives — and dies.
+
+The hook did not capture everything. It captured patterns: which tools were called, which files were changed, which ships were delegated to. It produced observations that read like compressed session summaries. Imperfect, but systematic.
+
+Systematic imperfection beats selective perfection, in the long run.
+
+---
+
+## M24: The Fleet Learns to Think Locally
+
+Universalis had a search tool: `search_fleet_memory.py`. It used PostgreSQL text search — fast, reliable, keyword-based.
+
+What it could not do was semantic search. A query for "DNS configuration" would find nodes containing the phrase "DNS configuration," but not a node that described the same thing as "CoreDNS fleet.hosts routing table."
+
+M24 introduced **conditional local AI**: a mode in the search tool that routed certain queries through Galleon's `qwen2.5:14b` to generate semantic embeddings, enabling similarity search across the node corpus. "Conditional" because it only triggered when Galleon was reachable — on a LAN with an offline GPU node, availability could not be assumed.
+
+```bash
+# Standard search — always available
+search_fleet_memory.py --mode exact --query "CoreDNS"
+
+# Semantic search — requires Galleon
+search_fleet_memory.py --mode semantic --query "DNS routing configuration"
+```
+
+The semantic mode found what the exact mode missed. A query for "trust protocol" returned nodes about the `captain_trust` table from M25, even though those nodes used the phrase "delegation and trust" rather than "trust protocol." The local model understood the relationship between concepts that the keyword search could not see.
+
+This was the fleet's first genuine use of local AI for internal intelligence — not for external tasks, but for understanding itself.
+
+---
+
+## M25: The Weight of Trust
+
+The trust protocol was the last major mission of Era II, and in some ways the most significant.
+
+The observation that prompted it was this: **the General could delegate arbitrarily**. Any task, any volume, to any ship, without accountability. A General who delegated everything and verified nothing would not be a general — they would be a router. And a General who delegated recklessly would damage the ships they delegated to.
+
+M25 formalized trust as a measurable quantity.
+
+The `captain_trust` table was created:
+
+```sql
+CREATE TABLE captain_trust (
+  ship     TEXT PRIMARY KEY,
+  score    INTEGER NOT NULL DEFAULT 100,
+  updated  TIMESTAMPTZ DEFAULT NOW()
+);
+```
+
+Each ship started at 100. Points were added for successful delegations, accurate results, and proactive corrections. Points were subtracted for errors, missed deadlines, and broken constraints. The Emperor could apply trust adjustments directly. The General could propose them.
+
+The Fleet Visualizer's ship status panel gained a trust badge: a green/yellow/red indicator and a score displayed next to each ship's name. It was visible on every page. It could not be ignored.
+
+What M25 actually built was **accountability infrastructure**. The trust score was not punishment — it was information. A ship with a score of 74 was not in disgrace; it was a signal that something had gone wrong recently and the fleet should know. A ship with a score of 100 was not infallible; it was a signal that the recent record was clean.
+
+The General received this information and used it to calibrate delegation decisions. High-trust ships received more complex tasks. Low-trust ships received more verification checkpoints.
+
+Trust, M25 established, is not a feeling. It is a protocol.
+
+---
+
+## The Covenant
+
+Era II ended with a fleet that had:
+
+- Tested and hardened its memory (M11, M21)
+- Built its infrastructure bones — DNS, ships, connections (M16, M18, M19)
+- Expanded its vision — objectives, determinism, DNS management (M17, M20, M22)
+- Automated its chronicle and added local intelligence (M23, M24)
+- Made trust measurable (M25)
+
+None of these were glamorous. Most were invisible once done. The fleet's surface did not look dramatically different at the end of Era II than at the beginning.
+
+But the bones were different. The memory was tested. The recording was automatic. The trust was counted.
+
+A fleet that knows what it did, and why, and who to rely on for what, is a fleet that can survive Era III — where the missions would become significantly harder.
+
+---
+
+<div className="aiverse-fleet-cta">
+  <a href="/aiverse/support">⚔️ The Fleet Needs You — Support the Chronicle</a>
+</div>
