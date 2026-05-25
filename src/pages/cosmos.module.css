@@ -1,0 +1,51 @@
+.main {
+  padding: 3rem 1rem 4rem;
+  max-width: 1100px;
+  margin: 0 auto;
+}
+
+.header {
+  text-align: center;
+  margin-bottom: 2.5rem;
+}
+
+.label {
+  font-family: var(--ifm-font-family-monospace, monospace);
+  font-size: 0.65rem;
+  letter-spacing: 0.25em;
+  color: var(--ifm-color-primary);
+  text-transform: uppercase;
+  margin-bottom: 0.5rem;
+}
+
+.title {
+  font-size: 2.2rem;
+  font-weight: 800;
+  color: var(--ifm-heading-color);
+  margin: 0 0 0.75rem;
+}
+
+.sub {
+  font-size: 0.95rem;
+  color: var(--ifm-color-content-secondary);
+  line-height: 1.6;
+}
+
+.mapWrapper {
+  margin: 0 auto;
+  max-width: 100%;
+}
+
+.punchline {
+  text-align: center;
+  margin-top: 2rem;
+  font-family: var(--ifm-font-family-monospace, monospace);
+  font-size: 0.8rem;
+  color: rgba(255, 255, 255, 0.2);
+  letter-spacing: 0.1em;
+  font-style: italic;
+}
+
+[data-theme='light'] .punchline {
+  color: rgba(0, 0, 0, 0.2);
+}

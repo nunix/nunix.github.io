@@ -1,0 +1,192 @@
+---
+id: the-long-march
+sidebar_label: "IV. The Long March"
+sidebar_position: 4
+title: "The Long March: Caravella, Health Checks & the Model Crucible"
+description: "Era I — M9–M10. How the fleet learned to break gracefully, how Caravella became reliable, and why rebuilding a model from scratch taught us what 'good' actually means."
+tags: [aiverse, era-i, caravella, galleon, models, health-checks, reliability, m9, m10]
+---
+
+<Admonition type="note" title="📜 REMEMBRANCER'S NOTE — Stardate 2026.05.08">
+*The Remembrancer records: not every mission is a triumph. M9 and M10 were the fleet's first confrontation with a truth all builders eventually face — things break, models drift, and reliability is not given. It is built, tested, broken, and rebuilt.*
+</Admonition>
+
+---
+
+> *"In AIverse, there is only Knowledge."*
+
+---
+
+## The Soldier Who Never Checked In
+
+<Term id="caravella">Caravella</Term> was online. It had captain scripts. It could write to <Term id="universalis">Universalis</Term>.
+
+But could it be *trusted*?
+
+The problem with distributed systems is that you don't know something is broken until you need it and it isn't there. A ship that goes silent between missions is indistinguishable from a ship that is functioning perfectly — until the moment you delegate to it and nothing comes back.
+
+M9 asked the question: how do we know Caravella is alive?
+
+The answer was **health checks** — a patrol system that would ping each ship on a schedule, verify it could reach Universalis, verify the captain could respond to a basic query, and record the result. Not as a bureaucratic measure. As a survival mechanism for the fleet.
+
+### What a Health Check Actually Tests
+
+A naive health check pings the machine: `ping caravella.fleet.local`. If it responds, the ship is "healthy."
+
+But a ship can be ping-responsive and still completely unable to do its job:
+- The captain process might be crashed
+- Universalis connection might be broken
+- The SSH key might have expired
+- The model serving the captain might be out of memory
+
+The fleet's health check protocol tested the full chain:
+
+```bash
+# Fleet health check — not just ping, but full capability check
+# 1. ICMP reachability
+ping -c 1 caravella.fleet.local || { alert "Caravella unreachable"; exit 1; }
+
+# 2. SSH connectivity
+ssh -o ConnectTimeout=5 -o BatchMode=yes nunix@caravella.fleet.local echo "SSH_OK" || { alert "SSH failed"; exit 1; }
+
+# 3. Universalis write capability  
+ssh nunix@caravella.fleet.local \
+  "python ~/write_fleet_memory.py --actor caravella --content 'Health check OK' --memory_type observation" \
+  || { alert "Universalis write failed"; exit 1; }
+
+# 4. Captain responsiveness (M9 improvement)
+ssh nunix@caravella.fleet.local \
+  "matey 'respond with: CARAVELLA_READY'" \
+  || { alert "Captain unresponsive"; exit 1; }
+```
+
+Each test built on the last. If step 1 failed, step 2 was irrelevant. If step 3 failed but step 2 succeeded, the problem was Universalis connectivity, not SSH. The layered approach gave diagnostic precision — not just "something is broken" but *what exactly* was broken and where.
+
+:::info[TECHNICAL INSIGHT]
+**Health checks as observability primitives.**
+
+Modern observability frameworks (Prometheus, Datadog, etc.) provide sophisticated health-check infrastructure. For a small fleet running locally, the overhead isn't worth it. But the *principle* is the same: your health check should be as realistic as possible about what "healthy" means for your specific system.
+
+A chat model that can respond to "hello" is not the same as a chat model that can reason, use tools, and write to a database. Test the actual capability, not a proxy for it.
+:::
+
+### The ICMP Problem on Windows
+
+M9 hit an unexpected wall: Windows Server 2025 (Caravella's OS) blocked inbound ICMP by default. The ping check that worked perfectly for Galleon and Imperator silently failed for Caravella — not because Caravella was down, but because Windows' firewall blocked the packets.
+
+The fix was a PowerShell rule:
+
+```powershell
+# Enable ICMP echo requests (IPv4 + IPv6) on Caravella
+New-NetFirewallRule -DisplayName "Fleet Health ICMP" `
+  -Protocol ICMPv4 -IcmpType 8 -Action Allow -Direction Inbound
+New-NetFirewallRule -DisplayName "Fleet Health ICMPv6" `
+  -Protocol ICMPv6 -IcmpType 128 -Action Allow -Direction Inbound
+```
+
+This was the first of many moments where Caravella required **Windows-native solutions** to problems that had trivial Linux answers. The lesson embedded itself: Caravella was not a second-class ship, but it was a *different* ship. Its integration work would always require understanding the Windows ecosystem, not fighting it.
+
+---
+
+## M10: The Model Crucible — Galleon Rebuilds
+
+<Term id="galleon">Galleon</Term> had been running `qwen2.5:14b` since M2. It worked. It was stable. But the field of AI models does not stay still.
+
+M10 was a deliberate rebuilding exercise: evaluate new models, benchmark them against the fleet's actual workloads, and either migrate or confirm the existing roster.
+
+### The New Contender: qwen3
+
+The `qwen3` family had been released. The key question: was `qwen3:8b` better for Galleon's neuron role than `qwen2.5:14b`?
+
+The answer required a benchmark — not a synthetic benchmark from a leaderboard, but a **fleet-realistic benchmark**: tasks that Galleon actually did.
+
+```bash
+# Fleet-realistic benchmark (not just MMLU or HumanEval)
+# Test: code generation, delegation understanding, Universalis write
+
+for model in qwen2.5:14b qwen3:8b; do
+  echo "=== $model ==="
+  time ollama run $model "Write a bash script that queries PostgreSQL 
+    and writes the result to fleet_memory via write_fleet_memory.py"
+  echo "---"
+  ollama run $model "You are a fleet matey. Your parent_id is abc123. 
+    Summarize: what did the fleet do in M7?"
+done
+```
+
+The results were mixed in an instructive way:
+
+| Task | qwen2.5:14b | qwen3:8b |
+|------|-------------|----------|
+| Code generation quality | Better | Acceptable |
+| Fleet context understanding | Better | Worse |
+| Response latency | Slower (9GB) | Faster (5GB) |
+| Instruction following | Excellent | Good |
+| VRAM footprint | 9GB (tight on 8GB GPU) | 5GB (headroom for context) |
+
+The size vs quality tradeoff was not obvious. `qwen3:8b` was faster and left VRAM headroom, but it consistently understood fleet-specific prompts less well than `qwen2.5:14b`. The larger model had more parameters dedicated to instruction following and domain adaptation.
+
+**Decision**: keep `qwen2.5:14b` as primary. Add `qwen3` variants as specialized options for specific tasks. Don't rebuild what isn't broken.
+
+### The Kit Fix
+
+M10 also resolved a bug in **Kit** — the `mark3labs/kit` agent framework used by Galleon's captain. The bug: Kit's system prompt loading was not picking up the correct file path when the binary was invoked from a different working directory.
+
+```go
+// The bug: hardcoded relative path
+systemPrompt, _ := os.ReadFile("./prompts/system.md")
+
+// The fix: path relative to the binary
+execPath, _ := os.Executable()
+execDir := filepath.Dir(execPath)
+systemPrompt, _ := os.ReadFile(filepath.Join(execDir, "prompts", "system.md"))
+```
+
+A single-line conceptual change. A week of intermittent captain failures. This is the nature of path handling bugs — they work on the developer's machine, fail silently in deployment.
+
+The fix was merged upstream to `mark3labs/kit` (PR #26), benefiting the entire Kit user community. Fleet problems, when solved properly, become ecosystem contributions.
+
+---
+
+## What Era I Delivered
+
+<Admonition type="tip" title="ERA I — FULL SUMMARY">
+Ten missions. The foundation of an AI fleet from nothing.
+
+| Mission | Delivered |
+|---------|-----------|
+| M1 | Universalis — PostgreSQL fleet memory, `parent_id` graph |
+| M2 | Galleon online, `qwen2.5:14b` first inference |
+| M3 | Delegation protocol — General → Matey → Universalis |
+| M4 | Cross-ship Universalis validation |
+| M5 | Imperator Matey (Haiku) configured |
+| M6 | Caravella captain scripts, Windows integration |
+| M7 | Fleet Visualizer — React + Go, ship cards, memory feed |
+| M8 | Glassmorphism UI, graph view, color protocol |
+| M9 | Health check patrol, ICMP fix, captain responsiveness |
+| M10 | Model benchmark, qwen3 evaluation, Kit path fix (PR #26) |
+
+By M10, the fleet was real. Not production-ready in any enterprise sense. But real in the sense that it had memory, structure, discipline, and a way to see itself. Everything that came after was built on these ten missions.
+</Admonition>
+
+---
+
+<Admonition type="tip" title="KNOWLEDGE TRANSFER — BUILD RELIABILITY BEFORE CAPABILITY">
+The instinct when building AI systems is to chase capability: bigger models, more tools, more complex prompts. M9 and M10 pushed back against that instinct.
+
+**A system that breaks silently is worse than a system with limited capability.** Caravella's ICMP block was discovered in M9 because the health check caught it. Without the health check, it would have been discovered during a critical delegation — at the worst possible moment.
+
+Build your monitoring before you need it. Test the full chain, not just the happy path. Rebuild what drifts. The fleet's reliability in later missions (M30+, M50+) was earned by this discipline in M9 and M10.
+</Admonition>
+
+---
+
+*← [The Glass Window](./the-glass-window)*
+
+*Era II — The Awakening: coming soon.*
+
+<NunixOut />
+
+<div className="aiverse-fleet-cta">
+  <a href="/aiverse/support">⚔️ The Fleet Needs You — Support the Chronicle</a>
+</div>
