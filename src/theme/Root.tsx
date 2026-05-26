@@ -327,6 +327,9 @@ export default function Root({ children }: { children: React.ReactNode }) {
               <span className="status-node">
                 <ZenToggle />
               </span>
+              <a href="/aiverse/support" className="status-fleet-cta" title="Support the Chronicle">
+                ⚔️ FLEET NEEDS YOU
+              </a>
             </div>
           )}
         </div>

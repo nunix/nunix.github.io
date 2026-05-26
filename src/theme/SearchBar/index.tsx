@@ -31,8 +31,9 @@ export default function SearchBar() {
     return () => document.removeEventListener("keydown", handleKeyDown);
   }, []);
 
-  // 3. PAGEFIND INITIALIZATION
+  // 3. PAGEFIND INITIALIZATION (build only — assets not present in dev mode)
   useEffect(() => {
+    if (process.env.NODE_ENV !== 'production') return;
     if (document.querySelector("#pagefind-script")) return;
 
     const script = document.createElement("script");

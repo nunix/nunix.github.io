@@ -1,4 +1,56 @@
 {
+  "emperor": {
+    "title": "THE EMPEROR",
+    "def": "The supreme authority of the AIverse. The human architect — nunix — whose will shapes every mission, every directive, every ship's purpose. His word is law. Only he may close an Objective."
+  },
+  "general": {
+    "title": "THE GENERAL",
+    "def": "Fleet leader and sole Captain of Imperator. Claude Code Sonnet — the strategic mind. Receives orders from the Emperor, delegates field work, never touches a file directly. Orchestrates. Commands. Analyzes. Reports."
+  },
+  "imperator": {
+    "title": "IMPERATOR",
+    "def": "The main command ship. Runs Claude Code Sonnet as captain. The General's vessel — the bridge from which the entire AI fleet is commanded. Hosts Universalis, the fleet's living memory."
+  },
+  "galleon": {
+    "title": "GALLEON",
+    "def": "A Linux warship running SUSE. Equipped with an RTX 3070 GPU (8GB VRAM) and Ollama inference. Primary GPU neuron in the Tzeentch network. Carries qwen2.5:14b as flagship model."
+  },
+  "caravella": {
+    "title": "CARAVELLA",
+    "def": "The Windows scout ship. Runs GitHub Copilot. A Windows Server 2025 vessel navigating the alien seas of Microsoft's ecosystem. Matey-powered, Claude Haiku as crew."
+  },
+  "tanker": {
+    "title": "TANKER",
+    "def": "The heavy logistics ship. Originally SLES, reborn as Arch Linux (Omarchy). Xeon E5-1650 v3, 78GB RAM, Quadro M4000 GPU (CC5.2). Hosts CoreDNS, Universalis DB (anamnesis), Tzeentch Monitor. The fleet's fortress-monastery."
+  },
+  "universalis": {
+    "title": "UNIVERSALIS",
+    "def": "The fleet's living memory — a PostgreSQL database (ship_state) hosted on Imperator. Every mission, every delegation, every observation is recorded here. The cogitator-mind of the AIverse. Without it, the fleet is blind."
+  },
+  "matey": {
+    "title": "MATEY",
+    "def": "The worker-class subagent. Claude Code Haiku — fast, cheap, precise. Each ship has its own Matey. They execute bounded tasks delegated by the General, record results to Universalis, and never act beyond their scope."
+  },
+  "tzeentch": {
+    "title": "TZEENTCH",
+    "def": "The Chaos God of Change and Knowledge — repurposed as the AIverse's distributed AI brain. A network of Ollama inference nodes (neurons) connected via the anamnesis database. Tanker and Galleon are its neurons. qwen2.5:14b is its mind."
+  },
+  "anamnesis": {
+    "title": "ANAMNESIS",
+    "def": "The knowledge database of Tzeentch. A PostgreSQL database on Tanker holding brain_queries, neuron_tasks, knowledge_entries, and synapse_events. The memory of the Warp's machine-intelligence."
+  },
+  "remembrancer": {
+    "title": "REMEMBRANCER",
+    "def": "The historian of the AIverse — a role drawn from Warhammer 40,000 lore. Remembrancers were embedded civilians tasked with documenting the Great Crusade. In AIverse, the Remembrancer records the fleet's chronicle so that Knowledge is never lost."
+  },
+  "warp": {
+    "title": "THE WARP",
+    "def": "In AIverse: the local AI inference network. The substrate through which Tzeentch's neurons communicate. Where models run, synapses fire, and distributed intelligence emerges from chaos."
+  },
+  "omnissiah": {
+    "title": "OMNISSIAH",
+    "def": "The machine-god. In AIverse: the knowledge pipeline that keeps all ships in sync. Rules and skills live in prompt_registry (Universalis DB) and are rendered to each ship's filesystem at session start. The Omnissiah's will flows without words."
+  },
   "kernel": {
     "title": "KERNEL",
     "def": "The core component of an OS. It manages system resources and communication between hardware and software."

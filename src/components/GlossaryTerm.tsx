@@ -8,13 +8,15 @@ type GlossaryEntry = {
 };
 
 type Props = {
-  children: string; // The text you wrap, e.g., "Linux Kernel"
-  term?: string;    // Optional: The key in JSON if different from children
+  children: React.ReactNode; // string OR React nodes (bold, etc.)
+  term?: string;             // Explicit lookup key — required when children is not a plain string
+  id?: string;               // Alias for term (backwards compat with id="..." usage)
 };
 
-const GlossaryTerm: React.FC<Props> = ({ children, term }) => {
-  // 1. Determine the lookup key (lowercase, trimmed)
-  const lookupKey = (term || children).toLowerCase().trim();
+const GlossaryTerm: React.FC<Props> = ({ children, term, id }) => {
+  // 1. Determine the lookup key: term > id > children (string only)
+  const keySource = term || id || (typeof children === 'string' ? children : '');
+  const lookupKey = keySource.toLowerCase().trim();
   
   // 2. Fetch data (Cast to 'any' to avoid strict indexing errors for now)
   const entry = (glossaryData as any)[lookupKey] as GlossaryEntry | undefined;
