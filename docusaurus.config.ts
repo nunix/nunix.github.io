@@ -86,29 +86,27 @@ const config: Config = {
         srcDark: 'img/nunix-banner.png',
       },
       items: [
+        // AIverse — simple sidebar link (not dropdown)
+        { type: 'docSidebar', sidebarId: 'aiverse', position: 'left', label: '📖 AIverse' },
+        // Eras — direct sidebar items
+        { type: 'docSidebar', sidebarId: 'era_i',   position: 'left', label: '⚡ Era I' },
+        { type: 'docSidebar', sidebarId: 'era_ii',  position: 'left', label: '🌅 Era II' },
+        { type: 'docSidebar', sidebarId: 'era_iii', position: 'left', label: '👁️ Era III' },
+        { type: 'docSidebar', sidebarId: 'era_iv',  position: 'left', label: '🌀 Era IV' },
+        { type: 'docSidebar', sidebarId: 'era_v',   position: 'left', label: '🔥 Era V' },
+        { type: 'docSidebar', sidebarId: 'era_vi',  position: 'left', label: '∞ Era VI' },
+        // Old Topics — dropdown with type: 'doc' (docSidebar not valid inside dropdown)
         {
-          type: 'docSidebar',
-          sidebarId: 'tech', // LINKS TO: sidebars.ts -> tech
-          position: 'left',
-          label: '🛠️ Engineering Deck', 
-        },
-        {
-          type: 'docSidebar',
-          sidebarId: 'log', // LINKS TO: sidebars.ts -> log
-          position: 'left',
-          label: '📓 Captain\'s Log',
-        },
-        {
-          type: 'docSidebar',
-          sidebarId: 'archive', // LINKS TO: sidebars.ts -> archive
-          position: 'left',
-          label: '📂 WSL.dev Archive',
-        },
-        {
-          href: 'https://github.com/nunix',
-          label: 'GitHub',
+          type: 'dropdown',
+          label: 'Old Topics',
           position: 'right',
+          items: [
+            { type: 'doc', docId: 'tech/local-ai-rocm-journey',                            label: '🛠️ Engineering Deck' },
+            { type: 'doc', docId: 'log/nunix-alpha-log',                                   label: '📓 Captain\'s Log' },
+            { type: 'doc', docId: 'archive/win10-docker-hybrid-swarm-on-the-desktop',      label: '📂 WSL.dev Archive' },
+          ],
         },
+        { href: 'https://github.com/nunix', label: 'GitHub', position: 'right' },
       ],
     },
     tableOfContents: {

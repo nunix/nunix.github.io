@@ -7,20 +7,20 @@ const InodeCounter: React.FC = () => {
   
   // FIX: Normalize the path by removing any trailing slash to prevent mismatches on refresh
   const currentPath = location.pathname.replace(/\/$/, '');
-  const isTelemetryPage = currentPath === '/telemetry-test';
+  const isCosmosPage = currentPath === '/cosmos';
 
   return (
     <Link
-      to={isTelemetryPage ? '/' : '/telemetry-test'}
+      to={isCosmosPage ? '/' : '/cosmos'}
       className="zen-mode-trigger"
-      title={isTelemetryPage ? "Return to Command Center" : "Open Network Intelligence Console"}
-      style={{ 
-        textDecoration: 'none', 
-        display: 'inline-flex', 
-        alignItems: 'center' 
+      title={isCosmosPage ? "Return to AIverse" : "Open Cosmic Map"}
+      style={{
+        textDecoration: 'none',
+        display: 'inline-flex',
+        alignItems: 'center'
       }}
     >
-      {isTelemetryPage ? '[ MAIN_DECK ]' : '[ TELEMETRY ]'}
+      {isCosmosPage ? '[ HOME ]' : '[ MAP ]'}
     </Link>
   );
 };

@@ -115,13 +115,14 @@ html[data-theme="light"] .navbar::before {
 /* --- NAV ITEMS --- */
 .navbar__brand, .navbar__item, .navbar__link {
   position: relative;
-  overflow: hidden;
   transition: all 0.2s ease-out;
-  border-radius: 4px; 
+  border-radius: 4px;
   margin: 0 4px;
   padding: 0.4rem 0.8rem !important;
   font-weight: 500 !important;
 }
+/* Dropdown containers must never clip their submenu */
+.navbar__item.dropdown { overflow: visible !important; }
 
 /* 1. ACTIVE STATE (Green Pulse) */
 .navbar__link--active {
@@ -132,7 +133,8 @@ html[data-theme="light"] .navbar::before {
 }
 
 /* 2. HOVER STATE (Generic Items -> Neon Blue) */
-.navbar__item:not(.navbar__link--active):hover, 
+/* Exclude .dropdown wrapper div — it's a container, not the clickable link */
+.navbar__item:not(.navbar__link--active):not(.dropdown):hover,
 .navbar__link:not(.navbar__link--active):hover {
   color: var(--neon-blue) !important;
   background: rgba(0, 127, 255, 0.08) !important;
@@ -1725,4 +1727,187 @@ html[data-theme="light"] .search-key {
 
 .navbar__search:focus-within .search-shortcut-hint {
   opacity: 0; transform: translateY(-50%) translateX(10px);
+}
+
+/* ═══════════════════════════════════════════════════ */
+/*  AIVERSE — Sidebar era stubs (disabled state)       */
+/* ═══════════════════════════════════════════════════ */
+
+.sidebar-era-stub-wrapper {
+  padding: 0 !important;
+  margin: 2px 0 !important;
+}
+
+.sidebar-era-stub {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  border-radius: 6px;
+  border-left: 2px solid rgba(255, 255, 255, 0.06);
+  background: rgba(255, 255, 255, 0.02);
+  cursor: default;
+}
+
+.sidebar-era-icon {
+  font-size: 0.85rem;
+  flex-shrink: 0;
+  opacity: 0.5;
+}
+
+.sidebar-era-text {
+  flex: 1;
+  font-size: 0.75rem;
+  color: rgba(255, 255, 255, 0.35);
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+
+[data-theme='light'] .sidebar-era-text {
+  color: rgba(0, 0, 0, 0.35);
+}
+
+.sidebar-era-range {
+  display: block;
+  font-size: 0.6rem;
+  font-family: var(--ifm-font-family-monospace, monospace);
+  color: rgba(255, 255, 255, 0.2);
+  letter-spacing: 0.05em;
+}
+
+[data-theme='light'] .sidebar-era-range {
+  color: rgba(0, 0, 0, 0.2);
+}
+
+.sidebar-era-badge {
+  font-size: 0.52rem;
+  font-family: var(--ifm-font-family-monospace, monospace);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: rgba(255, 255, 255, 0.2);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  padding: 1px 5px;
+  border-radius: 3px;
+  flex-shrink: 0;
+}
+
+.sidebar-era-badge-live {
+  color: var(--ifm-color-primary);
+  border-color: rgba(46, 133, 85, 0.3);
+}
+
+.sidebar-era-warp .sidebar-era-text {
+  color: rgba(171, 71, 188, 0.5);
+}
+
+.sidebar-era-live .sidebar-era-text {
+  color: rgba(102, 187, 106, 0.5);
+}
+
+/* ── Fleet Needs You sidebar link ── */
+.sidebar-support-link {
+  display: block;
+  font-size: 0.72rem;
+  font-family: var(--ifm-font-family-monospace, monospace);
+  color: var(--ifm-color-primary) !important;
+  padding: 8px 12px;
+  margin-top: 8px;
+  border-top: 1px solid rgba(255, 255, 255, 0.06);
+  text-decoration: none !important;
+  opacity: 0.7;
+  transition: opacity 0.15s;
+}
+.sidebar-support-link:hover { opacity: 1; }
+
+/* ── Post CTA footer link ── */
+.aiverse-fleet-cta {
+  margin-top: 2.5rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid rgba(255, 255, 255, 0.06);
+  text-align: right;
+}
+.aiverse-fleet-cta a {
+  font-family: var(--ifm-font-family-monospace, monospace);
+  font-size: 0.78rem;
+  color: var(--ifm-color-primary);
+  text-decoration: none;
+  opacity: 0.65;
+  transition: opacity 0.15s;
+}
+.aiverse-fleet-cta a:hover { opacity: 1; }
+
+[data-theme='light'] .sidebar-era-stub {
+  border-left-color: rgba(0, 0, 0, 0.06);
+  background: rgba(0, 0, 0, 0.02);
+}
+[data-theme='light'] .sidebar-era-badge {
+  color: rgba(0, 0, 0, 0.25);
+  border-color: rgba(0, 0, 0, 0.12);
+}
+[data-theme='light'] .sidebar-support-link {
+  border-top-color: rgba(0, 0, 0, 0.06);
+}
+[data-theme='light'] .aiverse-fleet-cta {
+  border-top-color: rgba(0, 0, 0, 0.06);
+}
+
+/* ═══════════════════════════════════════════════════ */
+/*  AIVERSE — Flat era sidebar header (non-collapsible) */
+/* ═══════════════════════════════════════════════════ */
+
+.sidebar-era-header {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-family: var(--ifm-font-family-monospace, monospace);
+  font-size: 0.7rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--ifm-color-primary);
+  padding: 10px 12px 6px;
+  border-bottom: 1px solid rgba(255,255,255,0.06);
+  margin-bottom: 4px;
+  pointer-events: none;
+  user-select: none;
+}
+[data-theme='light'] .sidebar-era-header {
+  border-bottom-color: rgba(0,0,0,0.06);
+}
+
+.sidebar-era-header-icon {
+  font-size: 0.85rem;
+}
+
+.sidebar-era-header-range {
+  margin-left: auto;
+  font-size: 0.55rem;
+  font-weight: 400;
+  color: rgba(255,255,255,0.3);
+  letter-spacing: 0.04em;
+}
+[data-theme='light'] .sidebar-era-header-range {
+  color: rgba(0,0,0,0.3);
+}
+
+/* ── Status bar Fleet CTA link ── */
+.status-fleet-cta {
+  font-family: var(--ifm-font-family-monospace, monospace);
+  font-size: 0.6rem;
+  color: var(--ifm-color-primary);
+  text-decoration: none !important;
+  letter-spacing: 0.05em;
+  opacity: 0.65;
+  margin-left: 8px;
+  padding: 1px 6px;
+  border: 1px solid rgba(46, 133, 85, 0.25);
+  border-radius: 3px;
+  transition: opacity 0.2s, border-color 0.2s;
+  white-space: nowrap;
+}
+.status-fleet-cta:hover {
+  opacity: 1;
+  border-color: var(--ifm-color-primary);
+  color: var(--ifm-color-primary);
 }
