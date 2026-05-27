@@ -28,6 +28,7 @@ function safeOrbitRadius(era: AiverseEra): number {
 
 // Orbit start angle: orient so the LAST post node faces the next era in sequence
 function orbitStartAngle(era: AiverseEra, nextEra: AiverseEra | null): number {
+  if (era.postStartAngle !== undefined) return era.postStartAngle;
   if (!nextEra || era.posts.length === 0) return -Math.PI / 2;
   const c = toSVG(era.position.x, era.position.y);
   const nc = toSVG(nextEra.position.x, nextEra.position.y);
@@ -40,7 +41,8 @@ function orbitStartAngle(era: AiverseEra, nextEra: AiverseEra | null): number {
 function postSVGPos(era: AiverseEra, idx: number, startAngle: number) {
   const c = toSVG(era.position.x, era.position.y);
   const orbitR = safeOrbitRadius(era);
-  const angle = startAngle + (idx / era.posts.length) * 2 * Math.PI;
+  const dir = era.postOrbitDirection ?? 1;
+  const angle = startAngle + dir * (idx / era.posts.length) * 2 * Math.PI;
   return { x: c.x + orbitR * Math.cos(angle), y: c.y + orbitR * Math.sin(angle) };
 }
 

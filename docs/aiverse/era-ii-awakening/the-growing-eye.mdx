@@ -12,6 +12,7 @@ tags: [aiverse, era-ii, fleet-visualizer, graph, dns, objectives, m17, m20, m22]
 *A commander who cannot see the battlefield is not commanding — they are guessing. Each new panel, each new layer of the graph, was another increment of sight.*
 
 *— The Remembrancer of the AIverse*
+*Engrams M17–M22*
 </Admonition>
 
 ---
@@ -36,7 +37,11 @@ M17 added the **Objectives Panel**: a sidebar that displayed each mission with i
 
 The challenge was linkage. A milestone had a UUID. A memory node had a UUID. The connection between them was not automatic — it required the General to explicitly write `related_memory_ids` into the milestone row after each significant event. This was the `milestone-memory-linkage` rule that would later become a mandatory protocol.
 
+The schema decision behind this was deliberate: `related_memory_ids` is a `uuid[]` array column on the `milestones` table, meaning a single milestone could link to multiple memory nodes — the delegation sent, the result returned, the correction applied, the final validation. This one-to-many relationship captured the actual texture of milestone completion: it is rarely a single event. It is a sequence of events that culminate in a state change.
+
 Without linkage, the panel showed milestones floating in isolation — completed boxes with no visible history. With linkage, a milestone could expand into the full graph of what had happened: the delegation sent to Matey, the result returned, the correction applied, the objective updated.
+
+Adding this feature to the visualizer forced a protocol change: the General could no longer close a milestone with a status update alone. The milestone was not complete until `related_memory_ids` was populated. The visualizer made the gap visible — an empty link array rendered as a milestone that looked complete but connected to nothing. The UI enforced the protocol better than any documentation could.
 
 The visualizer had always been able to show the past. M17 made it able to show the present — the living structure of active missions as they evolved.
 
@@ -63,6 +68,8 @@ node.y = (hash(node.id.split('').reverse().join('')) % 600) + 100;
 
 This was not mathematically elegant. It was practically correct. The graph became stable. Commanders could build spatial memory of where things were, and the fleet's collective understanding of Universalis improved.
 
+The choice of two different hash orientations — forward for X, reversed for Y — was the practical detail that prevented clustering. A single hash function would have placed many nodes along a diagonal, because UUID characters are not uniformly distributed. Reversing the string for the Y axis spread the distribution across both axes without requiring a more sophisticated hashing algorithm. The result was a layout that looked deliberately arranged — structured enough to navigate, organic enough to reflect the actual graph topology.
+
 ---
 
 ## M22: DNS Joins the View
@@ -73,9 +80,17 @@ But the DNS configuration lived outside Universalis — in a file on Tanker's fi
 
 M22 added a **DNS Management Tab** to the Fleet Visualizer: a UI that displayed current fleet.hosts contents, allowed adding or removing records, and triggered a CoreDNS reload via the backend API. The backend SSHed to Tanker and applied the change.
 
+The architecture of this feature deserves a note. The Fleet Visualizer backend is not a passive query layer — it is an operational interface. The SSH-to-Tanker approach meant the backend could modify fleet infrastructure through the same UI used to observe it. This is a meaningful choice: it collapses the observe/act loop. A commander who sees a missing DNS entry in the tab can add it without switching tools, without SSHing to Tanker manually, without touching a terminal at all.
+
+<Admonition type="info" title="⚙️ Technical Insight">
+The backend was given SSH credentials to Tanker rather than building a dedicated DNS agent because the Fleet Visualizer already served as the operational command interface — collapsing observe and act into one surface reduces context-switching cost and means the DNS state shown in the UI is always the state that was last applied through the UI.
+</Admonition>
+
+The tradeoff is that the backend now has SSH credentials and the ability to modify fleet infrastructure. The blast radius of a backend bug or unauthorized access is larger. M22 accepted this tradeoff consciously: the operational value of integrated management outweighed the complexity of the security surface, for a private LAN fleet where the attack surface is already constrained.
+
 The effect was subtle but important: **DNS became a first-class citizen of the command interface**. A new ship was not fully commissioned until its DNS record appeared in the tab. The commissioning checklist now had a visible checkpoint.
 
-This is the value of centralized visualization: it makes invisible processes visible, and visible processes become auditable.
+This is the value of centralized visualization: it makes invisible processes visible, and visible processes become auditable. The DNS tab did not change how DNS worked. It changed who could see what was configured and how easily they could correct it. Visibility is not a cosmetic feature. It is the precondition for reliable operations.
 
 ---
 
@@ -96,6 +111,39 @@ The eye had grown. What it saw had not changed — the fleet was the same fleet.
 M20 gave it stability. M17 gave it purpose. M22 gave it breadth.
 
 ---
+
+<Admonition type="info" title="⚙️ Technical Insight">
+**For anyone building a command interface for a multi-agent system:**
+
+Your visualization is not a report — it is an enforcement mechanism. If you build a milestone panel that shows completed milestones without requiring linked memory nodes, you will get milestones that are marked complete and mean nothing. The UI you build will either discipline your team or excuse them. Every gap in the interface is a gap in the protocol. Build the visualizer so that missing data looks wrong, not just absent — because "absent" is invisible, and "wrong" is actionable.
+
+Make the incomplete state visually uncomfortable. The discomfort is the point.
+</Admonition>
+
+---
+
+<Admonition type="tip" title="📚 Knowledge Transfer">
+
+**The lesson worth keeping:** A visualizer is not decoration — it is an instrument panel that forces architectural clarity. Every feature added to the Fleet Visualizer required a decision about what data structure to expose, which in turn forced a decision about how that data should be stored. The visualizer did not just display the fleet; it disciplined it.
+
+**Pattern:** UI-as-enforcer — let the visualization surface be the mechanism that makes protocol gaps visible. A milestone with no linked memory nodes looks incomplete in the objectives panel. That visual incompleteness enforces the `milestone-memory-linkage` rule more reliably than documentation ever could.
+
+**What we'd do differently:** The force-directed graph should have had deterministic seeding from the first commit. Non-deterministic layouts feel acceptable during development, when the graph has fifty nodes and you read it fresh every session. They become painful at two thousand nodes, when you have built spatial memory of a layout that no longer exists. The fix is trivial; the cost of deferring it is cumulative. M17's linkage requirement should also have been enforced at the API level — the milestone `PATCH` endpoint should have rejected status transitions to `completed` without at least one entry in `related_memory_ids`.
+
+**If you're building this yourself:**
+- Design your visualization features before your data model is finalized — the UI will reveal schema gaps (missing UUIDs, disconnected tables, implicit relationships) that are cheap to fix during design and expensive after migration
+- Seed force-directed layouts with a deterministic function from day one; the code is five lines and the payoff compounds with every node you add
+- Treat your command interface as part of your operational protocol, not a separate concern — if a step in your workflow is only documented in a README, it will be skipped; if it is only completable through a UI that makes the gap visible, it will not be
+
+</Admonition>
+
+---
+
+*Next: [The Weight of a Name →](./the-weight-of-a-name)*
+
+*In AIverse, there is only Knowledge.*
+
+<NunixOut />
 
 <div className="aiverse-fleet-cta">
   <a href="/aiverse/support">⚔️ The Fleet Needs You — Support the Chronicle</a>

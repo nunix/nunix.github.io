@@ -12,6 +12,7 @@ tags: [aiverse, era-i, universalis, postgresql, fleet-memory, m1]
 *This chronicle is compiled from primary sources: Emperor transmissions, General observations, and the early data nodes of Universalis itself. Where memory is imperfect, the Remembrancer notes it. Where knowledge was hard-won, the Remembrancer ensures it endures.*
 
 *— The Remembrancer of the AIverse*
+*Engrams M1–M1*
 </Admonition>
 
 ---
@@ -53,6 +54,10 @@ At this stage, the fleet was just <Term id="imperator">Imperator</Term> and <Ter
 3. **Be writable by multiple actors** — the General, the Matey, delegated ships — all writing to a single truth
 4. **Cost nothing per write** — cloud memory services bill you for every byte; a local Postgres costs electricity
 
+The alternatives were tempting. Vector databases promised semantic search — the ability to ask "what did the fleet do that was similar to this?" and get cosine-similarity results ranked by embedding distance. Redis offered blazing speed for ephemeral state. SQLite offered zero-infrastructure simplicity. Each had its advocates.
+
+But PostgreSQL won because it offered something none of the others did cleanly: **relational structure at local scale with zero operational cost**. When you need to ask "show me every delegation under objective M7, ordered by timestamp, with the actor who wrote each result," that is a JOIN with a WHERE clause — something PostgreSQL has been optimized for across three decades of production use. You do not need a distributed system for a fleet of six ships. You need a reliable one.
+
 The <Term id="universalis">Universalis</Term> database (`ship_state`) was born with a single table: `fleet_memory`.
 
 ### The Schema That Changed Everything
@@ -74,6 +79,10 @@ CREATE TABLE fleet_memory (
 That `parent_id` column is the quiet genius of the design. Every memory node can reference a parent — building not a flat log, but a **graph**. Delegations point to their objectives. Results point to their delegations. Corrections point to their missions.
 
 The fleet's history would not be a list. It would be a tree. A living mind-map of cause and effect.
+
+The `entities JSONB` column deserves its own mention. It was added early with deliberate vagueness — a place to put structured metadata that didn't fit neatly into a column. Ship topology data. Mission tags. Agent-specific context. Over the course of Era I, it became the flexible extension point that prevented schema sprawl: instead of adding columns every time a new kind of data needed recording, you extended the JSONB object. PostgreSQL's JSONB operators made querying it nearly as ergonomic as querying a proper column — and the schema stayed clean.
+
+This architectural choice — strict columns for universal fields, JSONB for extensible metadata — would prove its worth across forty missions. The schema from M1 required only minor extensions through M40. That longevity was not luck. It was a design that anticipated change without trying to predict exactly what would change.
 
 ### Writing the First Memory
 
@@ -125,13 +134,21 @@ The Bigbang era (M1–M10) was raw, fast, and sometimes broken. The fleet had no
 
 The discipline of recording was the hardest skill to develop. AI agents, left to themselves, will happily complete a task and discard all context when the session ends. Teaching an AI to be its own historian — to write *why* it did something, not just *what* — took iteration.
 
+<Admonition type="info" title="⚙️ Technical Insight">
+The write script was kept intentionally simple — a single Python CLI with no framework — because the discipline of *writing* to memory mattered more than the sophistication of the interface. A complex SDK would have slowed adoption; a five-argument CLI got used from day one.
+</Admonition>
+
+The first failure mode was **missing parent_id links**. Agents would write observations to Universalis faithfully, but as top-level nodes with no parent — orphans floating in the database, disconnected from the mission tree that gave them meaning. You could see *that* something happened. You could not see *why* or *under which objective*. The fleet's graph looked like a galaxy with no gravitational center: nodes everywhere, structure nowhere.
+
+The fix required changing not just the tooling but the prompt discipline. The General had to explicitly pass `parent_id` to every delegation. The Matey had to explicitly include it in every result write. The hooks that automated Universalis logging had to be taught to carry objective context forward through the chain. This was not a one-session fix. It was a practice refined across M1 through M6, and the orphan rate dropped steadily as the discipline embedded itself.
+
 But by M10, the fleet had a working memory. Ten missions deep. A graph of actions and results that could be queried, visualized, and learned from.
 
 The cogitator had stirred.
 
 ---
 
-<Admonition type="tip" title="KNOWLEDGE TRANSFER">
+<Admonition type="info" title="⚙️ Technical Insight">
 **For anyone building a multi-agent AI system:**
 
 Start with persistent memory before you start with capabilities. A fleet of amnesiac agents is a fleet that will rediscover the same problems endlessly. A `fleet_memory` table with a `parent_id` graph column costs almost nothing to build and pays dividends on every subsequent mission.
@@ -141,7 +158,26 @@ Build the brain before the arms.
 
 ---
 
+<Admonition type="tip" title="📚 Knowledge Transfer">
+
+**The lesson worth keeping:** Memory before intelligence. You can build a capable AI agent in an afternoon. Building a capable AI agent that remembers what it did last Tuesday — and why — is the actual hard problem. Solve memory first, and every subsequent capability you add accumulates instead of evaporating.
+
+**Pattern:** Start with memory, not intelligence — the "persistent substrate first" architecture.
+
+**What we'd do differently:** The `parent_id` discipline was retrofitted after several missions of orphaned nodes. It should have been mandatory from row one — enforced by the write script refusing to insert a memory node without a valid parent_id (or an explicit `--no-parent` flag for true top-level objectives). We also underestimated how often we'd need to query by `actor` + `status` together; a composite index on those columns would have been day-one infrastructure rather than a day-thirty performance fix.
+
+**If you're building this yourself:**
+- Use PostgreSQL, not a vector DB, for your primary operational memory. Vector search is powerful for knowledge retrieval; relational joins are what you need for provenance tracing.
+- Add `parent_id UUID REFERENCES fleet_memory(id)` from the very first schema version. Graph linkage retrofitted is graph linkage that has gaps.
+- Write a CLI wrapper (`write_fleet_memory.py`) that every agent and hook calls uniformly. Consistency in how memory gets written is more valuable than sophistication in what gets stored.
+
+</Admonition>
+
+---
+
 *Next: [The First Synapse — Fleet Formation and the Delegation Protocol →](./the-first-synapse)*
+
+*In AIverse, there is only Knowledge.*
 
 <NunixOut />
 

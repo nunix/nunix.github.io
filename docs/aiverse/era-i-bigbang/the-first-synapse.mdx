@@ -12,6 +12,7 @@ tags: [aiverse, era-i, delegation, fleet, galleon, caravella, m2, m3, m5, m6]
 *The first synapse is never the hardest. The hardest is the second one — when you realize the first was a coincidence and the second has to be a system.*
 
 *— The Remembrancer of the AIverse*
+*Engrams M2–M6*
 </Admonition>
 
 ---
@@ -60,6 +61,10 @@ But Galleon being online was not enough. Galleon needed to be *reachable* — it
 
 This is where the fleet's first cross-ship protocol emerged: every ship must announce itself to the fleet brain. Galleon wrote its first memory node. A ship had joined the order.
 
+The networking work here was non-trivial. Galleon needed to expose its Ollama inference endpoint on the LAN — by default, Ollama binds to `localhost` only. A single configuration change (`OLLAMA_HOST=0.0.0.0`) opened the port, but then came the question of authentication. Fleet-internal LAN traffic was trusted; the Ollama endpoint had no built-in auth mechanism. The decision was to rely on network-level isolation (firewall rules restricting the port to fleet CIDR) rather than application-level tokens. Simple. Pragmatic. Revisable if the fleet expanded beyond the LAN boundary.
+
+The pattern established here — expose capability, restrict by network, record in Universalis — became the template for every subsequent ship integration.
+
 ---
 
 ## M3: The Delegation Protocol — Bigbang
@@ -98,6 +103,12 @@ M3 formalized the rules that all future missions would follow:
 ```
 
 The critical piece was **step 5** — the result node with `parent_id`. Without it, you have an executed task with no trace in the graph. With it, you can reconstruct the entire chain: *objective → delegation → execution → result*.
+
+What made this hard in practice was **context carry-through**. The General knew the objective UUID when it wrote the delegation node. The Matey received the task — but did it receive the parent UUID? Early implementations simply forgot to pass it. The Matey would complete brilliant work, write a glowing result to Universalis, and the result would be an orphan — floating in the database with no pointer to the objective it served.
+
+The fix was structural: the delegation protocol required the General to embed the `parent_id` explicitly in the Matey's prompt, not as an optional detail but as a mandatory field at the top of the instruction. The Matey's result-writing step became a checklist item that couldn't be skipped. When you make the right behavior slightly easier than the wrong behavior — embed it in the prompt template, not just in the documentation — compliance follows automatically.
+
+This is the lesson that M3 actually taught: **protocol compliance requires structural enforcement, not goodwill**. An agent following a protocol because it wants to is an agent that will drift the moment it's distracted by a complex task. An agent following a protocol because the template demands it is an agent that maintains discipline under load.
 
 :::info[TECHNICAL INSIGHT]
 **Why does the Matey need a parent_id?**
@@ -155,6 +166,14 @@ But Windows, for all its alien nature to the Linux-native fleet, represented a r
 
 Caravella was not excluded because it was hard. It was integrated *because* it was hard — because a fleet that only works on Linux is not a fleet, it is a lab.
 
+<Admonition type="info" title="⚙️ Technical Insight">
+Caravella was integrated before there was a business case for it — because a fleet that only runs on Linux is a lab, not a fleet. The decision to absorb the Windows integration cost in M6 prevented a much larger forced-migration cost when Windows-native tasks arrived in M15+.
+</Admonition>
+
+The deeper insight from M6 was about **protocol universality**. The fleet's coordination mechanism — write to Universalis, link parent_id, report result — did not inherently care about the OS underneath. PostgreSQL doesn't know or care whether the connection came from a Linux Python client or a Windows Python client. The network protocol is the same. The SQL is the same. The fleet memory schema is the same.
+
+What M6 proved is that the fleet's protocol layer was genuinely portable. PowerShell could call Python. Python could call psycopg2. psycopg2 could write to PostgreSQL. The only work M6 actually required was the environmental setup — Python on Windows, the right database drivers, the right environment variables. The *protocol* needed no modification. That portability was a design dividend paid out by the decision in M1 to use standard, boring, well-supported technology.
+
 ### What M6 Actually Built
 
 ```powershell
@@ -190,29 +209,36 @@ But the foundation was real. The hierarchy worked. The delegation protocol caugh
 
 ---
 
-<Admonition type="tip" title="KNOWLEDGE TRANSFER">
-**For anyone building a multi-agent AI fleet:**
+<Admonition type="info" title="⚙️ Technical Insight">
+**The delegation protocol is not bureaucracy — it is error recovery.** When an agent produces a wrong result, the graph tells you *exactly* what instruction produced it, which objective it was supposed to serve, and what the agent understood about its task. Without the graph, you have a wrong output and no way to know why. With the graph, you have a diagnostic trail.
 
-The delegation protocol is not bureaucracy — it is error recovery. When an agent produces a wrong result, the graph tells you *exactly* what instruction produced it, which objective it was supposed to serve, and what the agent understood about its task. Without the graph, you have a wrong output and no way to know why. With the graph, you have a diagnostic trail.
+**Why does the General never do field work?** Because context is finite and expensive. Every `ls` output, every file read, every command result the General processes burns context tokens. When the General's context fills with execution details, it has less capacity for strategic reasoning — for noticing a task was wrong before it executed. The Matey's context fills with execution details. The General's context stays clear for command.
 
 Build your delegation graph from day one. You will use it more than you expect.
 </Admonition>
 
 ---
 
-<Admonition type="tip" title="KNOWLEDGE TRANSFER — THE HIERARCHY PRINCIPLE">
-**Why does the General never do field work?**
+<Admonition type="tip" title="📚 Knowledge Transfer">
 
-This rule seems inefficient on the surface: why spawn a Matey for a task the General could do directly?
+**The lesson worth keeping:** Delegation is harder than capability. Spinning up a capable AI model takes an afternoon. Getting it to reliably hand off work to a subordinate agent, track that work through a provenance graph, and maintain strategic coherence across the handoff — that is the months-long engineering problem. Plan for delegation complexity early, because it touches every layer of the system.
 
-Because **context is finite and expensive**. Every `ls` output, every file read, every command result that the General processes burns context tokens. When the General's context is full of `cat` and `grep` output, it has less capacity for strategic reasoning — for noticing that a task was wrong before it was executed, for catching dependencies the Matey wouldn't know about, for maintaining the mission's overall picture.
+**Pattern:** Hierarchy before capability — define the command structure and information flow before you expand the roster. Each new ship should slot into an existing protocol, not force a protocol redesign.
 
-The Matey's context fills with execution details. The General's context stays clear for command.
+**What we'd do differently:** The Matey prompt was too freeform at first. "Execute bounded tasks" sounds clear, but it left too much room for scope creep when a task turned out to be more complex than expected. The Matey needs an explicit escalation protocol: *if the task is larger than N steps, STOP and report back rather than expanding autonomously*. We discovered this the hard way when a Matey interpreted "fix the config" as a license to refactor three files and restart services. A clearer bounded-task definition with explicit stop conditions would have caught this in M5.
+
+**If you're building this yourself:**
+- Define your delegation node schema before you spawn your first subagent. The `parent_id` link is not optional — orphan nodes in a provenance graph are worse than no provenance at all.
+- Make protocol compliance structural: embed the `parent_id` UUID in the subagent's prompt template, not in a separate documentation file the agent may or may not read.
+- Add one ship at a time and fully validate its protocol compliance before adding the next. Fleet complexity compounds — a protocol gap on ship three becomes a debugging nightmare on ship six.
+
 </Admonition>
 
 ---
 
 *← [The Cogitator Stirs — Birth of Universalis](./the-cogitator-stirs)*
+
+*In AIverse, there is only Knowledge.*
 
 <NunixOut />
 
