@@ -13,6 +13,7 @@ import Admonition from '@theme/Admonition';
 *The true test of any system is not whether it works when everything is perfect. It is whether it survives the moment someone decides to find out what it cannot do.*
 
 *— The Remembrancer of the AIverse*
+*Engrams M11–M11*
 </Admonition>
 
 ---
@@ -37,13 +38,15 @@ M11 was the proving grounds — a deliberate campaign of stress and edge-case te
 
 Not all failures are dramatic. Some are quiet, which makes them worse.
 
-The first test was simple: write a memory, then retrieve it. This worked. The second test was more interesting: write memories in parallel from multiple actors, then verify the graph links were intact. This also worked — PostgreSQL's transaction model handled concurrent inserts without corruption.
+The first test was simple: write a memory, then retrieve it. This worked. The second test was more interesting: write memories in parallel from multiple actors, then verify the graph links were intact. This also worked — PostgreSQL's transaction model handled concurrent inserts without corruption. The MVCC model that underlies PostgreSQL means each transaction sees a snapshot of the database as it existed at the start of that transaction. No half-written rows. No partially committed edges. The graph received concurrent writes and remained consistent.
 
-The third test was where the cracks appeared.
+But "consistent" is not the same as "correct." The third test was where the cracks appeared.
 
 When an actor wrote a memory with a `parent_id` pointing to a node that did not yet exist, the database accepted the write without complaint. The constraint was either missing or deferred. The result was an orphan — a memory that claimed a parent, but pointed at nothing. Connected in intention, disconnected in reality. In graph terms: a dangling edge.
 
-This was not a catastrophic failure. It was something more dangerous: a **silent inconsistency**. The database looked healthy. Queries returned results. But the graph had holes in it that would only reveal themselves when someone tried to traverse the tree and fell through the floor.
+This scenario arose naturally in practice: Matey would complete a task and write its completion record before the General had written the parent delegation node. The sequence was legal from each actor's point of view — neither was doing anything wrong. But the write order produced a structural lie in the database. The graph claimed a relationship that did not exist.
+
+This was not a catastrophic failure. It was something more dangerous: a **silent inconsistency**. The database looked healthy. Queries returned results. But the graph had holes in it that would only reveal themselves when someone tried to traverse the tree and fell through the floor. The visualizer would render these dangling edges as disconnected clusters — nodes floating in space, belonging to no mission, linked to no outcome.
 
 ---
 
@@ -66,6 +69,14 @@ ALTER TABLE fleet_memory
 
 The `DEFERRABLE INITIALLY DEFERRED` clause was important: it allowed a transaction to insert a parent and child in any order, deferring the constraint check to commit time. Without it, the constraint would break legitimate write patterns — you cannot always write the parent before the child in a real-time system.
 
+<Admonition type="info" title="⚙️ Technical Insight">
+`DEFERRABLE INITIALLY DEFERRED` was chosen over a strict FK because Matey often writes its completion record before the General writes the parent delegation node — enforcing write-order in a multi-actor async system creates coordination overhead that defeats the purpose of distributed writes.
+</Admonition>
+
+Consider what the alternative looks like: a strict, non-deferrable FK constraint would require the parent to exist before any child can be written. In a single-actor system, that is manageable — the General writes the parent node, then the child. But in a multi-actor system operating asynchronously, enforcing strict ordering would require coordination overhead that defeats the purpose of distributed writes. The deferred approach is a deliberate trade: accept the complexity of constraint-at-commit in exchange for write-order freedom across actors.
+
+This kind of design decision is not obvious until you have already deployed the stricter version and watched it break. M11 found the problem in testing. M21 would find what M11 missed.
+
 ---
 
 ## The Multi-Actor Write Problem
@@ -82,6 +93,8 @@ Three things emerged from this discovery:
 
 These conventions were never formalized in a schema constraint. They lived in the write scripts and in documentation. This would later cause problems, but during Era II, the conventions held.
 
+The deeper lesson here was about the cost of loose typing in a system that would grow. At ten nodes, inconsistent actor names are a minor annoyance. At a hundred, they are a query problem — your aggregations by actor are wrong. At a thousand, they are an audit problem — you cannot confidently answer "who wrote this?" When M21 ran its cleanup audit, actor standardization accounted for a significant fraction of the manual corrections required. The convention should have been a `CHECK` constraint from the beginning. It was not, because the system was small when the decision was made and large when the cost was paid.
+
 ---
 
 ## What M11 Actually Was
@@ -94,7 +107,9 @@ The fleet would have been weaker without it. Universalis would have grown — as
 
 The difference between a fleet that knows its memory is reliable and a fleet that hopes its memory is reliable is not small. It is the difference between trust and optimism.
 
-Trust, as M25 would later formalize, is earned.
+There is a practical observation here for anyone building a system intended to outlive its initial scope: the best time to validate your data model is before the data volume makes retrospective fixes expensive. M11 was early enough that the constraint changes were low-risk — the table had hundreds of rows, not millions. The FK could be added cleanly. The actor values could be normalized by hand. By M21, the scale had grown enough that the cleanup required a careful campaign rather than a quick script. M11's value was not just finding bugs. It was finding them while fixing them was still cheap.
+
+Trust, as M25 would later formalize, is earned. But readiness — the confidence to operate at scale — is built. M11 built it.
 
 ---
 
@@ -114,6 +129,39 @@ The fleet moved on to bigger problems. But the Remembrancer notes what was estab
 The proving grounds had done their job.
 
 ---
+
+<Admonition type="info" title="⚙️ Technical Insight">
+**For anyone building a persistent data store for a multi-agent system:**
+
+If you skip adversarial testing before your data volume grows, you will spend a future mission doing what M21 did — excavating hundreds of orphaned nodes, normalizing actor names by hand, and discovering that the constraint you should have added at row one now requires a careful migration at row ten thousand. The silent failures will not announce themselves. You will find them only when the graph is traversed and falls through the floor.
+
+Test the edges before you need them. Loud failures are gifts; they tell you exactly what broke. Silence is the enemy.
+</Admonition>
+
+---
+
+<Admonition type="tip" title="📚 Knowledge Transfer">
+
+**The lesson worth keeping:** Silent corruption is more expensive than loud failure, because loud failures demand immediate attention while silent ones accumulate interest. The cost of finding a structural inconsistency compounds with every subsequent write that builds on the corrupted state.
+
+**Pattern:** Validate-before-scale — run deliberate adversarial tests against your data model before the data volume makes retrospective fixes painful. A FK constraint is trivial to add at 200 rows and invasive at 200,000.
+
+**What we'd do differently:** The actor field should have been a `CHECK` constraint from the first schema commit, not a convention documented in prose. The free-text approach seemed flexible; it was actually a deferred maintenance cost. Similarly, the deferred FK should have been in the initial `CREATE TABLE` — the write scripts were already written before the constraint existed, which meant the constraint was retroactive rather than foundational.
+
+**If you're building this yourself:**
+- Define your actor/source enum as a `CHECK` constraint at schema creation time — free-text actor fields produce normalization debt that grows with every new writer
+- Use `DEFERRABLE INITIALLY DEFERRED` for any FK that involves a parent-child pair written by different actors in any order
+- Schedule a data integrity audit before you hit the scale where automated cleanup becomes riskier than manual review — the right threshold is "before you'd be nervous running `UPDATE` without a `WHERE` clause"
+
+</Admonition>
+
+---
+
+*Next: [The Steel Bones →](./the-steel-bones)*
+
+*In AIverse, there is only Knowledge.*
+
+<NunixOut />
 
 <div className="aiverse-fleet-cta">
   <a href="/aiverse/support">⚔️ The Fleet Needs You — Support the Chronicle</a>

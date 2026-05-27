@@ -13,6 +13,7 @@ import Admonition from '@theme/Admonition';
 *A fleet without reliable communications is not a fleet — it is a collection of ships that happen to be near each other. DNS solved a problem the Emperor had been tolerating. Tanker solved a problem he hadn't yet encountered.*
 
 *— The Remembrancer of the AIverse*
+*Engrams M16–M19*
 </Admonition>
 
 ---
@@ -27,7 +28,9 @@ The fleet, in its early form, navigated by IP address.
 
 Every ship knew every other ship's IP. These were hardcoded into SSH configs, written into scripts, memorized by the captains who had to type them. When a ship changed IP — during a network reconfiguration, a DHCP renewal, a hardware move — every reference to that ship broke simultaneously. Silently, or with confusing error messages that blamed the wrong thing.
 
-This is not a software problem. It is an infrastructure problem. And like most infrastructure problems, it is invisible until the moment it is catastrophic.
+The Remembrancer notes what "every reference broke" actually means in practice: SSH aliases fail. Universalis write scripts fail because they cannot reach the database host. Patrol scripts that verify ship health by attempting a connection report a ship as dead when it has simply moved addresses. A fleet-wide outage caused by a single DHCP lease renewal is not a hypothetical failure mode — it is what happens when addressing is not abstracted from naming.
+
+This is not a software problem. It is an infrastructure problem. And like most infrastructure problems, it is invisible until the moment it is catastrophic. The fleet had been operating on borrowed time: as long as the IPs stayed stable, nothing broke. But stability is not a guarantee, and borrowed time has a maturity date.
 
 M16 fixed it.
 
@@ -67,9 +70,11 @@ Then came the harder part: making every ship use this DNS.
 **Galleon** (openSUSE): same `systemd-resolved` approach.  
 **Caravella** (Windows Server 2025): `Set-DnsClientServerAddress` pointing to Tanker.
 
-Each ship required different commands. Each ship had different gotchas. Windows required a PowerShell one-liner. Linux required editing `resolved.conf` and restarting the daemon. But the result was the same: every ship could now address every other ship by name.
+Each ship required different commands. Each ship had different gotchas. Windows required a PowerShell one-liner. Linux required editing `resolved.conf` and restarting the daemon. The Linux gotcha was that `systemd-resolved` caches aggressively — editing the config and restarting the daemon was insufficient if the old records were already cached; `resolvectl flush-caches` was the incantation that actually cleared them. The Windows gotcha was adapter specificity: `Set-DnsClientServerAddress` targets a specific network adapter by name, which meant enumerating adapters first and confirming which one served the LAN interface.
 
-The first successful `ping imperator.fleet.local` from Caravella was logged in Universalis as an observation. A small triumph. The kind of thing that would have been taken for granted two weeks later.
+But the result was the same: every ship could now address every other ship by name.
+
+The first successful `ping imperator.fleet.local` from Caravella was logged in Universalis as an observation. A small triumph. The kind of thing that would have been taken for granted two weeks later. But the Remembrancer preserves it, because this was the moment the fleet became a network in the intentional sense — not machines that happened to share a subnet, but named members of a domain who could reach each other by identity rather than location.
 
 ---
 
@@ -81,7 +86,11 @@ It joined as a blank machine: new hardware, no OS, waiting for the Emperor to de
 
 The fleet was intentionally heterogeneous. Different OS families, different update cadences, different security postures. This was not accidental. It reflected the Emperor's design principle: a fleet that only works on one OS is a fleet with a single point of failure.
 
-Tanker's initial role was infrastructure host: CoreDNS, and eventually the fleet's Kubernetes cluster (the Warp, which would come in Era III). For now, it was a reliable node with a stable IP and a functioning DNS service.
+<Admonition type="info" title="⚙️ Technical Insight">
+CoreDNS was deployed on Tanker rather than Imperator because the DNS server is a fleet-wide single point of failure — it needs to survive Imperator restarts and maintenance windows. Placing it on the most conservatively-updated, infrastructure-dedicated node separates concerns at the architecture level.
+</Admonition>
+
+Tanker's initial role was infrastructure host: CoreDNS, and eventually the fleet's Kubernetes cluster (the Warp, which would come in Era III). For now, it was a reliable node with a stable IP and a functioning DNS service. The SLE16 choice was deliberate on another axis too: it gave the fleet a ship with enterprise-grade support contracts and patch cadence — the kind of guarantees that matter when a ship is hosting shared infrastructure that all other ships depend on. If CoreDNS went down on Tanker, the entire fleet's name resolution broke. That dependency demanded a stable, conservatively-updated host.
 
 The commissioning process established a pattern that would repeat for every new ship:
 
@@ -93,6 +102,8 @@ The commissioning process established a pattern that would repeat for every new 
 6. Registry entry in `agent_registry`
 
 Step 5 was the commissioning test. A ship that could not write to Universalis was not a fleet member — it was a machine. The distinction mattered.
+
+The checklist approach was itself a lesson from Era I: each early ship had been commissioned informally, with steps remembered rather than documented. The result was gaps — Galleon had been missing the fleet tools for weeks before someone noticed. Tanker's commissioning was the first to follow a written sequence, and the sequence caught three things that informal commissioning would have missed: the PostgreSQL `pg_hba.conf` needed an entry for Tanker's IP before the tool could authenticate, the Omnissiah render required `psql` on the path before it could pull from the registry, and the `agent_registry` INSERT required a `render_base` path that did not yet exist on the new machine. Written checklists surface preconditions that oral tradition forgets.
 
 ---
 
@@ -121,6 +132,39 @@ Era I built the mind. Era II built the bones — the connective tissue that woul
 The bones would be tested. They would sometimes crack. But they were designed to hold.
 
 ---
+
+<Admonition type="info" title="⚙️ Technical Insight">
+**For anyone building a multi-node infrastructure for a fleet of agents:**
+
+Here is what happens when you skip the DNS step: every hardcoded IP in every script becomes a ticking clock, set to expire the moment your network changes. It is not a question of whether a DHCP lease will expire or hardware will be replaced. It is a question of when — and on that day, every reference to every ship will break simultaneously, with error messages that blame the wrong thing. The commissioning checklist is the other half of this: if you do not write it during the first deployment, you will discover its gaps during the second one, when you have less time and more to lose.
+
+Name your ships before you multiply them. Write the checklist before you forget what you did.
+</Admonition>
+
+---
+
+<Admonition type="tip" title="📚 Knowledge Transfer">
+
+**The lesson worth keeping:** DNS is not an optimization — it is a prerequisite for scale. Every hardcoded IP in a script or config is a time-delayed failure waiting for the next DHCP renewal or hardware replacement. Naming must be abstracted from addressing before you add your third node, not after.
+
+**Pattern:** DNS-before-scale — install your private DNS before the second ship joins, not after the third ship makes IP management painful.
+
+**What we'd do differently:** CoreDNS should have been deployed during Era I, when Imperator and Galleon were the only ships. Instead, it was deferred until M16, after Tanker's arrival made the IP-management problem acute. The commissioning checklist should have also been written before any ship joined — Galleon's informal commissioning left gaps that took months to discover. Documentation is cheapest before the second iteration, most expensive after the fourth.
+
+**If you're building this yourself:**
+- Run CoreDNS (or equivalent) on your most stable, conservatively-updated node — the DNS server is a fleet-wide single point of failure, so it belongs on infrastructure hardware, not on a workstation that might be rebooted
+- Write your commissioning checklist by running through it on your first new ship and documenting every manual step you take — the checklist is the artifact, and the first new ship is when you have the most time to write it carefully
+- Validate cross-OS DNS resolution immediately after setup: `ping imperator.fleet.local` from every ship, including Windows; the Windows adapter targeting is a known gotcha that burns time if discovered later
+
+</Admonition>
+
+---
+
+*Next: [The Growing Eye →](./the-growing-eye)*
+
+*In AIverse, there is only Knowledge.*
+
+<NunixOut />
 
 <div className="aiverse-fleet-cta">
   <a href="/aiverse/support">⚔️ The Fleet Needs You — Support the Chronicle</a>

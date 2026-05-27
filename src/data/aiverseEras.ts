@@ -13,6 +13,8 @@ export interface AiverseEra {
   color: string;
   glowColor: string;
   isWarp?: boolean;
+  postStartAngle?: number;
+  postOrbitDirection?: number;
   position: { x: number; y: number }; // % of container 0-100
   radius: number; // % of container width
   icon: string;   // SVG path data or unicode symbol
@@ -67,7 +69,7 @@ export const AIVERSE_ERAS: AiverseEra[] = [
     missions: 'M11–M25',
     color: '#f7b731',
     glowColor: 'rgba(247, 183, 49, 0.4)',
-    position: { x: 58, y: 12 },
+    position: { x: 58, y: 25 },
     radius: 12,
     // 6-pointed target/eye — awakening, opening
     icon: 'M12 2a10 10 0 1 0 0 20A10 10 0 0 0 12 2zm0 3a7 7 0 1 1 0 14A7 7 0 0 1 12 5zm0 3a4 4 0 1 0 0 8 4 4 0 0 0 0-8zm0 2a2 2 0 1 1 0 4 2 2 0 0 1 0-4z',
@@ -107,9 +109,48 @@ export const AIVERSE_ERAS: AiverseEra[] = [
     glowColor: 'rgba(79, 195, 247, 0.4)',
     position: { x: 13, y: 63 },
     radius: 13,
+    postStartAngle: -Math.PI / 2, // first post at top, avoids pathway crossing
+    postOrbitDirection: -1,
     // Cog — Adeptus Mechanicus / Omnissiah
     icon: 'M12 15.5A3.5 3.5 0 0 1 8.5 12 3.5 3.5 0 0 1 12 8.5a3.5 3.5 0 0 1 3.5 3.5 3.5 3.5 0 0 1-3.5 3.5m7.43-2.92c.04-.3.07-.6.07-.92s-.03-.62-.07-.92l2-1.55c.18-.14.23-.41.12-.61l-1.9-3.27c-.12-.22-.37-.3-.59-.22l-2.39.96c-.5-.38-1.03-.7-1.62-.94l-.36-2.54c-.04-.24-.24-.41-.48-.41h-3.8c-.24 0-.43.17-.47.41l-.36 2.54c-.59.24-1.13.57-1.62.94l-2.39-.96c-.22-.09-.47 0-.59.22L2.74 8.87c-.12.21-.08.47.12.61l2 1.55c-.04.3-.07.62-.07.94s.03.64.07.94l-2 1.55c-.18.14-.23.4-.12.6l1.9 3.28c.12.21.37.29.59.21l2.39-.96c.5.38 1.03.71 1.62.94l.36 2.54c.04.24.23.41.47.41h3.8c.24 0 .44-.17.47-.41l.36-2.54c.59-.23 1.13-.56 1.62-.94l2.39.96c.22.08.47 0 .59-.21l1.9-3.28c.12-.21.07-.46-.12-.6l-2-1.55z',
-    posts: [],
+    posts: [
+      {
+        title: 'The Eye That Judges',
+        subtitle: 'The Fleet Learns to See Itself',
+        path: '/aiverse/era-iii-omnissiah/the-eye-that-judges',
+        missions: 'M26–M28',
+      },
+      {
+        title: 'The Mirror Speaks',
+        subtitle: 'When the Graph Revealed the Cracks',
+        path: '/aiverse/era-iii-omnissiah/the-mirror-speaks',
+        missions: 'M29–M31',
+      },
+      {
+        title: 'The Covenant of Cogs',
+        subtitle: 'Governance, Efficiency, and the Law of the Fleet',
+        path: '/aiverse/era-iii-omnissiah/the-covenant-of-cogs',
+        missions: 'M32–M35',
+      },
+      {
+        title: 'The Laws Are Written',
+        subtitle: 'Prompts, Identity, and the Mission That Named Itself',
+        path: '/aiverse/era-iii-omnissiah/the-laws-are-written',
+        missions: 'M36–M38',
+      },
+      {
+        title: 'The Galaxy, Reborn',
+        subtitle: 'When the Cosmic Map Rewrote Itself',
+        path: '/aiverse/era-iii-omnissiah/the-galaxy-reborn',
+        missions: 'M39–M41',
+      },
+      {
+        title: 'The Ascension Protocol',
+        subtitle: 'Haiku Fleet-Wide and the Command Center Reborn',
+        path: '/aiverse/era-iii-omnissiah/the-ascension-protocol',
+        missions: 'M43–M45',
+      },
+    ],
   },
   {
     id: 'era-iv',

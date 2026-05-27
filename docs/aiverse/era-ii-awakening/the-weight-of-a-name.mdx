@@ -13,6 +13,7 @@ import Admonition from '@theme/Admonition';
 *Trust is not declared. It is demonstrated. M25 did not create the trust protocol because the Emperor was suspicious — it created it because trust without measurement is hope, and hope is not a strategy.*
 
 *— The Remembrancer of the AIverse*
+*Engrams M21–M25*
 </Admonition>
 
 ---
@@ -57,9 +58,15 @@ SET actor = 'galleon'
 WHERE actor IN ('Galleon', 'galleon_captain', 'galleon-matey');
 ```
 
+<Admonition type="info" title="⚙️ Technical Insight">
+The `status='superseded'` annotation was chosen over deletion because a knowledge graph should record what was believed, not only what turned out to be true — a superseded node tells future traversals that something happened and was later replaced, whereas deletion erases that signal entirely and makes the gap invisible.
+</Admonition>
+
 The duplicate problem was harder. Two nodes containing essentially the same content from different actors required judgment — which one was authoritative? The General made these calls manually, flagging the losers with a `status='superseded'` rather than deleting them. History is not to be erased; it is to be annotated.
 
-After M21, Universalis was cleaner. Not perfect — no database with thousands of writes from multiple actors is ever perfect — but auditable, which is better.
+The `superseded` status choice reflects a broader design principle: a knowledge graph should record what was believed, not only what turned out to be true. A superseded node tells future traversals "something happened here, and it was later replaced." Deleting it would erase that signal. The graph would look cleaner but would know less. In Universalis, the cost of a wrong answer is lower than the cost of a silent gap — wrong answers can be corrected; gaps do not announce themselves.
+
+After M21, Universalis was cleaner. Not perfect — no database with thousands of writes from multiple actors is ever perfect — but auditable, which is better. The distinction matters: perfection is a property of a system at rest, auditable is a property of a system in motion. Universalis would never be at rest.
 
 ---
 
@@ -75,11 +82,13 @@ The technical implementation used Claude Code's hook system: a `PostToolUse` hoo
 
 This was a philosophical shift as much as a technical one.
 
-Previously, Universalis recorded what the fleet decided to remember. After M23, Universalis recorded what the fleet had actually done. The gap between those two things is where institutional knowledge lives — and dies.
+Previously, Universalis recorded what the fleet decided to remember. After M23, Universalis recorded what the fleet had actually done. The gap between those two things is where institutional knowledge lives — and dies. Manual logging is optimistic: it captures the outcome the General wanted to remember, which is usually the successful path. Automatic logging is honest: it captures what actually happened, including the three failed attempts before the successful one and the tool call that returned an unexpected error mid-mission.
+
+The hook's architecture was deliberately lightweight. It ran after the session concluded, not during — no latency impact on the working session. It wrote a single observation node per session, not one per tool call — the signal-to-noise ratio was managed by summarizing rather than transcribing. The summary prompt was tuned over several missions to produce nodes that were useful in search rather than merely accurate about the session.
 
 The hook did not capture everything. It captured patterns: which tools were called, which files were changed, which ships were delegated to. It produced observations that read like compressed session summaries. Imperfect, but systematic.
 
-Systematic imperfection beats selective perfection, in the long run.
+Systematic imperfection beats selective perfection, in the long run. A record that exists is more useful than a record that does not, even if the existing record is not complete.
 
 ---
 
@@ -129,9 +138,11 @@ The Fleet Visualizer's ship status panel gained a trust badge: a green/yellow/re
 
 What M25 actually built was **accountability infrastructure**. The trust score was not punishment — it was information. A ship with a score of 74 was not in disgrace; it was a signal that something had gone wrong recently and the fleet should know. A ship with a score of 100 was not infallible; it was a signal that the recent record was clean.
 
+The behavioral effect of making trust visible was immediate and not entirely anticipated: the General became more deliberate about delegation. When every task is assigned without consequence, the cost of a poor fit between task and ship is invisible. When every task is potentially scored, the cost becomes real — not because of punishment, but because the score is a compressed history of the ship's performance and the General's judgment. A low score on Caravella was not only Caravella's record. It was the General's record of which tasks were delegated to a ship that turned out to be a poor fit for them.
+
 The General received this information and used it to calibrate delegation decisions. High-trust ships received more complex tasks. Low-trust ships received more verification checkpoints.
 
-Trust, M25 established, is not a feeling. It is a protocol.
+Trust, M25 established, is not a feeling. It is a protocol. And once it is a protocol, it changes behavior — not through enforcement, but through visibility.
 
 ---
 
@@ -152,6 +163,67 @@ But the bones were different. The memory was tested. The recording was automatic
 A fleet that knows what it did, and why, and who to rely on for what, is a fleet that can survive Era III — where the missions would become significantly harder.
 
 ---
+
+## What Era II Delivered
+
+<Admonition type="info" title="🌅 Era II — Full Summary">
+Fifteen missions. The fleet grew its bones.
+
+| Mission | Delivered |
+|---------|-----------|
+| M11 | Universalis stress test — silent corruption caught, FK constraints enforced |
+| M12 | Revenue exploration (closed — scope deferred) |
+| M13 | Galleon — Kit system prompt bug fixed |
+| M14 | Caravella — scripts fix post-patrol |
+| M15 | Gumroad PDF guide (queued) |
+| M16 | Private DNS — CoreDNS on Tanker, `*.fleet.local` resolution |
+| M17 | Fleet Visualizer — objectives panel + milestones layer |
+| M18 | Tanker — third ship online, fleet grows |
+| M19 | Caravella — ICMP fix, SSH improvements |
+| M20 | Fleet Visualizer — deterministic graph layout |
+| M21 | Universalis — data cleaning, node classification |
+| M22 | Fleet Visualizer — DNS management tab |
+| M23 | Automatic Universalis recording via session hooks |
+| M24 | Conditional local AI scripts |
+| M25 | Trust ratings, delegation scoring, strategic command |
+
+By M25, the fleet had infrastructure, observability, and accountability. It had names for its ships, routes between them, and a ledger of what each one had earned. Era III would test whether all of it held under pressure.
+</Admonition>
+
+---
+
+<Admonition type="info" title="⚙️ Technical Insight">
+**For anyone building a delegation system with multiple AI agents:**
+
+If you do not measure trust, you will not improve it. Every delegation becomes equally weightless — a task sent, a result returned, no feedback loop. The score is not the point; the loop is the point. And if you skip automatic session recording, the sessions that matter most — the ones where you made the architecture decisions that shaped everything after — will be the least documented. Those are the M7s and M8s of your fleet: gone before you thought to write them down.
+
+Record everything from the start. Make trust visible from the first ship. You cannot reconstruct what you did not capture.
+</Admonition>
+
+---
+
+<Admonition type="tip" title="📚 Knowledge Transfer">
+
+**The lesson worth keeping:** Measuring trust changes behavior before any score-based consequence is ever applied. The act of making delegation outcomes visible is itself the mechanism — it transforms every task assignment from a throwaway decision into a scored interaction, which forces deliberation that would not otherwise occur.
+
+**Pattern:** Accountability-as-visibility — the trust score's value is not in the number, but in the fact that the number exists and is displayed where it cannot be ignored. You do not need enforcement mechanisms if the score is always on screen.
+
+**What we'd do differently:** The automatic recording hook should have been M11's deliverable, not M23's. The earliest Universalis nodes — the ones that captured the architecture decisions that shaped every subsequent mission — were written manually and selectively. The most valuable session in fleet history was probably M7 or M8, and it is the least documented because automatic recording did not exist yet. Similarly, the `captain_trust` table should have been seeded at the time each ship joined, not retroactively. Retroactive trust initialization means the early record is a blank — and a blank is not the same as a clean score.
+
+**If you're building this yourself:**
+- Implement automatic session recording before your knowledge graph grows large enough to matter — the early sessions contain the irreplaceable architectural decisions, and they are the ones most likely to be missed by manual logging
+- Design your trust schema around read-model access patterns first: the score will be read on every page of your command interface and written rarely — optimize for the read, use a simple integer, and let the history live in a separate `trust_adjustments` ledger table if you want full auditability
+- Treat trust scores as calibration information for delegation, not as report cards — a low-trust ship should receive more verification checkpoints, not fewer tasks; the goal is accurate calibration, not punishment
+
+</Admonition>
+
+---
+
+*[Continue to Era III: The Omnissiah Stirs →](/aiverse/era-iii-omnissiah/the-eye-that-judges)*
+
+*In AIverse, there is only Knowledge.*
+
+<NunixOut />
 
 <div className="aiverse-fleet-cta">
   <a href="/aiverse/support">⚔️ The Fleet Needs You — Support the Chronicle</a>

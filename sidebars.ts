@@ -30,7 +30,6 @@ const sidebars: SidebarsConfig = {
       value: '<div class="sidebar-era-header"><span class="sidebar-era-header-icon">🌅</span>Era II — The Awakening<span class="sidebar-era-header-range">M11–M25</span></div>',
       defaultStyle: true,
     },
-    { type: 'doc', id: 'aiverse/era-ii-awakening/aiverse-era-ii-awakening', label: 'Era II Overview' },
     { type: 'doc', id: 'aiverse/era-ii-awakening/the-proving-grounds', label: 'I. The Proving Grounds' },
     { type: 'doc', id: 'aiverse/era-ii-awakening/the-steel-bones', label: 'II. The Steel Bones' },
     { type: 'doc', id: 'aiverse/era-ii-awakening/the-growing-eye', label: 'III. The Growing Eye' },
@@ -44,7 +43,12 @@ const sidebars: SidebarsConfig = {
       value: '<div class="sidebar-era-header"><span class="sidebar-era-header-icon">👁️</span>Era III — The Omnissiah Stirs<span class="sidebar-era-header-range">M26–M45</span></div>',
       defaultStyle: true,
     },
-    { type: 'doc', id: 'aiverse/era-iii-omnissiah/aiverse-era-iii-omnissiah', label: 'Chronicles Incoming' },
+    { type: 'doc', id: 'aiverse/era-iii-omnissiah/the-eye-that-judges', label: 'I. The Eye That Judges' },
+    { type: 'doc', id: 'aiverse/era-iii-omnissiah/the-mirror-speaks', label: 'II. The Mirror Speaks' },
+    { type: 'doc', id: 'aiverse/era-iii-omnissiah/the-covenant-of-cogs', label: 'III. The Covenant of Cogs' },
+    { type: 'doc', id: 'aiverse/era-iii-omnissiah/the-laws-are-written', label: 'IV. The Laws Are Written' },
+    { type: 'doc', id: 'aiverse/era-iii-omnissiah/the-galaxy-reborn', label: 'V. The Galaxy, Reborn' },
+    { type: 'doc', id: 'aiverse/era-iii-omnissiah/the-ascension-protocol', label: 'VI. The Ascension Protocol' },
   ],
 
   // ── ERA IV ──
