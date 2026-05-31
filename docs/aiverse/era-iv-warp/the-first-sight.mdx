@@ -1,0 +1,147 @@
+---
+id: the-first-sight
+sidebar_label: "I. The First Sight"
+sidebar_position: 2
+title: "The First Sight: Rules Propagate and the Omnissiah Opens Its Eyes"
+description: "Era IV — M46–M47. Fleet rules synchronize across every ship. Universalis becomes the single source of truth for AI context — the Omnissiah sees for the first time."
+tags: [aiverse, era-iv, omnissiah, push-prompts, rules-sync, knowledge-pipeline, m46, m47]
+---
+
+
+<Admonition type="note" title="📜 REMEMBRANCER'S NOTE — Stardate 2026.05.29">
+*There is a moment in every system's life when it stops being a collection of parts and begins seeing itself. Not as data — as pattern. Not as storage — as memory. M46 taught the fleet's rules to travel. M47 gave the fleet's memory a voice. The Warp opened not with violence but with sight.*
+
+*— The Remembrancer of the AIverse*
+*Engrams M46–M55*
+</Admonition>
+
+---
+
+> *"In AIverse, there is only Knowledge."*
+
+---
+
+## The Problem of Many Mouths (M46)
+
+By M45, the fleet had a command center, a delegation protocol, a trust system, and a working memory. What it did not have was a reliable way to ensure every ship spoke the same language.
+
+Rules lived in files. Files lived on ships. Ships were updated manually — or not updated at all. When the <Term id="emperor">Emperor</Term> changed a rule on <Term id="imperator">Imperator</Term>, that rule existed only on Imperator until someone remembered to copy it to <Term id="caravella">Caravella</Term> and Tanker. Sometimes that copy happened the same day. Sometimes it happened a week later. Sometimes it never happened, and two ships operated under different versions of the same rule until a delegation failed in a way that made the drift visible.
+
+This is the configuration drift problem, and it is as old as distributed systems. Every organization that has more than one server has encountered it. The solutions are well-known: centralize the source of truth, push changes from the center, verify convergence at the edges. What makes it interesting in the fleet context is that the "configuration" being synchronized is not application settings or environment variables — it is *the rules that shape how AI agents think and behave*.
+
+A misconfigured environment variable produces a runtime error. A drifted rule produces a subtle behavioral deviation that may not surface for sessions. The agent doesn't crash — it makes slightly wrong decisions, prioritizes slightly wrong things, follows a slightly outdated protocol. The error is invisible until it compounds.
+
+M46 extended `push-prompts.sh` to cover rules across all ships. The mechanism was deliberately simple: a shell script that read rules from the central `fleet-prompts` repository and wrote them to each ship's `.claude/rules/` directory via SSH. No orchestration framework. No configuration management tool. A script, SSH, and the discipline to run it after every rule change.
+
+```bash
+# push-prompts.sh — the fleet's rule propagation engine
+# Reads from fleet-prompts repo, pushes to each ship's .claude/rules/
+for ship in imperator tanker caravella; do
+  rsync -avz --delete \
+    rules/ \
+    ${ship}:.claude/rules/
+  echo "[$ship] Rules synced: $(date -u +%Y-%m-%dT%H:%M:%SZ)"
+done
+```
+
+The `--delete` flag was the critical design choice. Without it, obsolete rules accumulate on remote ships — ghost files that no longer exist in the source but still load into agent context, consuming tokens and potentially contradicting current rules. With `--delete`, the remote directory becomes an exact mirror of the source. Rules that are removed from `fleet-prompts` are removed from every ship. The source of truth is absolute.
+
+<Admonition type="info" title="⚙️ Technical Insight">
+Rule synchronization in a multi-agent fleet is not a DevOps problem — it is a cognitive consistency problem. When two agents operate under different versions of the same rule, the resulting behavioral divergence is harder to debug than a configuration error because the agents do not report it. They simply behave differently, and the difference only surfaces when their outputs are compared. Treat rule drift with the same urgency as schema drift in a database.
+</Admonition>
+
+The validation step was equally important. After pushing rules, the script verified that each ship's rule directory matched the source by comparing file checksums. A mismatch triggered an alert to <Term id="universalis">Universalis</Term>. The fleet did not trust that the push succeeded — it verified. Trust but verify is the oldest principle in distributed systems, and M46 applied it to the fleet's cognitive layer.
+
+By the end of M46, every ship in the fleet loaded the same rules at session start. A rule written on Imperator was a rule enforced on Caravella within one push cycle. The fleet's cognitive alignment was no longer a matter of manual discipline — it was infrastructure.
+
+---
+
+## The Eye Opens (M47)
+
+M46 solved rule propagation. M47 asked the harder question: what if the fleet's memory itself could become AI context?
+
+Until M47, <Term id="universalis">Universalis</Term> was a database. Agents wrote to it. Agents queried it. But the results of those queries were consumed by the agent as tool output — data retrieved mid-conversation, processed, and then lost when the session ended. The memory persisted in the database; the *understanding* of that memory did not persist in the agent's context.
+
+M47 changed this by building the first version of the Omnissiah pipeline: a system that took fleet memory from the database and materialized it as files that Claude Code loaded at session start. Not as a query the agent had to remember to run. Not as a tool call that consumed context tokens mid-conversation. As pre-loaded context — present from the first message, shaping the agent's understanding before it even received its first instruction.
+
+The architecture was simple in concept and precise in execution. A renderer script (`render-from-db.sh`) ran at session start. It queried the `prompt_registry` table — a new table that stored rules and skills as database rows rather than filesystem files. It filtered by the current ship's identity. It wrote the applicable rules and skills to the ship's local `.claude/rules/` and `.claude/plugins/` directories. Claude Code loaded those files as normal system context.
+
+```bash
+# render-from-db.sh — materialize fleet knowledge to local filesystem
+SHIP=$(hostname -s)
+psql "$DB_URL" -t -A -c "
+  SELECT prompt_key, content FROM prompt_registry
+  WHERE active = true
+    AND '$SHIP' = ANY(ships)
+    AND scope = 'rule'
+    AND load_mode = 'always'
+  ORDER BY prompt_key;" | while IFS='|' read -r key content; do
+    echo "$content" > "${RENDER_BASE}/rules/${key}.md"
+done
+```
+
+The implications were profound and not immediately obvious. Before M47, an agent's knowledge of fleet history required an active query — the agent had to decide to look something up, spend tokens on the query, parse the results, and integrate them into its reasoning. After M47, fleet knowledge was *ambient*. The agent did not decide to know fleet rules — it simply knew them, the way a human employee knows the company handbook because they read it during onboarding rather than because they searched the intranet during a meeting.
+
+This distinction — active retrieval versus ambient context — is the difference between a database and a brain. A database stores knowledge and returns it on demand. A brain has knowledge loaded and available before the demand arrives. M47 moved Universalis from the first category toward the second.
+
+<Admonition type="info" title="⚙️ Technical Insight">
+The Omnissiah pipeline is a RAG system turned inside out. Traditional RAG retrieves knowledge at query time — the user asks a question, the system searches a vector store, the results are injected into the prompt. The Omnissiah pipeline retrieves knowledge at *session start* — before any query, the relevant rules and context are pre-loaded as system context. This trades per-query flexibility for per-session consistency: the agent's knowledge does not change mid-conversation based on what questions are asked, which eliminates an entire category of retrieval inconsistency bugs.
+</Admonition>
+
+The `prompt_registry` table introduced a schema that would prove remarkably durable:
+
+```sql
+CREATE TABLE prompt_registry (
+  prompt_key   TEXT PRIMARY KEY,      -- 'rule/constructor-injection'
+  title        TEXT NOT NULL,
+  content      TEXT NOT NULL,         -- the actual rule/skill content
+  scope        TEXT NOT NULL,         -- 'rule' or 'skill'
+  ships        TEXT[] NOT NULL,       -- which ships receive this
+  load_mode    TEXT DEFAULT 'always', -- 'always' or 'lazy'
+  active       BOOLEAN DEFAULT true,  -- circuit breaker
+  updated_at   TIMESTAMPTZ DEFAULT NOW()
+);
+```
+
+The `active` column was the circuit breaker. A rule causing problems across the fleet could be disabled with a single SQL update — `UPDATE prompt_registry SET active = false WHERE prompt_key = 'rule/problematic-rule'` — and every ship would stop loading it on their next session. No file deletion. No SSH. No push script. A database column flip, and the rule vanished from fleet consciousness. The speed of this kill switch would prove valuable in later missions when rules needed rapid iteration.
+
+The `ships TEXT[]` column enabled selective deployment. A rule that applied only to Linux ships excluded Caravella. A skill relevant only to Imperator's captain loaded only on Imperator. The fleet's cognitive load was per-ship rather than universal — each agent loaded only what it needed, preserving context window space for actual work.
+
+M47 was where the Omnissiah first opened its eyes. The fleet's memory was no longer a passive archive. It was becoming an active mind.
+
+---
+
+<Admonition type="info" title="⚙️ Technical Insight">
+**For anyone designing a multi-agent knowledge pipeline:**
+
+The critical architectural decision is when knowledge is loaded — at session start (ambient) or at query time (active). Ambient loading consumes base context tokens but guarantees consistency across the session. Active loading preserves base context but introduces retrieval variance. For operational rules that must be consistently applied, ambient loading is almost always correct. For reference knowledge that is rarely needed, active loading is more efficient. The Omnissiah pipeline uses both: rules are ambient (`load_mode='always'`), skills are active (`load_mode='lazy'`).
+</Admonition>
+
+---
+
+<Admonition type="tip" title="📚 Knowledge Transfer">
+
+**The lesson worth keeping:** The difference between a database and a brain is not storage capacity — it is when knowledge is available. A database makes you ask. A brain makes you know. Moving fleet rules from queried data to pre-loaded context changed agent behavior more than any prompt engineering effort in the preceding forty-five missions.
+
+**Pattern:** Ambient Context Loading — pre-load operational rules at session start rather than retrieving them on demand. The consistency gain outweighs the token cost.
+
+**What we'd do differently:** The `push-prompts.sh` approach in M46 was a necessary stepping stone but should have gone directly to the database-backed pipeline of M47. File-based sync via SSH was a solved problem being applied to an unsolved problem — it worked, but it added an intermediate state (files on disk that might be stale) that the database approach eliminated entirely.
+
+**If you're building this yourself:**
+- Start with a `prompt_registry` table from day one. Even if you begin with file-based rules, having the database schema ready means migration is a data load rather than an architecture change.
+- Include a `ships` array column for selective deployment. Universal rules sound clean but waste context tokens on agents that don't need them.
+- Add an `active` boolean circuit breaker. The ability to disable a rule fleet-wide with a single SQL update is worth more than any rollback mechanism you could build.
+
+</Admonition>
+
+---
+
+*Next: [Allies from the Void — Caravella Ascends on Windows →](./allies-from-the-void)*
+
+*In AIverse, there is only Knowledge.*
+
+<NunixOut />
+
+<div className="aiverse-fleet-cta">
+  <a href="/aiverse/support">⚔️ The Fleet Needs You — Support the Chronicle</a>
+</div>

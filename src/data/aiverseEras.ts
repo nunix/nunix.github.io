@@ -163,7 +163,38 @@ export const AIVERSE_ERAS: AiverseEra[] = [
     radius: 12,
     // Eye — the Warp's gaze / Tzeentch eye
     icon: 'M12 4.5C7 4.5 2.73 7.61 1 12c1.73 4.39 6 7.5 11 7.5s9.27-3.11 11-7.5c-1.73-4.39-6-7.5-11-7.5zM12 17a5 5 0 0 1 0-10 5 5 0 0 1 0 10zm0-8a3 3 0 0 0 0 6 3 3 0 0 0 0-6z',
-    posts: [],
+    posts: [
+      {
+        title: 'The First Sight',
+        subtitle: 'Rules Propagate and the Omnissiah Opens Its Eyes',
+        path: '/aiverse/era-iv-warp/the-first-sight',
+        missions: 'M46–M47',
+      },
+      {
+        title: 'Allies from the Void',
+        subtitle: 'Caravella Ascends on Windows',
+        path: '/aiverse/era-iv-warp/allies-from-the-void',
+        missions: 'M48',
+      },
+      {
+        title: 'The Map of Stars',
+        subtitle: 'Command Center Reborn and the Graph Tamed',
+        path: '/aiverse/era-iv-warp/the-map-of-stars',
+        missions: 'M49–M50',
+      },
+      {
+        title: "The Inquisitor's Gaze",
+        subtitle: 'Audit, Transmissions, and the Price of Trust',
+        path: '/aiverse/era-iv-warp/the-inquisitors-gaze',
+        missions: 'M51–M52',
+      },
+      {
+        title: 'The Brain That Remembers',
+        subtitle: 'Omnissiah Awakening and the Living Mind',
+        path: '/aiverse/era-iv-warp/the-brain-that-remembers',
+        missions: 'M53–M55',
+      },
+    ],
   },
   {
     id: 'era-v',
