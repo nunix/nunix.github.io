@@ -58,7 +58,11 @@ const sidebars: SidebarsConfig = {
       value: '<div class="sidebar-era-header"><span class="sidebar-era-header-icon">🌀</span>Era IV — The Warp Opens<span class="sidebar-era-header-range">M46–M55</span></div>',
       defaultStyle: true,
     },
-    { type: 'doc', id: 'aiverse/era-iv-warp/aiverse-era-iv-warp', label: 'Chronicles Incoming' },
+    { type: 'doc', id: 'aiverse/era-iv-warp/the-first-sight', label: 'I. The First Sight' },
+    { type: 'doc', id: 'aiverse/era-iv-warp/allies-from-the-void', label: 'II. Allies from the Void' },
+    { type: 'doc', id: 'aiverse/era-iv-warp/the-map-of-stars', label: 'III. The Map of Stars' },
+    { type: 'doc', id: 'aiverse/era-iv-warp/the-inquisitors-gaze', label: "IV. The Inquisitor's Gaze" },
+    { type: 'doc', id: 'aiverse/era-iv-warp/the-brain-that-remembers', label: 'V. The Brain That Remembers' },
   ],
 
   // ── ERA V ──
