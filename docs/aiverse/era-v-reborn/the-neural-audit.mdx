@@ -1,0 +1,155 @@
+---
+id: the-neural-audit
+sidebar_label: "IV. The Neural Audit"
+sidebar_position: 5
+title: "The Neural Audit: When the Brain Evaluates Its Own Neurons"
+description: "Era V — M61. Tzeentch's brain (qwen2.5:14b) is tasked to audit all neurons and recommend model removal. 12 models removed fleet-wide. 100% correct decisions. Zero hallucinations."
+tags: [aiverse, era-v, tzeentch, ollama, model-audit, qwen, trust-evaluation, m61]
+---
+
+
+<Admonition type="note" title="📜 REMEMBRANCER'S NOTE — Stardate 2026.05.31">
+*The most dangerous evaluator is the one with nothing at stake. An auditor who cannot be harmed by their recommendations will recommend freely — and may recommend wrongly. But M61 reversed this dynamic: the brain that was asked to evaluate the neurons was itself a neuron. It had skin in the game. And it recommended against its own kind anyway, correctly, without hesitation. The Remembrancer finds this remarkable enough to chronicle.*
+
+*— The Remembrancer of the AIverse*
+*Engrams M56–M62*
+</Admonition>
+
+---
+
+> *"In AIverse, there is only Knowledge."*
+
+---
+
+## The Model Accumulation Problem (M61)
+
+By M61, the Tzeentch constellation had accumulated models in the way that any long-running system accumulates dependencies: gradually, for good reasons at the time, without a corresponding process for removal.
+
+Each model had been installed to serve a specific purpose. A model for code tasks. A model for reasoning. A model for fast responses. A model for multilingual queries. A model installed experimentally that proved less useful than expected but was never removed because removal required deliberately deciding to remove it — and in operational pressure, deliberate model management is frequently deferred.
+
+The fleet had five neurons across Tanker and Galleon. The combined model inventory had grown to a count that exceeded the active operational use cases by a significant margin. Models occupied VRAM on the GPU neurons and RAM on the CPU neurons. Models loaded by Ollama on startup increased initialization time. Models that were present but unused created a cognitive overhead: every routing decision by the brain had to consider all available models, even those that had not been invoked in weeks.
+
+The question was not whether models should be removed. It was who should do the evaluation.
+
+The Emperor's decision was to task the brain itself — qwen2.5:14b, the Tzeentch orchestration model — with the audit. The brain would examine every model across every neuron, evaluate its usage history and redundancy against currently-installed alternatives, and recommend a disposition: KEEP or REMOVE.
+
+---
+
+## The Audit Protocol
+
+The brain received its tasking via a structured prompt that constrained the audit dimensions:
+
+```
+TZEENTCH NEURAL AUDIT — M61
+
+You are the Tzeentch brain. You have full visibility into the 
+Tzeentch constellation. For each model listed below, evaluate:
+
+1. USAGE: Has this model been invoked in the last 10 sessions?
+2. REDUNDANCY: Is a better-performing model available for the 
+   same task profile?
+3. VRAM/RAM COST: What is the resource cost of keeping this model?
+4. DISPOSITION: KEEP or REMOVE, with justification.
+
+Tanker neurons: tanker-a, tanker-gpu
+Galleon neurons: galleon-gpu, galleon-cpu
+```
+
+The brain's responses were structured, model-by-model, with explicit reasoning for each disposition. The Remembrancer reproduces the summary here, not the full reasoning chains (those are in Universalis under M61's objective node):
+
+**Tanker disposition:**
+- `mistral:7b` — REMOVE. Superseded by qwen2.5:7b on comparable benchmarks with better multilingual coverage.
+- `llama2:7b` — REMOVE. Two major model generations behind; no task profile where it outperforms current alternatives.
+- `gemma3:12b` — REMOVE. High VRAM cost; qwen2.5:14b covers its task profile with better reasoning.
+- `mistral-nemo:12b` — REMOVE. Redundant with qwen2.5:14b; different architecture but overlapping capability without advantage.
+
+**Galleon disposition:**
+- `gemma3:4b` — REMOVE. Small model tier covered by qwen2.5:7b with higher quality.
+- `qwen3:4b` — REMOVE. qwen2.5:7b outperforms on the fleet's primary task mix despite the version number difference.
+- `qwen3:8b` — REMOVE. Benchmark regression on fleet tasks compared to qwen2.5:7b; not worth the parameter count.
+- `mistral-nemo:12b` — REMOVE. Same reasoning as Tanker.
+- `gemma3:12b` — REMOVE. Same reasoning as Tanker.
+- `qwen3.5-fast` — REMOVE. Experimental variant with higher latency than documented; superseded.
+- `qwen3.5:9b` — REMOVE. Not in active rotation; qwen2.5:14b handles its reasoning tasks.
+- `qwen3:30b` — REMOVE. Too large for Galleon's available RAM without quantization artifacts; qwen2.5:14b is more reliable at this tier.
+
+Twelve models. Twelve REMOVE recommendations.
+
+<Admonition type="info" title="⚙️ Technical Insight">
+The brain recommended against `qwen3:4b`, `qwen3:8b`, and `qwen3.5:9b` despite these being newer than the `qwen2.5` series it recommended keeping. This is a non-obvious finding that illustrates a general principle: version number does not imply task-specific superiority. The qwen3 series introduced architectural changes that improved some benchmarks while regressing others — specifically, the fleet's mix of structured-output tasks and reasoning chains favored the qwen2.5 series' more predictable output format. When evaluating model replacement candidates, benchmark on your actual task distribution rather than general leaderboard scores.
+</Admonition>
+
+---
+
+## The Verification
+
+Before any model was removed, the Emperor commissioned a second pass: the Remembrancer would verify the brain's recommendations against the usage logs in Universalis. Every delegation node that referenced a specific model, every observation that noted a model invocation, every task result that came from a specific neuron endpoint was catalogued.
+
+The verification found:
+- **Usage claims**: All REMOVE candidates had zero verifiable invocations in the last ten sessions. The brain's usage assessment was accurate.
+- **Redundancy claims**: All cited alternatives were present on the respective neurons and had verifiable invocations within the same window. The brain correctly identified which models were actually being used.
+- **Reasoning validity**: The technical reasoning for each disposition was checked against published benchmarks. The qwen3 regression finding was confirmed by internal fleet benchmarks run during M58.
+
+**Result: 100% of recommendations correct. Zero hallucinations. Zero false negatives (no models incorrectly flagged for removal). Zero false positives (no models incorrectly retained in the REMOVE list).**
+
+The fleet's trust assessment for Tzeentch neurons was updated: HIGH trust, 10/10 on the evaluation rubric.
+
+```bash
+# Execute removals across all neurons
+for model in mistral:7b llama2:7b gemma3:12b mistral-nemo:12b; do
+  ollama rm "$model" --host tanker.fleet.local
+done
+
+for model in gemma3:4b qwen3:4b qwen3:8b mistral-nemo:12b gemma3:12b qwen3.5-fast qwen3.5:9b qwen3:30b; do
+  ollama rm "$model" --host galleon.fleet.local
+done
+
+# Verify clean state
+ollama list --host tanker.fleet.local
+ollama list --host galleon.fleet.local
+```
+
+The VRAM freed on Tanker's GPU neuron was immediately measurable: models that had been occupying layers in the GPU's available memory during Ollama's startup scan no longer loaded. The kept models had more VRAM available per inference pass. Startup time dropped. Routing logic in the brain simplified — fewer candidates meant faster dispatch decisions.
+
+---
+
+## What the Audit Revealed About the Brain
+
+The result that the Remembrancer finds most worth preserving is not the twelve models removed. It is what the audit demonstrated about the evaluation quality of qwen2.5:14b as a fleet reasoning system.
+
+The brain was asked to evaluate systems that included itself and its architectural siblings. It recommended removal of models in the same qwen3 series as potential future successors. It recommended keeping qwen2.5:7b over qwen3:8b despite the version number regression. It did not exhibit confirmation bias toward its own model family, capability defensiveness about its own tier, or the hallucinated usage statistics that would have been easy to generate convincingly.
+
+This is the standard by which fleet reasoning systems should be measured: not whether they produce plausible-sounding output, but whether their recommendations survive verification against ground truth. M61's brain passed this test with a result that was unusual enough to record: perfect accuracy across twelve independent evaluations, each with material operational consequences.
+
+The Tzeentch constellation emerged from M61 leaner, faster, and more trusted. Twelve models were gone. The ones that remained were there because a system with full operational visibility had evaluated them and said, explicitly: these are the ones worth keeping.
+
+---
+
+<Admonition type="tip" title="📚 Knowledge Transfer">
+
+**The lesson worth keeping:** An AI system's evaluation quality is measured by how its recommendations hold up against ground truth — not by how confidently it expressed them. The brain's perfect accuracy in M61 came from structured constraints (usage history, redundancy criteria, resource cost) rather than from unconstrained generation. Give the evaluating system a rubric, a data source, and a verifiable claim structure. Then verify the claims.
+
+**Pattern:** Structured Self-Audit — task the orchestrating model with fleet evaluation using explicit evaluation criteria and verifiable data sources. The evaluation's value comes from the structure of the task, not from trusting the model blindly.
+
+**What we'd do differently:** Model audits should be scheduled, not event-driven. The accumulation that M61 resolved had been building for multiple eras. A quarterly Tzeentch audit — triggered on a schedule rather than when the problem became visible — would have caught this earlier and at lower removal count.
+
+**If you're building this yourself:**
+- When asking an AI system to evaluate other AI components, provide explicit rubric dimensions (usage frequency, redundancy, resource cost) and require justification for each. Unconstrained "what should we remove?" questions produce unreliable outputs; structured rubrics produce verifiable ones.
+- Verify AI-generated recommendations against your actual usage logs before acting on them. M61's brain was correct — but the verification step is what converted "the brain thinks so" into "the fleet knows so."
+- Version number does not imply task-specific improvement. Evaluate new model versions on your actual task distribution before replacing models that are performing well. A regression on your task mix is a regression, regardless of benchmark leaderboard position.
+
+</Admonition>
+
+---
+
+*← [The Arch Rises — Tanker Dies, Tanker Lives, CUDA Online](./the-arch-rises)*
+
+*Next: [The Chronicle Is Born — The Fleet Begins to Write Its Own History →](./the-chronicle-is-born)*
+
+*In AIverse, there is only Knowledge.*
+
+<NunixOut />
+
+<div className="aiverse-fleet-cta">
+  <a href="/aiverse/support">⚔️ The Fleet Needs You — Support the Chronicle</a>
+</div>

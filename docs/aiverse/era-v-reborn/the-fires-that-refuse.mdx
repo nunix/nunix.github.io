@@ -1,0 +1,124 @@
+---
+id: the-fires-that-refuse
+sidebar_label: "I. The Fires That Refuse to Die"
+sidebar_position: 2
+title: "The Fires That Refuse to Die: When the GPU Fights Back and Loses"
+description: "Era V — M56. Maxwell GM204 refuses nouveau. Refuses nvidia-open. The fleet chooses VFIO passthrough and wins. CUDA online. Tzeentch stirs."
+tags: [aiverse, era-v, gpu, nvidia, maxwell, vfio, cuda, k3s, ollama, tzeentch, m56]
+---
+
+
+<Admonition type="note" title="📜 REMEMBRANCER'S NOTE — Stardate 2026.05.31">
+*There is a particular frustration reserved for machines that are almost right. Not broken — broken is easy. The diagnosis is immediate, the fix is clear. No, the machines that cause suffering are the ones that almost work. The GPU that passes the detect phase, loads the kernel module, initialises the device — and then refuses CUDA. M56 was the chronicle of a GPU that almost worked, three times over, before the fleet found the path that actually did.*
+
+*— The Remembrancer of the AIverse*
+*Engrams M56–M62*
+</Admonition>
+
+---
+
+> *"In AIverse, there is only Knowledge."*
+
+---
+
+## The Quadro Problem (M56)
+
+The Quadro M4000 was, on paper, a reasonable GPU for a fleet GPU node. Eight gigabytes of VRAM. Maxwell architecture. A professional compute card with a decade of driver support behind it. On paper.
+
+In practice, it was a Maxwell GM204 — and GM204 occupies a peculiar purgatory in the Linux GPU ecosystem. Old enough that nouveau, the open-source NVIDIA driver, refuses to support CUDA on it. New enough that nvidia-open, NVIDIA's own open-source kernel module effort, requires Turing (CC 7.5) or higher and explicitly rejects Maxwell (CC 5.2). The proprietary nvidia driver supports it, but proprietary driver installation on a K3s cluster node with SLES introduces its own surface area of conflicts.
+
+The fleet had three options. It tried all three, in order.
+
+**Attempt one: nouveau.** Loaded cleanly. GPU detected. CUDA: not supported. nouveau on Maxwell is a display driver, not a compute driver. Any workload requiring CUDA parallelism hits a dead end. The Synapse monitor confirmed what the documentation had warned: token generation speed on nouveau was comparable to CPU inference — the GPU was present but contributing nothing.
+
+**Attempt two: nvidia-open.** The modern answer to the proprietary driver problem. Open-source kernel modules, officially supported by NVIDIA, designed to replace the proprietary approach on current hardware. The install completed. The module loaded. Then:
+
+```
+NVRM: GPU at PCI:0000:01:00: GPU-a3f8b21c
+NVRM: GPU Board Serial Number: [N/A]
+NVRM: Xid (PCI:0000:01:00): 79, pid='<unknown>', name=<unknown>
+NVRM: The NVIDIA GPU (pci id: 10de:13f0) is not supported by the open kernel module.
+```
+
+CC 5.2 not in the supported list. The rejection was clean and immediate.
+
+**Attempt three: VFIO passthrough.** Not a driver solution — a virtualization solution. The Quadro M4000 would be passed through to a Ubuntu 22.04 microVM running under QEMU. Inside the VM, the proprietary NVIDIA 470.256.02 driver — the legacy branch that still supports Maxwell — would drive the card. CUDA 11.4 would run inside the VM. The K3s cluster would see the GPU-VM as a node with GPU capabilities, exposed via the NVIDIA device plugin.
+
+This was the inelegant path. A VM inside a server, to run a driver too old for the host kernel but too architecture-constrained for the modern open-source alternative. But inelegant paths that work are infinitely preferable to elegant paths that do not.
+
+---
+
+## The Microvm Solution
+
+The Ubuntu 22.04 microVM was configured with three critical parameters: PCI passthrough for the Quadro M4000, 8127 MiB of pinned RAM matching the GPU VRAM, and hugepages to prevent the hypervisor from fragmenting the GPU's DMA address space.
+
+```bash
+# QEMU GPU passthrough — critical configuration
+qemu-system-x86_64 \
+  -enable-kvm \
+  -m 8192 \
+  -mem-prealloc \
+  -device vfio-pci,host=01:00.0,multifunction=on \
+  -device vfio-pci,host=01:00.1 \
+  -kernel /boot/vmlinuz \
+  -append "root=/dev/vda quiet iommu=pt"
+```
+
+Inside the VM, the driver installation was straightforward — the Ubuntu 22.04 userspace was exactly the environment the 470 driver branch was designed for. The CUDA toolkit installed cleanly. `nvidia-smi` reported the Quadro M4000 with 8127 MiB available. `deviceQuery` from the CUDA samples confirmed compute capability 5.2. The GPU was alive.
+
+<Admonition type="info" title="⚙️ Technical Insight">
+The VFIO passthrough pattern is often treated as a last resort — and for good reason, since it adds a hypervisor layer and introduces latency. But for GPU nodes where driver compatibility is the blocker, passthrough achieves something no driver workaround can: it creates a clean separation between the host kernel (which needs to be stable and modern) and the GPU driver environment (which may need legacy software). The VM is a compatibility shim at the hardware level rather than the software level. For Maxwell-class NVIDIA hardware on modern Linux kernels, this is frequently the correct architectural choice.
+</Admonition>
+
+The GPU-VM joined the K3s cluster as a third node alongside Tanker and Galleonix. The NVIDIA device plugin deployed into the `suse-ai` namespace exposed the Quadro M4000 as a schedulable resource. Ollama was configured to target that resource when handling inference requests. The Tzeentch neuron — `tanker-gpu-vm` — came online at 5.8 tokens per second. Not fast by modern GPU standards, but approximately six times faster than the same models running on CPU.
+
+---
+
+## The Synapse Monitor
+
+The GPU node joining the cluster created a visibility problem: five neurons running inference (galleon-gpu at 90t/s, galleon-cpu at 13t/s, tanker-a at 5.5t/s, tanker-gpu-vm at 5.8t/s, and the brain at qwen2.5:14b) with no unified view of their health or throughput.
+
+M56 built the SynapseMiniMap to solve this. The panel lived in fleet-v3 as a component alongside the mission and trust panels — a compact visualizer showing each neuron's name, model, current token rate, and alive/dead status. Speedometer arcs indicated throughput at a glance: green for active, amber for degraded, dark for offline.
+
+The technical detail that mattered most was the `is_active` query. Early versions checked `WHERE status = 'active'`, which produced false negatives — neurons that were running inference but whose last delegation had a `status` of `completed` appeared offline. The fix was exclusion rather than inclusion:
+
+```sql
+-- Correct is_active: exclude terminal states, not require 'active'
+SELECT n.id, n.name, n.model, n.tokens_per_second,
+       n.status NOT IN ('completed', 'failed', 'suspended') AS is_active
+FROM tzeentch_neurons n
+ORDER BY n.tokens_per_second DESC;
+```
+
+A neuron is active unless it is explicitly in a terminal state. This is the correct semantics for a fleet neuron: the default assumption is operational, not offline.
+
+The time decomposition model that M56 introduced — brain decompose + neurons in parallel + synthesize — would govern every multi-neuron inference operation in the eras that followed. The fleet had a functioning distributed inference system. Tzeentch had its first functional constellation of neurons.
+
+---
+
+<Admonition type="tip" title="📚 Knowledge Transfer">
+
+**The lesson worth keeping:** GPU driver compatibility is not a solvable problem through persistence alone. Maxwell-class NVIDIA hardware in 2025 exists in a zone where every "official" solution fails: nouveau lacks compute, nvidia-open lacks Maxwell support, and the proprietary 470 branch requires legacy userspace. When driver paths close, the architecture path (VFIO passthrough to a compatible VM) is not a hack — it is the correct engineering response to a compatibility constraint.
+
+**Pattern:** When driver compatibility is the blocker, use VFIO passthrough to separate the host kernel requirement (modern) from the GPU driver requirement (legacy). The VM is an architectural boundary, not a workaround.
+
+**What we'd do differently:** The fleet spent cycles on nouveau and nvidia-open before accepting the VFIO path. Both rejections were documented in NVIDIA's own compatibility matrices — a full review of those matrices before any driver installation would have eliminated two attempts and saved significant time. Read the compatibility table first.
+
+**If you're building this yourself:**
+- Before installing any NVIDIA driver on Linux, check the architecture compatibility matrix against your GPU's compute capability. Maxwell is CC 5.2. Turing is CC 7.5+. These numbers determine which driver branches are available.
+- VFIO passthrough requires IOMMU groups to be properly configured on the host. Verify with `find /sys/kernel/iommu_groups/ -type l` before attempting passthrough — if your GPU shares an IOMMU group with a critical system device, passthrough becomes significantly more complex.
+- The `is_active` pattern for fleet components should default to operational unless explicitly terminal. Requiring an `active` status flag will produce false negatives whenever the component's last known state is anything other than the exact string you're checking.
+
+</Admonition>
+
+---
+
+*Next: [The Signal Refined — Fleet Alignment, Cost Visibility, and the Art of Knowing Less →](./the-signal-refined)*
+
+*In AIverse, there is only Knowledge.*
+
+<NunixOut />
+
+<div className="aiverse-fleet-cta">
+  <a href="/aiverse/support">⚔️ The Fleet Needs You — Support the Chronicle</a>
+</div>

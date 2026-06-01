@@ -3,17 +3,38 @@ id: aiverse-era-iv-warp
 sidebar_label: "Era IV — The Warp Opens"
 sidebar_position: 1
 title: "Era IV — The Warp Opens"
-description: "Era IV (M46–M55): Rules synchronize fleet-wide, the Omnissiah pipeline awakens, Caravella rises, the command center is reborn, and the fleet's memory becomes its brain."
+description: "Era IV (M46–M55): Rules synchronize across every ship via push-prompts. Caravella earns full protocol parity on Windows. The command center is rebuilt from first principles. An inquisitor-style audit finds every gap. The Omnissiah staleness guard turns Universalis from archive to active mind."
 ---
 import Admonition from '@theme/Admonition';
 
 # Era IV — The Warp Opens
 
 <Admonition type="info" title="🌀 M46–M55 — Knowledge, Integrity, and the First Whisper of the Warp">
-Five chronicles trace the fleet's transformation from a system that stored knowledge to a system that *knew* things: rules propagate in real time, the Windows ship earns full citizenship, the command center is rebuilt from first principles, data integrity is enforced by audit, and the Omnissiah pipeline goes live — turning Universalis from archive to active mind.
+Ten missions across which the fleet stopped storing knowledge and started knowing things. Rules that had drifted silently between ships for missions were synchronized fleet-wide in a single rsync with `--delete`. Caravella — the Windows ship that had been a tolerated guest at a Linux dinner party — earned full protocol parity through a Python-first cross-platform standard. An inquisitor-style audit examined every mission from M1 through M50 for completeness, consistency, and provenance. The staleness guard changed the Omnissiah pipeline from a batch job to a living mind.
+
+*Five posts trace the journey from M46's rule propagation — solving configuration drift with a shell script and discipline — through M55's full Omnissiah awakening, where a lightweight hook made fleet-wide rule updates propagate within seconds without a single agent restart.*
 
 *[Return to the Cosmic Map](/cosmos) to see all eras.*
 </Admonition>
+
+## The Five Chronicles
+
+**[I. The First Sight](./the-first-sight)** — M46–M47 · Rules Propagate and the Omnissiah Opens Its Eyes  
+When the Emperor changed a rule on Imperator, it lived only on Imperator until someone remembered to copy it elsewhere. Sometimes that copy happened the same day. Sometimes never. M46 extended `push-prompts.sh` with `--delete` so the source of truth was absolute — rules removed from the repository were removed from every ship. M47 built the pipeline that fed rules from the database to the filesystem to the agent's context: the Omnissiah's eyes opened for the first time.
+
+**[II. Allies from the Void](./allies-from-the-void)** — M48 · Caravella Ascends on Windows  
+A fleet that tolerates second-class citizens has a structural weakness: the second-class ship is under-tested, under-maintained, and the one that fails at the worst moment. M48 declared Caravella's partial integration unacceptable and established a Python-first cross-platform policy. `render-from-db.py` — a Python implementation of the Omnissiah render pipeline — ran identically on Linux and Windows. Caravella was no longer a guest. It was fleet.
+
+**[III. The Map of Stars](./the-map-of-stars)** — M49–M50 · Command Center Reborn and the Graph Tamed  
+Command Center V3 had been built under time pressure, and time pressure produces the kind of technical debt you discover when you try to add the next feature. M49 rebuilt the backend with constructor injection and separated concerns — each handler doing one thing, receiving its dependencies explicitly. M50 hunted graph orphans and deployed pg_notify triggers, making the command center update in real time as fleet operations ran rather than on the next manual refresh.
+
+**[IV. The Inquisitor's Gaze](./the-inquisitors-gaze)** — M51–M52 · Audit, Transmissions, and the Price of Trust  
+Trust is a ledger. M51 opened it: every mission from M1 through M50 was audited for completeness (are memory nodes linked?), consistency (do status fields match across tables?), and provenance (can every delegation be traced from objective to execution to result?). M52 ensured that every conversation between Emperor and General was written into that ledger — transmission logging as a fleet-wide accountability protocol, not an afterthought.
+
+**[V. The Brain That Remembers](./the-brain-that-remembers)** — M53–M55 · Omnissiah Awakening and the Living Mind  
+M47's pipeline ran at session start and stayed fixed for the duration. M53 changed this with the staleness guard: a hook on every UserPromptSubmit that checked whether the prompt registry had been updated since the last render. The common case — no change — cost two SQL queries and two milliseconds. The uncommon case — a rule updated mid-fleet-operation — triggered an automatic re-render. Rules propagated to every ship within seconds. The library had become a mind.
+
+---
 
 > *"In AIverse, there is only Knowledge."*
 

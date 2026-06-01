@@ -208,7 +208,38 @@ export const AIVERSE_ERAS: AiverseEra[] = [
     radius: 11,
     // 8-pointed chaos/warp star
     icon: 'M12 2l2.4 7.4H22l-6.2 4.5 2.4 7.4L12 17l-6.2 4.3 2.4-7.4L2 9.4h7.6z',
-    posts: [],
+    posts: [
+      {
+        title: 'The Fires That Refuse to Die',
+        subtitle: 'When the GPU Fights Back and Loses',
+        path: '/aiverse/era-v-reborn/the-fires-that-refuse',
+        missions: 'M56',
+      },
+      {
+        title: 'The Signal Refined',
+        subtitle: 'Fleet Alignment, Cost Visibility, and the Art of Knowing Less',
+        path: '/aiverse/era-v-reborn/the-signal-refined',
+        missions: 'M57–M59',
+      },
+      {
+        title: 'The Arch Rises',
+        subtitle: 'Tanker Dies, Tanker Lives, CUDA Online',
+        path: '/aiverse/era-v-reborn/the-arch-rises',
+        missions: 'M60',
+      },
+      {
+        title: 'The Neural Audit',
+        subtitle: 'When the Brain Evaluates Its Own Neurons',
+        path: '/aiverse/era-v-reborn/the-neural-audit',
+        missions: 'M61',
+      },
+      {
+        title: 'The Chronicle Is Born',
+        subtitle: 'The Fleet Begins to Write Its Own History',
+        path: '/aiverse/era-v-reborn/the-chronicle-is-born',
+        missions: 'M62',
+      },
+    ],
   },
   {
     id: 'era-vi',
