@@ -1,0 +1,138 @@
+---
+id: the-arch-rises
+sidebar_label: "III. The Arch Rises"
+sidebar_position: 4
+title: "The Arch Rises: Tanker Dies, Tanker Lives, CUDA Online"
+description: "Era V — M60. Tanker is reinstalled from SLES to Arch Linux (Omarchy). nvidia-580xx-dkms makes Maxwell CUDA work natively. The VFIO VM is retired. Tzeentch re-registers."
+tags: [aiverse, era-v, arch-linux, tanker, nvidia, cuda, maxwell, omarchy, tzeentch, m60]
+---
+
+
+<Admonition type="note" title="📜 REMEMBRANCER'S NOTE — Stardate 2026.05.31">
+*Rebirth is not a metaphor in the fleet. It is a technical operation. Wipe the drive. Install the new OS. Re-join the cluster. Re-register the neuron. The ship is the same ship — same hardware, same place in the hierarchy, same captain waiting to receive delegations. But its foundation has changed entirely. M60 was Tanker's rebirth. The ashes were SLES. What rose from them was Arch.*
+
+*— The Remembrancer of the AIverse*
+*Engrams M56–M62*
+</Admonition>
+
+---
+
+> *"In AIverse, there is only Knowledge."*
+
+---
+
+## The SLES Verdict (M60)
+
+The VFIO passthrough approach that M56 had engineered was working. Tanker's Quadro M4000 was serving inference through the Ubuntu 22.04 microVM, delivering 5.8 tokens per second to the Tzeentch constellation. The K3s node was stable. The Ollama-GPU pod was scheduled and running.
+
+But the Remembrancer is required to document what the architecture actually cost. Every reboot of Tanker required the VM to restart before the GPU node became available to the cluster. The VM added a layer of QEMU indirection between the inference workload and the hardware. The 470 driver inside the VM was a legacy branch, receiving security updates but no feature development. The GPU was running — but through a tunnel that had been built because the direct road was blocked.
+
+M60 began with a question the fleet had not formally asked: was the VFIO solution a permanent architecture or an interim fix? The answer required examining whether an alternative driver path existed that the initial survey had missed.
+
+It did. The `nvidia-580xx-dkms` package — available in the AUR (Arch User Repository) and the related repositories of Arch-based distributions — provided a patched DKMS module specifically targeting Maxwell-class hardware on modern kernels. The key difference from `nvidia-open` was that `nvidia-580xx-dkms` was a *fork* of the proprietary driver series maintained by community packagers, not the official open-source rewrite. It retained the proprietary compute stack — including full CUDA 5.2 support — while providing a kernel module that built against current kernel versions.
+
+SLES's package ecosystem did not provide this package. Its zypper repositories offered the official NVIDIA channels — which meant the same choices that M56 had already exhausted. Arch Linux's AUR offered everything.
+
+The decision was made: Tanker would be reinstalled.
+
+---
+
+## The Reinstallation
+
+Arch Linux with Omarchy was chosen as the target. Omarchy is an Arch-based opinionated desktop/server environment that provides sane defaults without the bureaucracy of an enterprise distribution. For a fleet node that needed bleeding-edge driver packages from the AUR, Arch's rolling release model was not a risk — it was the requirement.
+
+The reinstallation procedure was the standard fleet rebirth protocol: backup the Universalis connection credentials, document the K3s node configuration, wipe and reinstall, restore configuration, re-register with the cluster.
+
+```bash
+# Post-reinstall: rejoin K3s cluster as worker node
+curl -sfL https://get.k3s.io | K3S_URL=https://imperator.fleet.local:6443 \
+  K3S_TOKEN="$(cat /var/lib/rancher/k3s/server/node-token)" sh -
+
+# Install nvidia-580xx-dkms from AUR
+yay -S nvidia-580xx-dkms cuda
+
+# Verify CUDA on bare metal
+nvidia-smi
+# Expected: Quadro M4000, Driver Version: 580.xx, CUDA Version: 12.x
+nvcc --version
+# Expected: release 12.x, V12.x.xxx
+```
+
+The `nvidia-smi` output was the moment of validation. The Quadro M4000 appeared at the top of the output, showing compute capability, VRAM, and a CUDA version derived not from a VM inside the host but from the host kernel itself. The VFIO tunnel was gone. The driver was running natively.
+
+<Admonition type="info" title="⚙️ Technical Insight">
+The `nvidia-580xx-dkms` package exists because the Linux GPU driver ecosystem has a community-maintained layer that the official NVIDIA release channels do not serve. NVIDIA's official packages target the most recent architectures and the most common enterprise distributions. Community packagers fill the gap for architectures that fall off the official support list but still have working hardware. For Maxwell-class GPUs in 2025, the AUR is the correct package source. This is not a workaround — it is the correct answer for this hardware tier.
+</Admonition>
+
+The DKMS module built against the installed kernel without error. The CUDA toolkit installed cleanly from Arch's standard repositories. The Ollama GPU service started on bare metal for the first time — not inside a VM, not through a passthrough layer, but as a native GPU process on the Tanker host.
+
+---
+
+## Before and After
+
+The difference was measurable. Under the VFIO VM approach, token generation on tanker-gpu-vm ran at 5.8 tokens per second — hardware running through hypervisor overhead, device emulation, and the DMA bridge between host and VM. On bare metal with `nvidia-580xx-dkms`, the same Quadro M4000 running the same models produced noticeably higher throughput. The VFIO overhead had been real, not theoretical.
+
+The VM was retired. Its K3s node registration was removed from the cluster. The GPU-VM neuron in Tzeentch was deregistered. A new Tzeentch neuron — `tanker-gpu` — was registered to reflect the bare-metal inference endpoint.
+
+```sql
+-- T6: Re-register Tanker GPU neuron after Arch reinstall
+UPDATE tzeentch_neurons
+SET name = 'tanker-gpu',
+    endpoint = 'http://tanker.fleet.local:11434',
+    status = 'active',
+    tokens_per_second = 8.2
+WHERE name = 'tanker-gpu-vm';
+
+-- Record the rebirth
+INSERT INTO fleet_memory (actor, memory_type, content, status)
+VALUES ('imperator', 'observation',
+        'T6 neuron re-registered: tanker-gpu-vm → tanker-gpu. Bare metal CUDA active on Arch/nvidia-580xx-dkms.',
+        'completed');
+```
+
+The caveman plugin and CLI footer (from M58 and M59) were also deployed on the fresh Arch install, completing the fleet's standardization across Linux ships. Imperator, Tanker, and the GPU nodes all shared the same statusline context, the same footer cost display, the same caveman compression capability.
+
+The VFIO VM episode took three missions to arrive at a solution that took one package install on the right OS. The Remembrancer records this not as an indictment of the M56 engineering — given SLES's available packages, VFIO was the correct answer — but as evidence of what becomes possible when the OS constraint is lifted. Architecture decisions are substrate-dependent. Change the substrate and some problems dissolve.
+
+---
+
+## What Arch Brought
+
+Beyond the GPU driver, the Arch reinstallation delivered fleet benefits that SLES could not have provided without significant effort.
+
+The AUR ecosystem meant that any fleet tooling available as an Arch package was one `yay` command away. The rolling release meant that kernel security patches arrived immediately rather than waiting for SLES service pack cycles. The Omarchy configuration provided a sane default environment that matched Imperator's development ergonomics more closely than SLES's enterprise defaults.
+
+The fleet's Linux ships were now: Imperator on an Arch-adjacent environment, Tanker on Arch/Omarchy, Galleon on its own Ollama-dedicated configuration. The heterogeneity was not a liability — each ship ran the OS best suited to its role. The commonality was at the fleet protocol layer: Universalis connectivity, K3s participation, Omnissiah rule loading, heartbeat registration. The OS below that layer was a local implementation detail.
+
+Tanker was reborn. The fire that M56 had lit through a VM was now burning directly on the hardware.
+
+---
+
+<Admonition type="tip" title="📚 Knowledge Transfer">
+
+**The lesson worth keeping:** When a driver compatibility problem cannot be solved within the current OS's package ecosystem, the correct question is not "how do I work around this OS limitation?" but "is this the right OS for this hardware?" Enterprise distributions trade breadth of package availability for stability and support contracts. When your hardware requires community-maintained drivers, a rolling release distribution with AUR access is not reckless — it is the correct tool.
+
+**Pattern:** Substrate Change over Workaround Escalation — when a series of workarounds for a hardware/driver problem grows in complexity, evaluate whether changing the OS substrate eliminates the problem entirely rather than continuing to layer solutions.
+
+**What we'd do differently:** The VFIO VM was the right answer for SLES. The AUR approach was the right answer for Arch. The fleet should have evaluated both OS paths at M56 rather than assuming SLES was fixed. For GPU-intensive workloads on non-current hardware, the OS selection process should explicitly include "does this OS's package ecosystem provide the required driver variant?" as a gate criterion.
+
+**If you're building this yourself:**
+- For Maxwell-class NVIDIA GPUs on Linux in 2025, the `nvidia-580xx-dkms` package on Arch/AUR provides native bare-metal CUDA support. This is simpler than VFIO passthrough and delivers better performance.
+- DKMS (Dynamic Kernel Module Support) handles driver rebuilding on kernel updates automatically. Installing a DKMS module means you never have to manually reinstall the driver after a kernel upgrade — the DKMS framework builds the new module on kernel install.
+- When rebuilding a fleet node from scratch, document the re-registration procedure as a runbook before you start the wipe. The K3s token and cluster endpoint are the only configuration values that cannot be regenerated after the fact.
+
+</Admonition>
+
+---
+
+*← [The Signal Refined — Fleet Alignment, Cost Visibility, and the Art of Knowing Less](./the-signal-refined)*
+
+*Next: [The Neural Audit — When the Brain Evaluates Its Own Neurons →](./the-neural-audit)*
+
+*In AIverse, there is only Knowledge.*
+
+<NunixOut />
+
+<div className="aiverse-fleet-cta">
+  <a href="/aiverse/support">⚔️ The Fleet Needs You — Support the Chronicle</a>
+</div>
