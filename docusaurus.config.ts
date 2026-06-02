@@ -88,6 +88,7 @@ const config: Config = {
       items: [
         // AIverse — simple sidebar link (not dropdown)
         { type: 'docSidebar', sidebarId: 'aiverse', position: 'left', label: '📖 AIverse' },
+        { type: 'docSidebar', sidebarId: 'nebula', position: 'left', label: '✦ Nebula' },
         // Eras — direct sidebar items
         { type: 'docSidebar', sidebarId: 'era_i',   position: 'left', label: '⚡ Era I' },
         { type: 'docSidebar', sidebarId: 'era_ii',  position: 'left', label: '🌅 Era II' },

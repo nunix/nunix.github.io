@@ -1,6 +1,6 @@
 import React, { useState, useCallback, useMemo } from 'react';
 import { useHistory } from '@docusaurus/router';
-import { AIVERSE_ERAS, type AiverseEra } from '@site/src/data/aiverseEras';
+import { AIVERSE_ERAS, AIVERSE_NEBULA, type AiverseEra } from '@site/src/data/aiverseEras';
 import styles from './styles.module.css';
 
 const W = 1200;
@@ -9,6 +9,11 @@ const H = 580;
 interface LensState {
   era: AiverseEra;
   svgX: number; // lens anchor in SVG coords
+  svgY: number;
+}
+
+interface NebulaLensState {
+  svgX: number;
   svgY: number;
 }
 
@@ -89,9 +94,12 @@ const STARS = [
 
 export default function CosmicMap() {
   const [lens, setLens] = useState<LensState | null>(null);
+  const [nebulaLens, setNebulaLens] = useState<NebulaLensState | null>(null);
   const [hoveredPost, setHoveredPost] = useState<string | null>(null);
   const history = useHistory();
   const pathD = useMemo(() => buildPathD(AIVERSE_ERAS), []);
+
+  const closeAllLens = useCallback(() => { setLens(null); setNebulaLens(null); }, []);
 
   const handleEraClick = useCallback((e: React.MouseEvent, era: AiverseEra) => {
     e.stopPropagation();
@@ -102,7 +110,7 @@ export default function CosmicMap() {
   const closeLens = useCallback(() => setLens(null), []);
 
   return (
-    <div className={styles.cosmos} onClick={closeLens}>
+    <div className={styles.cosmos} onClick={closeAllLens}>
       <svg
         viewBox={`0 0 ${W} ${H}`}
         className={styles.svg}
@@ -128,6 +136,18 @@ export default function CosmicMap() {
             <stop offset="0%" stopColor="#6b21a8" stopOpacity="0.18" />
             <stop offset="100%" stopColor="#6b21a8" stopOpacity="0" />
           </radialGradient>
+          {/* Nebula gas gradient — warm amber, distinct from blue era zones */}
+          <radialGradient id="nebulaGas" cx="50%" cy="50%" r="50%">
+            <stop offset="0%"   stopColor="#f59e0b" stopOpacity="0.28" />
+            <stop offset="25%"  stopColor="#d97706" stopOpacity="0.16" />
+            <stop offset="55%"  stopColor="#92400e" stopOpacity="0.08" />
+            <stop offset="80%"  stopColor="#451a03" stopOpacity="0.03" />
+            <stop offset="100%" stopColor="#06060f"  stopOpacity="0"   />
+          </radialGradient>
+          {/* Nebula soft blur — distinct from zone blur, looser spread */}
+          <filter id="nebulaBlur" x="-80%" y="-80%" width="260%" height="260%">
+            <feGaussianBlur stdDeviation="42" />
+          </filter>
         </defs>
 
         {/* Space background */}
@@ -174,6 +194,90 @@ export default function CosmicMap() {
           strokeDasharray="6 5"
           className={styles.pathwayDash}
         />
+
+        {/* Nebula — standalone idea zone, not on pathway */}
+        {(() => {
+          const nc = toSVG(AIVERSE_NEBULA.position.x, AIVERSE_NEBULA.position.y);
+          const nr = (AIVERSE_NEBULA.radius / 100) * W * 1.2;
+          const starR = (AIVERSE_NEBULA.radius / 100) * W * 0.55;
+          return (
+            <g key="nebula">
+              {/* Nebula gas cloud — radial gradient, free-form with blur */}
+              <circle
+                cx={nc.x} cy={nc.y}
+                r={nr * 2.2}
+                fill="url(#nebulaGas)"
+                filter="url(#nebulaBlur)"
+              />
+              {/* Secondary gas wisp — offset slightly for organic look */}
+              <circle
+                cx={nc.x - nr * 0.35} cy={nc.y + nr * 0.2}
+                r={nr * 1.4}
+                fill="url(#nebulaGas)"
+                opacity={0.5}
+                filter="url(#nebulaBlur)"
+              />
+              {/* Nebula center node — dashed ring to signal "forming" */}
+              <circle
+                cx={nc.x} cy={nc.y}
+                r={(AIVERSE_NEBULA.radius / 100) * W * 0.22}
+                fill={AIVERSE_NEBULA.color}
+                fillOpacity={0.08}
+                stroke={AIVERSE_NEBULA.color}
+                strokeWidth="1"
+                strokeOpacity={0.4}
+                strokeDasharray="4 3"
+                filter="url(#eraGlow)"
+                onClick={(e) => { e.stopPropagation(); setNebulaLens({ svgX: nc.x, svgY: nc.y }); }}
+                style={{ cursor: 'pointer' }}
+              />
+              {/* Nebula label */}
+              <text
+                x={nc.x} y={nc.y - (AIVERSE_NEBULA.radius / 100) * W * 0.22 - 6}
+                textAnchor="middle"
+                fill={AIVERSE_NEBULA.color}
+                fontSize="9"
+                fontFamily="monospace"
+                fontWeight="bold"
+                opacity={0.7}
+                style={{ pointerEvents: 'none', userSelect: 'none' }}
+              >
+                ✦ NEBULA
+              </text>
+              {/* Star nodes scattered around nebula center */}
+              {AIVERSE_NEBULA.stars.map((star, i) => {
+                const angle = (i / AIVERSE_NEBULA.stars.length) * 2 * Math.PI - Math.PI / 4;
+                const sx = nc.x + starR * Math.cos(angle);
+                const sy = nc.y + starR * Math.sin(angle);
+                return (
+                  <g
+                    key={star.path}
+                    onClick={() => history.push(star.path)}
+                    style={{ cursor: 'pointer' }}
+                  >
+                    <circle
+                      cx={sx} cy={sy} r={4}
+                      fill={AIVERSE_NEBULA.color}
+                      opacity={0.6}
+                      filter="url(#nodeGlow)"
+                    />
+                    <text
+                      x={sx} y={sy - 8}
+                      textAnchor="middle"
+                      fill={AIVERSE_NEBULA.color}
+                      fontSize="7.5"
+                      fontFamily="monospace"
+                      opacity={0.55}
+                      style={{ pointerEvents: 'none', userSelect: 'none' }}
+                    >
+                      {star.missions}
+                    </text>
+                  </g>
+                );
+              })}
+            </g>
+          );
+        })()}
 
         {/* Era centers + post nodes */}
         {AIVERSE_ERAS.map((era, eraIdx) => {
@@ -324,8 +428,43 @@ export default function CosmicMap() {
         </div>
       )}
 
+      {/* Nebula lens popup */}
+      {nebulaLens && (
+        <div
+          className={styles.lens}
+          style={{
+            '--lens-color': AIVERSE_NEBULA.color,
+            '--lens-glow': AIVERSE_NEBULA.glowColor,
+            left: `${(nebulaLens.svgX / W) * 100}%`,
+            top: `${(nebulaLens.svgY / H) * 100}%`,
+          } as React.CSSProperties}
+          onClick={(e) => e.stopPropagation()}
+        >
+          <button className={styles.lensClose} onClick={() => setNebulaLens(null)}>×</button>
+          <div className={styles.lensHeader}>
+            <span className={styles.lensMissions}>standalone</span>
+            <h3 className={styles.lensTitle}>{AIVERSE_NEBULA.label}</h3>
+            <p className={styles.lensTagline}>{AIVERSE_NEBULA.tagline}</p>
+          </div>
+          <ul className={styles.lensPosts}>
+            {AIVERSE_NEBULA.stars.map((star) => (
+              <li key={star.path}>
+                <button
+                  className={styles.lensPostLink}
+                  onClick={() => { history.push(star.path); setNebulaLens(null); }}
+                >
+                  <span className={styles.postMission}>{star.missions}</span>
+                  <span className={styles.postTitle}>{star.title}</span>
+                  <span className={styles.postSubtitle}>{star.subtitle}</span>
+                </button>
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
+
       <div className={styles.legend}>
-        <span className={styles.legendTitle}>AIVERSE COSMOS · CLICK AN ERA NODE TO EXPLORE</span>
+        <span className={styles.legendTitle}>AIVERSE COSMOS · CLICK AN ERA NODE TO EXPLORE · ✦ NEBULA</span>
       </div>
     </div>
   );
