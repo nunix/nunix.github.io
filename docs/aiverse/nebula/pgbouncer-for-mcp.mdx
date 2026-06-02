@@ -1,0 +1,164 @@
+---
+id: pgbouncer-for-mcp
+title: "PgBouncer for MCP: The Proxy the Protocol Needed"
+description: A transparent lazy proxy for Model Context Protocol — zero backends at startup, native tool interface preserved.
+---
+
+import Admonition from '@theme/Admonition';
+
+<Admonition type="note" title="📜 Remembrancer's Note">
+
+This chronicle documents a pattern born of necessity — too many MCP servers idling in the dark, consuming memory and file descriptors while an LLM waits for its first prompt. The fleet needed a smarter warden.
+
+*— The Remembrancer of the AIverse*
+*Engrams Nebula-01*
+
+</Admonition>
+
+## The Problem No One Wanted to Name
+
+Every MCP-enabled workflow begins the same way. You open your client — Kit, Claude Code, anything that speaks Model Context Protocol — and the runtime dutifully spawns every configured backend server before you have typed a single character. PostgreSQL adapter: running. Filesystem server: running. Systemd inspector: running. Three processes, three stdio pipes, three sets of buffers sitting warm and idle, waiting for a query that may never arrive in this session.
+
+For a single developer on a single machine this is merely wasteful. For a fleet of agents running dozens of sessions across multiple ships, it becomes a compounding tax. Memory pressure climbs. File descriptor limits approach. Startup latency grows with each backend added to the manifest. The toolbox is always fully unpacked, even when you need only one tool.
+
+The community noticed. Solutions appeared. `lazy-mcp` and `mcp-lazy-load` both defer backend startup until a tool is actually called — a genuine improvement. But both carry the same cost: they change the interface. Instead of the native `query(sql: ...)` tool the LLM was trained to call, the agent now sees two meta-tools: something like `list_tools` and `execute_tool`. The LLM must learn an indirection layer. Prompt engineering must account for it. The transparency guarantee — that the AI sees the same tool surface regardless of infrastructure — evaporates.
+
+The fleet needed a proxy that was genuinely transparent. A PgBouncer for MCP: pooling and laziness at the infrastructure layer, zero leakage into the protocol surface.
+
+## The Architecture of Deliberate Stillness
+
+`mcp-lazy-proxy` is a Go binary that sits between any MCP client and any number of MCP backend servers. Its operating principle is radical stillness: at startup, it reads a YAML manifest, registers every tool declared there, and then does nothing. No backend processes are spawned. No connections are established. The proxy announces a fully populated tool list to the client and waits.
+
+```yaml
+backends:
+  database:
+    command:
+      - /usr/bin/env
+      - POSTGRES_URL=postgresql://user:password@localhost/mydb
+      - /usr/bin/mcp-server-postgresql
+    idle_timeout: 5m
+
+  filesystem:
+    command:
+      - /usr/bin/mcp-server-filesystem
+      - /home/user
+    idle_timeout: 10m
+
+  systemd:
+    command:
+      - /usr/bin/mcp-server-systemd
+      - --allow-read
+    idle_timeout: 2m
+
+tools:
+  - name: query
+    description: "Execute SQL query"
+    backend: database
+    input_schema:
+      type: object
+      properties:
+        sql: { type: string }
+      required: [sql]
+
+  - name: list_directory
+    description: "List files in directory"
+    backend: filesystem
+    input_schema:
+      type: object
+      properties:
+        path: { type: string }
+      required: [path]
+
+  - name: get_unit_status
+    description: "Get systemd unit status"
+    backend: systemd
+    input_schema:
+      type: object
+      properties:
+        unit: { type: string }
+      required: [unit]
+```
+
+When the LLM calls `query(sql: "SELECT 1")`, the proxy intercepts the call, checks whether the `database` backend is running, and — only at that moment — spawns the PostgreSQL MCP server. The stdio handshake completes, the call is forwarded, the result returned. The backend lives. When no further calls arrive within the `idle_timeout` window, the proxy kills the process cleanly. The next call resurrects it.
+
+From the LLM's perspective: nothing changed. It called `query`. It received a result. The lifecycle of the backend process behind that call is an infrastructure concern invisible to the protocol.
+
+<Admonition type="info" title="⚙️ Technical Insight">
+
+The transparency guarantee is maintained by separating two concerns that naive implementations conflate: **tool advertisement** and **backend liveness**. Most MCP clients call `tools/list` once at session start and cache the result. `mcp-lazy-proxy` satisfies that call entirely from the YAML manifest — no backend needs to be alive for tool discovery. Only `tools/call` triggers backend lifecycle. This means the client's tool cache is always warm, always correct, and the cold-start penalty is deferred to the first actual invocation of each backend, not to session start.
+
+</Admonition>
+
+## Before and After the Warden
+
+The configuration change required at the client is minimal. Three always-on servers collapse to one lazy proxy:
+
+**Before** — three backends spawned at session start, always:
+
+```yaml
+mcpServers:
+  postgres:
+    type: local
+    command: [/usr/bin/mcp-server-postgresql]
+  filesystem:
+    type: local
+    command: [/usr/bin/mcp-server-filesystem, /home/user]
+  systemd:
+    type: local
+    command: [/usr/bin/mcp-server-systemd, --allow-read]
+```
+
+**After** — one proxy, backends spawned on demand:
+
+```yaml
+mcpServers:
+  fleet:
+    type: local
+    command: [mcp-lazy-proxy, --manifest, ~/.config/fleet-mcp/manifest.yaml]
+```
+
+The LLM configuration — system prompts, tool descriptions, expected signatures — requires no changes. The tool `query` still accepts `sql`. The tool `list_directory` still accepts `path`. Every schema, every required field, every description flows directly from the YAML manifest into the MCP `tools/list` response. The manifest is the single source of truth for the tool surface.
+
+## What the Fleet Actually Gained
+
+In practice, the benefit is not dramatic on a single session. One developer calling three backends will barely notice. The compound gain appears across two dimensions.
+
+First, **session startup time**. A Go binary reading a YAML file and announcing tools to a client takes single-digit milliseconds. Spawning three MCP servers — each of which must connect to its upstream service, perform its own initialization, and complete the MCP handshake — takes seconds. Every session that does not call a particular backend never pays that backend's startup cost. For fleet agents that specialize (a patrol agent that only reads files, a monitoring agent that only queries the database), the savings compound immediately.
+
+Second, **resource isolation under load**. When multiple agent sessions run concurrently, each session previously required its own set of three backend processes. With the proxy, backends are per-session and short-lived. An agent session that finishes its SQL queries and moves to filesystem inspection allows the database backend to be reaped before the session ends. Peak concurrent process count drops. The fleet runs quieter.
+
+The idle timeout is the primary tuning knob. A database backend used heavily throughout a session should carry a long timeout — paying the cold-start cost once is acceptable. A systemd inspector called rarely might carry a two-minute timeout, ensuring it is almost always cold but never stale from a prior session's state.
+
+## The Pattern Generalizes
+
+`mcp-lazy-proxy` is one instance of a broader pattern: **manifest-driven tool advertisement with deferred process lifecycle**. The same approach applies anywhere a protocol separates discovery from invocation. HTTP APIs with lazy upstream connections. GraphQL schemas backed by services that start only when queried. The pattern is old; the application to MCP is new only because MCP itself is new.
+
+The key constraint that makes it work is the separation in the MCP protocol between `tools/list` (discovery, called once) and `tools/call` (invocation, called many times). Any protocol with this separation admits a transparent lazy proxy layer. Any protocol that fuses discovery and invocation does not.
+
+For the fleet, this proxy became the standard integration point for all MCP backends. The manifest lives under version control. New tools appear in the manifest first; backends are wired second. The tool surface is always inspectable from a single YAML file, independent of whether any backend is running.
+
+---
+
+<Admonition type="tip" title="📚 Knowledge Transfer">
+
+**The lesson worth keeping:** Transparency is a stronger property than laziness. A lazy proxy that changes the interface forces every consumer to adapt. A transparent lazy proxy changes nothing above the wire — the LLM, the prompts, the tool schemas all remain identical. Build laziness into the infrastructure layer, not the protocol layer.
+
+**Pattern:** Separate tool advertisement (static, from manifest) from backend liveness (dynamic, on first call). Satisfy `tools/list` from the manifest alone. Trigger process spawn only on `tools/call`.
+
+**What we'd do differently:** Per-backend connection pooling — if the same backend is called by multiple concurrent sessions, a pool would avoid redundant spawns. The current implementation is per-session, which is correct for isolation but leaves warm-backend reuse on the table.
+
+**If you're building this yourself:** Start with the manifest schema. The manifest is the contract. Get tool advertisement working from static YAML before you write a single line of process lifecycle code. A proxy that advertises correctly but never spawns is more useful for debugging than one that spawns correctly but advertises wrong.
+
+</Admonition>
+
+---
+
+*[← Back to the Nebula](/aiverse/nebula)*
+
+*In AIverse, there is only Knowledge.*
+
+<NunixOut />
+
+<div className="aiverse-fleet-cta">
+  <a href="/aiverse/support">⚔️ The Fleet Needs You — Support the Chronicle</a>
+</div>

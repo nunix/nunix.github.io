@@ -31,8 +31,10 @@ export const AIVERSE_ERAS: AiverseEra[] = [
     missions: 'M1–M10',
     color: '#ff6b35',
     glowColor: 'rgba(255, 107, 53, 0.4)',
-    position: { x: 15, y: 18 },
+    position: { x: 14, y: 14 },
     radius: 11,
+    postStartAngle: -Math.PI / 2,
+    postOrbitDirection: -1,
     // Lightning bolt — energy of creation / Bigbang
     icon: 'M11 3L6 13h4l-1 8 9-12h-5l2-6z',
     posts: [
@@ -69,8 +71,10 @@ export const AIVERSE_ERAS: AiverseEra[] = [
     missions: 'M11–M25',
     color: '#f7b731',
     glowColor: 'rgba(247, 183, 49, 0.4)',
-    position: { x: 58, y: 25 },
+    position: { x: 42, y: 18 },
     radius: 12,
+    postStartAngle: -Math.PI / 2,
+    postOrbitDirection: -1,
     // 6-pointed target/eye — awakening, opening
     icon: 'M12 2a10 10 0 1 0 0 20A10 10 0 0 0 12 2zm0 3a7 7 0 1 1 0 14A7 7 0 0 1 12 5zm0 3a4 4 0 1 0 0 8 4 4 0 0 0 0-8zm0 2a2 2 0 1 1 0 4 2 2 0 0 1 0-4z',
     posts: [
@@ -107,9 +111,9 @@ export const AIVERSE_ERAS: AiverseEra[] = [
     missions: 'M26–M45',
     color: '#4fc3f7',
     glowColor: 'rgba(79, 195, 247, 0.4)',
-    position: { x: 13, y: 63 },
+    position: { x: 22, y: 47 },
     radius: 13,
-    postStartAngle: -Math.PI / 2, // first post at top, avoids pathway crossing
+    postStartAngle: -Math.PI / 2,
     postOrbitDirection: -1,
     // Cog — Adeptus Mechanicus / Omnissiah
     icon: 'M12 15.5A3.5 3.5 0 0 1 8.5 12 3.5 3.5 0 0 1 12 8.5a3.5 3.5 0 0 1 3.5 3.5 3.5 3.5 0 0 1-3.5 3.5m7.43-2.92c.04-.3.07-.6.07-.92s-.03-.62-.07-.92l2-1.55c.18-.14.23-.41.12-.61l-1.9-3.27c-.12-.22-.37-.3-.59-.22l-2.39.96c-.5-.38-1.03-.7-1.62-.94l-.36-2.54c-.04-.24-.24-.41-.48-.41h-3.8c-.24 0-.43.17-.47.41l-.36 2.54c-.59.24-1.13.57-1.62.94l-2.39-.96c-.22-.09-.47 0-.59.22L2.74 8.87c-.12.21-.08.47.12.61l2 1.55c-.04.3-.07.62-.07.94s.03.64.07.94l-2 1.55c-.18.14-.23.4-.12.6l1.9 3.28c.12.21.37.29.59.21l2.39-.96c.5.38 1.03.71 1.62.94l.36 2.54c.04.24.23.41.47.41h3.8c.24 0 .44-.17.47-.41l.36-2.54c.59-.23 1.13-.56 1.62-.94l2.39.96c.22.08.47 0 .59-.21l1.9-3.28c.12-.21.07-.46-.12-.6l-2-1.55z',
@@ -159,8 +163,10 @@ export const AIVERSE_ERAS: AiverseEra[] = [
     missions: 'M46–M55',
     color: '#26c6da',
     glowColor: 'rgba(38, 198, 218, 0.4)',
-    position: { x: 36, y: 78 },
+    position: { x: 46, y: 68 },
     radius: 12,
+    postStartAngle: -Math.PI / 2,
+    postOrbitDirection: -1,
     // Eye — the Warp's gaze / Tzeentch eye
     icon: 'M12 4.5C7 4.5 2.73 7.61 1 12c1.73 4.39 6 7.5 11 7.5s9.27-3.11 11-7.5c-1.73-4.39-6-7.5-11-7.5zM12 17a5 5 0 0 1 0-10 5 5 0 0 1 0 10zm0-8a3 3 0 0 0 0 6 3 3 0 0 0 0-6z',
     posts: [
@@ -204,16 +210,18 @@ export const AIVERSE_ERAS: AiverseEra[] = [
     color: '#ab47bc',
     glowColor: 'rgba(171, 71, 188, 0.5)',
     isWarp: true,
-    position: { x: 62, y: 72 },
+    position: { x: 68, y: 50 },
     radius: 11,
+    postStartAngle: -Math.PI / 2 - (2 * Math.PI / 5),
+    postOrbitDirection: -1,
     // 8-pointed chaos/warp star
     icon: 'M12 2l2.4 7.4H22l-6.2 4.5 2.4 7.4L12 17l-6.2 4.3 2.4-7.4L2 9.4h7.6z',
     posts: [
       {
-        title: 'The Fires That Refuse to Die',
-        subtitle: 'When the GPU Fights Back and Loses',
-        path: '/aiverse/era-v-reborn/the-fires-that-refuse',
-        missions: 'M56',
+        title: 'The Chronicle Is Born',
+        subtitle: 'The Fleet Begins to Write Its Own History',
+        path: '/aiverse/era-v-reborn/the-chronicle-is-born',
+        missions: 'M62',
       },
       {
         title: 'The Signal Refined',
@@ -234,10 +242,10 @@ export const AIVERSE_ERAS: AiverseEra[] = [
         missions: 'M61',
       },
       {
-        title: 'The Chronicle Is Born',
-        subtitle: 'The Fleet Begins to Write Its Own History',
-        path: '/aiverse/era-v-reborn/the-chronicle-is-born',
-        missions: 'M62',
+        title: 'The Fires That Refuse to Die',
+        subtitle: 'When the GPU Fights Back and Loses',
+        path: '/aiverse/era-v-reborn/the-fires-that-refuse',
+        missions: 'M56',
       },
     ],
   },
@@ -249,13 +257,75 @@ export const AIVERSE_ERAS: AiverseEra[] = [
     color: '#66bb6a',
     glowColor: 'rgba(102, 187, 106, 0.4)',
     isWarp: true,
-    position: { x: 81, y: 33 },
+    position: { x: 84, y: 32 },
     radius: 10,
     // Infinity / eternal scroll
     icon: 'M20 12c0 2.21-1.79 4-4 4s-4-1.79-4-4 1.79-4 4-4c1.1 0 2.1.45 2.83 1.17M4 12c0-2.21 1.79-4 4-4s4 1.79 4 4-1.79 4-4 4c-1.1 0-2.1-.45-2.83-1.17',
     posts: [],
   },
 ];
+
+export interface NebulaStar {
+  title: string;
+  subtitle: string;
+  path: string;
+  missions: string;
+  tags: string[];
+}
+
+export interface AiverseNebula {
+  id: string;
+  label: string;
+  tagline: string;
+  color: string;
+  glowColor: string;
+  position: { x: number; y: number };
+  radius: number;
+  icon: string;
+  stars: NebulaStar[];
+}
+
+export const AIVERSE_NEBULA: AiverseNebula = {
+  id: 'nebula',
+  label: 'The Idea Nebula',
+  tagline: 'Where stars are born before they own a galaxy.',
+  color: '#26c6da',
+  glowColor: 'rgba(38, 198, 218, 0.35)',
+  position: { x: 82, y: 78 },
+  radius: 9,
+  // Nebula / scatter dots icon
+  icon: 'M12 2a1 1 0 100 2 1 1 0 000-2zM6 6a1 1 0 100 2 1 1 0 000-2zM18 6a1 1 0 100 2 1 1 0 000-2zM4 12a1 1 0 100 2 1 1 0 000-2zM20 12a1 1 0 100 2 1 1 0 000-2zM6 18a1 1 0 100 2 1 1 0 000-2zM18 18a1 1 0 100 2 1 1 0 000-2zM12 20a1 1 0 100 2 1 1 0 000-2z',
+  stars: [
+    {
+      title: 'PgBouncer for MCP',
+      subtitle: 'A transparent lazy proxy for Model Context Protocol servers',
+      path: '/aiverse/nebula/pgbouncer-for-mcp',
+      missions: 'M80',
+      tags: ['mcp', 'proxy', 'tokens', 'open-source'],
+    },
+    {
+      title: 'Shell Context Broker',
+      subtitle: 'AI agents need shell-native context, not CLI dumps',
+      path: '/aiverse/nebula/shell-context-broker',
+      missions: 'M80',
+      tags: ['shell', 'context', 'tokens', 'kit'],
+    },
+    {
+      title: 'A Second Captain',
+      subtitle: 'Running parallel AI agents on the same ship with kit + gpt-5.5',
+      path: '/aiverse/nebula/a-second-captain',
+      missions: 'M78',
+      tags: ['kit', 'multi-agent', 'copilot', 'fleet'],
+    },
+    {
+      title: 'Caveman Tokens',
+      subtitle: 'Cutting AI token usage 75% without losing intelligence',
+      path: '/aiverse/nebula/caveman-tokens',
+      missions: 'M79',
+      tags: ['tokens', 'prompt', 'caveman', 'efficiency'],
+    },
+  ],
+};
 
 // Era pathway: sequential order for SVG curved path
 // Each point is [x%, y%] center of that era

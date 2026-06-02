@@ -7,6 +7,7 @@ const sidebars: SidebarsConfig = {
     { type: 'doc', id: 'aiverse/aiverse-index',   label: '📖 What is AIverse?' },
     { type: 'doc', id: 'aiverse/updates/aiverse-updates', label: "🗒️ Author's Updates" },
     { type: 'link', label: '🗺️ Cosmic Map', href: '/cosmos' },
+    { type: 'link', label: '✦ Idea Nebula', href: '/aiverse/nebula' },
     { type: 'doc', id: 'aiverse/aiverse-support', label: '⚔️ Support the Chronicle' },
   ],
 
@@ -77,11 +78,11 @@ const sidebars: SidebarsConfig = {
       defaultStyle: true,
     },
     { type: 'doc', id: 'aiverse/era-v-reborn/aiverse-era-v-reborn', label: 'Era V Overview' },
-    { type: 'doc', id: 'aiverse/era-v-reborn/the-fires-that-refuse', label: 'I. The Fires That Refuse to Die' },
+    { type: 'doc', id: 'aiverse/era-v-reborn/the-chronicle-is-born', label: 'I. The Chronicle Is Born' },
     { type: 'doc', id: 'aiverse/era-v-reborn/the-signal-refined', label: 'II. The Signal Refined' },
     { type: 'doc', id: 'aiverse/era-v-reborn/the-arch-rises', label: 'III. The Arch Rises' },
     { type: 'doc', id: 'aiverse/era-v-reborn/the-neural-audit', label: 'IV. The Neural Audit' },
-    { type: 'doc', id: 'aiverse/era-v-reborn/the-chronicle-is-born', label: 'V. The Chronicle Is Born' },
+    { type: 'doc', id: 'aiverse/era-v-reborn/the-fires-that-refuse', label: 'V. The Fires That Refuse to Die' },
   ],
 
   // ── ERA VI ──
@@ -92,6 +93,20 @@ const sidebars: SidebarsConfig = {
       defaultStyle: true,
     },
     { type: 'doc', id: 'aiverse/era-vi-chronicle/aiverse-era-vi-chronicle', label: 'Chronicles Incoming' },
+  ],
+
+  // ── NEBULA — standalone idea stars, not part of any Era arc ──
+  nebula: [
+    {
+      type: 'html',
+      value: '<div class="sidebar-era-header"><span class="sidebar-era-header-icon">✦</span>The Idea Nebula<span class="sidebar-era-header-range">standalone</span></div>',
+      defaultStyle: true,
+    },
+    { type: 'doc', id: 'aiverse/nebula/nebula-index', label: '✦ What is the Nebula?' },
+    { type: 'doc', id: 'aiverse/nebula/pgbouncer-for-mcp', label: '⬡ PgBouncer for MCP' },
+    { type: 'doc', id: 'aiverse/nebula/shell-context-broker', label: '⬡ Shell Context Broker' },
+    { type: 'doc', id: 'aiverse/nebula/a-second-captain', label: '⬡ A Second Captain' },
+    { type: 'doc', id: 'aiverse/nebula/caveman-tokens', label: '⬡ Caveman Tokens' },
   ],
 
   // ── OLD TOPICS (preserved content) ──
