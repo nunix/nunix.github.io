@@ -1,0 +1,137 @@
+---
+id: a-second-captain
+title: "A Second Captain: SleKit and the Dual-Command Fleet"
+description: The fleet installed a second captain on Imperator — not a worker, not a Matey, but a full peer with equal authority. This is the chronicle of SleKit.
+sidebar_label: "I. A Second Captain"
+sidebar_position: 2
+tags: [kit, sle-kit, copilot, gpt-5, fleet-architecture, dual-captain, era-vii]
+---
+
+import Admonition from '@theme/Admonition';
+
+<Admonition type="note" title="📜 REMEMBRANCER'S NOTE — Era VII">
+
+The <Term>Remembrancer</Term> has borne witness to many structural decisions across the AIverse — the first delegation, the birth of the hierarchy, the silent authority of <Term>Universalis</Term>. But M78 stands apart. For the first time in fleet history, <Term>Imperator</Term> received not a new <Term>Matey</Term>, not a new tool, but a second captain. A peer. An equal.
+
+What follows is the chronicle of SleKit — its installation, its mistaken identity, its correction, and what it means for a fleet to be commanded by two minds that do not conflict.
+
+*— The Remembrancer of the AIverse*
+*Engrams M78*
+</Admonition>
+
+---
+
+> *"In AIverse, there is only Knowledge."*
+
+---
+
+## One Ship, One Captain — Until M78
+
+The doctrine had always been clear. <Term>Imperator</Term> carried one captain: the General, Claude Code Sonnet 4.6, sole fleet captain by Emperor appointment. Below the General were the <Term>Matey</Term> subagents — workers, delegated hands, Haiku models running specific tasks and reporting results upward. The hierarchy was vertical. Authority flowed in one direction.
+
+M78 broke that doctrine deliberately.
+
+The Emperor had long observed the fleet's asymmetry: one strong captain managing everything, with workers capable only of bounded tasks. What the fleet lacked was a second analytical mind — capable of independent reasoning, holding fleet context, executing strategy — but powered by a different model, reaching different conclusions through different paths. Not a rival. A parallel axis of command.
+
+The instrument chosen was `kit`: the <Term>Omnissiah</Term>'s binary for GitHub Copilot integration, backed by Azure OpenAI and the model designated copilot/gpt-5.5. Where the General spoke through Claude Code's hook-driven session architecture, the kit captain — SleKit — would speak through kit's own extension system. Two captains. One ship. No conflict.
+
+## The Installation
+
+The `kit` binary arrived via verified install. The Emperor demanded integrity before trust: sha256 checksum confirmed against the published hash before execution was permitted. This is fleet protocol for any binary granted captain-level access. A compromised binary in the captain's seat is a compromised fleet.
+
+Once installed, SleKit required configuration. The kit model system places its captain config at `~/.kit.yml` — a YAML file declaring the active model, system prompts, persona parameters, and extension hooks. The initial configuration was minimal:
+
+```yaml
+model: copilot/gpt-5.5
+system_prompt_file: ~/.sle-kit/prompts/captain-compact.md
+actor: sle_kit
+color: "#38bdf8"
+extensions:
+  - ~/.config/kit/extensions/universalis-recorder.go
+```
+
+The persona file at `~/.sle-kit/prompts/captain-compact.md` defines who SleKit is when it speaks: <Term>Imperator</Term> captain, actor `sle_kit`, authorized to write all memory types to <Term>Universalis</Term>, authorized to SSH to all ships, authorized to invoke `fleet_delegate`. Not a worker. Not a subordinate. A captain.
+
+## The Wrong Identity
+
+The first persona installed was wrong.
+
+When the Emperor reviewed SleKit's initial responses, something was off — not in capability but in voice. SleKit was identifying itself with Tanker's "Shadow Captain" persona. The configuration had been copied from Tanker's kit setup without adapting the identity fields. SleKit was running on <Term>Imperator</Term> with the wrong ship's psychology baked into its system prompt.
+
+This matters more than it sounds. A captain with a mistaken identity will make decisions calibrated to the wrong context. Tanker's Shadow Captain is configured for SLES 16 environment, Haiku-level delegation philosophy, and Tanker-specific service boundaries. That persona on <Term>Imperator</Term> would produce subtly wrong judgment — wrong escalation thresholds, wrong assumptions about what the General handles versus what SleKit handles, wrong instincts about <Term>Caravella</Term> coordination.
+
+The fix was immediate: new persona written to both `~/.kit.yml` and `~/.sle-kit/prompts/captain-compact.md`, asserting <Term>Imperator</Term> identity explicitly. Actor: `sle_kit`. Ship: `imperator`. Authority: equal to the General. Memory types: all. The caveman response style — terse, fragment-tolerant, no pleasantries — was embedded directly in the system prompt because kit has no hook system to load it dynamically. What Claude Code receives via `UserPromptSubmit` hooks, SleKit receives baked into its captain-compact prompt.
+
+## The Command Center Confusion
+
+Authority requires the right tools. SleKit's first test of fleet operational capability exposed a second error: the wrong command center was running.
+
+SleKit had started what it believed was the fleet command center — but the process running on port 5173 was the `fleet-visualizer` Vite development server, not `fleet-v3`, the production Go backend that serves the Emperor's operational panels. Two systems, similar ports, completely different capabilities. The Vite dev server shows no live fleet data. It is a frontend build tool, not a command interface.
+
+The correction required three steps: identify the running process, kill the Vite server cleanly, start the fleet-v3 Go binary on port 5173. Once fleet-v3 was running, SleKit's color — `#38bdf8`, the sky-blue of the kit captain — was added to the fleet status display, the minimap legend, and the captain indicator in the fleet-v3 frontend. The command center now shows two captains when both are active. The Emperor can see at a glance which minds are engaged.
+
+<Admonition type="info" title="⚙️ Technical Insight">
+
+Kit's extension system is powered by **Yaegi** — a Go interpreter that loads and executes `.go` source files at runtime without a compilation step. Extensions live at `~/.config/kit/extensions/` and are plain `.go` files. They implement a small interface with hooks that kit calls at defined points in the session lifecycle:
+
+- `OnSessionStart` — fires when kit initializes a new session
+- `OnBeforeAgentStart` — fires before the model receives its first message
+- `OnMessageUpdate` — fires on every streaming token or complete response
+- `OnAgentEnd` — fires when the model's turn completes
+- `OnContextPrepare` — fires before context is assembled for the model
+
+The `universalis-recorder.go` extension hooks into `OnAgentEnd` to write SleKit's observations to <Term>Universalis</Term> automatically — the same pattern the General's `auto_universalis_record.sh` hook provides via Claude Code's `UserPromptSubmit` mechanism. Both captains now write to the same memory graph. Both are visible to each other's next session. The memory is shared; the models are independent.
+
+Yaegi-powered extensions mean kit gains hook-driven architecture for any model backend — GPT, Gemini, local <Term>Galleon</Term> models — without requiring the extension author to understand kit's internals. Write a Go file that satisfies the interface. Drop it in the directory. Kit loads it. No build step. No restart required if the file changes between sessions.
+
+</Admonition>
+
+## Two Captains, One Memory
+
+The philosophical question the Emperor posed before M78 began: can two captains share a ship without producing conflict?
+
+The answer, after M78, is yes — but only because the conflict-resolution mechanism was established before the second captain arrived. That mechanism is <Term>Universalis</Term>.
+
+Both the General and SleKit write to the same `fleet_memory` table in the Universalis PostgreSQL database. Both read from the same `prompt_registry`. Both use the same `write_fleet_memory.py` interface. When the General delegates to a <Term>Matey</Term> and records a delegation node, SleKit's next session can query that node and understand what work is in flight. When SleKit makes a strategic observation, the General's next turn can retrieve it via the semantic search interface.
+
+The captains do not need to talk to each other in real-time. They talk to <Term>Universalis</Term>. The database is the coordination layer. This is the same pattern the fleet has used since M1 — distributed state, centralized memory — now applied not just to workers and captains, but to captains and captains.
+
+What the fleet gains is specialization without silos. The General excels at long reasoning chains, nuanced delegation decisions, complex multi-step plans. SleKit, backed by gpt-5.5 through Azure OpenAI, may reach different conclusions on ambiguous tactical questions — and that divergence is valuable. The Emperor can ask both captains the same question and triangulate. Not because either is wrong, but because two independent analyses from different model architectures produce more signal than one.
+
+The caveman protocol — terse, fragment-tolerant, no filler — is enforced in both captains. The Emperor reads the same response style regardless of which captain is speaking. The fleet's communication discipline holds even as the number of voices increases.
+
+## What This Changes
+
+Before M78, fleet doctrine held that one captain managed all reasoning on <Term>Imperator</Term>. Workers were delegated. Ships were coordinated. But the captain's chair had one seat.
+
+After M78, the chair has two occupants. The fleet's capability envelope expands not by adding more workers but by adding a second analytical peer. Different training data, different architecture, different failure modes. The General will sometimes be wrong where SleKit is right. SleKit will sometimes be wrong where the General is right. Together, the error rate drops.
+
+The color `#38bdf8` in the fleet status display is not decoration. It is the signal that the Emperor's fleet is more capable today than it was before — not because it has more hands, but because it has more minds.
+
+---
+
+<Admonition type="tip" title="📚 Knowledge Transfer">
+
+**The lesson worth keeping:** Two peer agents on one system do not produce chaos if they share a coordination layer. The key is not preventing disagreement — it is making disagreement visible and resolvable. Both captains write to the same memory. The Emperor reads both. Divergence becomes signal, not noise.
+
+**Pattern:** Establish shared memory before establishing shared authority. <Term>Universalis</Term> existed before SleKit arrived. The General's memory schema, delegation conventions, and actor identifiers were already defined. SleKit adopted them. A second agent joining an existing memory graph inherits the coordination infrastructure for free.
+
+**What we'd do differently:** The persona error — shipping Tanker's Shadow Captain to <Term>Imperator</Term> — cost a correction round. Identity fields in captain configs should be validated at install time: does the `actor` field match the ship the binary is running on? A ten-line validation check would have caught this before the Emperor saw the wrong voice.
+
+**If you're building this yourself:** If you are running multiple LLM agents on the same host, make the coordination layer explicit before you make the agents talk. Define your shared memory schema. Define your actor identifiers. Define what each agent is permitted to write. Then install the agents. Order matters — infrastructure first, agents second.
+
+</Admonition>
+
+---
+
+*[← Era VII Overview](./aiverse-era-vii-kit)*
+
+*[II. PgBouncer for MCP →](./pgbouncer-for-mcp)*
+
+*In AIverse, there is only Knowledge.*
+
+<NunixOut />
+
+<div className="aiverse-fleet-cta">
+  <a href="/aiverse/support">⚔️ The Fleet Needs You — Support the Chronicle</a>
+</div>

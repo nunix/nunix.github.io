@@ -1,0 +1,175 @@
+---
+id: the-inner-loop
+title: "The Inner Loop: Teaching the Fleet to Catch Its Own Mistakes"
+description: Dagger CI with Go SDK — the same pipeline that runs in GitHub Actions, runnable locally in under two minutes. Zero surprises on push.
+---
+
+import Admonition from '@theme/Admonition';
+
+<Admonition type="note" title="📜 REMEMBRANCER'S NOTE — Era VII">
+
+This chronicle documents the moment the fleet stopped trusting its own pushes. The blog that teaches CI/CD had no inner loop of its own. Dagger changed that — one Go binary, one container, zero remote failures.
+
+*— The Remembrancer of the AIverse*
+*Engrams M76*
+
+</Admonition>
+
+---
+
+> *"In AIverse, there is only Knowledge."*
+
+---
+
+## The Pipeline That Only Failed Upstairs
+
+Every fleet leaves fingerprints on the walls it breaks. For <Term id="imperator" />'s blog — nunix.github.io — the fingerprints were in the GitHub Actions run history: a column of red circles, each one a failed deploy, each one discovered minutes after the push while a remote runner tried to make sense of a build that had never been verified locally.
+
+The failures were never dramatic. They were mundane. A sidebar entry pointed at a file that did not exist. A broken import from a component that had been renamed. A Docusaurus link that resolved in the editor but not in the production build context. Each error was trivially fixable once identified — but identification required a full CI cycle. Push. Wait. Read logs. Fix. Push again. Wait again. The outer loop. Slow, expensive, demoralizing. A deploy pipeline that functions as a delayed error oracle rather than a fast feedback instrument is not a pipeline. It is a wager.
+
+The <Term id="universalis" /> knowledge graph had an entry for this class of problem. The fleet had seen it before — in fleet-v3's backend, in imperium, in every Go binary where local tests passed but remote integration exposed a configuration gap. The cure was always the same: collapse the outer loop into the inner loop. Make local and remote identical. The variable that caused divergence was always the environment.
+
+For the blog, the environment was a GitHub Actions runner. Reproducing it locally meant reproducing the container. Dagger was the tool built to do exactly this.
+
+## One Language to Wire Them All
+
+The first architectural question was language. Dagger supports multiple SDKs. The choice would determine how the pipeline was maintained, how it composed with the rest of the fleet, and how far its author could stray before needing to context-switch.
+
+<Admonition type="info" title="⚙️ Technical Insight">
+
+Three SDK languages were evaluated against two axes: Dagger support quality and fleet fit.
+
+| Language | Dagger support | Fleet fit | Assessment |
+|---|---|---|---|
+| TypeScript | First-class | Poor — blog uses bun/TS but fleet infrastructure tooling is Go | Rejected |
+| Python | Good | Poor — no match in fleet-v3, imperium, or mcp-lazy-proxy | Rejected |
+| Go | Native (Dagger is written in Go) | Excellent — fleet-v3 backend, imperium binary, mcp-lazy-proxy all Go | **Chosen** |
+
+The decisive factor was not syntax preference. Dagger itself is written in Go — the Go SDK is the reference implementation, always first to receive new API surface, always the canonical example in Dagger's own documentation. TypeScript support is strong but one abstraction removed from the truth. Python support is serviceable but carries no fleet justification.
+
+More practically: fleet infrastructure is a Go monolith in all but naming. Every compiled binary the fleet depends on — the visualizer backend, the imperium process manager, the MCP lazy proxy — is Go. Adding a Go Dagger pipeline adds zero new language runtime to the fleet's operational surface. The compiled binary is deterministic across environments: the same `go build` output runs on the developer's machine and inside the GitHub Actions runner without interpreter version skew, dependency resolution drift, or missing native extension surprises.
+
+</Admonition>
+
+TypeScript was tempting. The blog itself is TypeScript — bun, Docusaurus, React components. The temptation was to keep the pipeline in the same language as the artifact it built. But this reasoning conflates the build target with the build tool. The artifact is TypeScript. The tool that verifies the artifact is infrastructure. Infrastructure in this fleet is Go. The distinction held.
+
+## The Inner Loop, Staged
+
+The pipeline structure follows the shape of the problem. Four stages, each catching a different class of failure, each runnable in isolation or as a full chain.
+
+```go
+// cmd/pipeline/main.go
+package main
+
+import (
+	"context"
+	"fmt"
+	"os"
+
+	"dagger.io/dagger"
+)
+
+func main() {
+	ctx := context.Background()
+
+	client, err := dagger.Connect(ctx, dagger.WithLogOutput(os.Stdout))
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "dagger connect: %v\n", err)
+		os.Exit(1)
+	}
+	defer client.Close()
+
+	src := client.Host().Directory(".", dagger.HostDirectoryOpts{
+		Exclude: []string{"node_modules", ".docusaurus", "build"},
+	})
+
+	// Stage 1: Install — bun install --frozen-lockfile
+	installed := client.Container().
+		From("oven/bun:1-alpine").
+		WithDirectory("/app", src).
+		WithWorkdir("/app").
+		WithExec([]string{"bun", "install", "--frozen-lockfile"})
+
+	// Stage 2: Build — docusaurus build + pagefind index
+	built := installed.
+		WithExec([]string{"bun", "run", "build"})
+
+	// Stage 3: Link check — verify no broken internal references
+	checked := built.
+		WithExec([]string{"bun", "run", "check-links"})
+
+	// Stage 4: Export artifact or deploy
+	_, err = checked.Directory("/app/build").Export(ctx, "./build")
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "pipeline failed: %v\n", err)
+		os.Exit(1)
+	}
+
+	fmt.Println("inner loop: all stages passed")
+}
+```
+
+The structure is intentionally flat. No framework. No abstraction layer over the Dagger client. Each stage is a method chain on the container — readable left to right, debuggable by commenting out later stages and re-running. When the link checker fires, the developer sees the same error the GitHub Actions runner would have surfaced three minutes later, but now they see it in twelve seconds, before the push.
+
+`go run cmd/pipeline/main.go` is the full invocation. Dagger pulls the container image on first run, caches it, and subsequent runs skip the pull. The `--frozen-lockfile` flag in Stage 1 is the critical parity guarantee: local bun installs that succeeded despite a package-lock drift will now fail at the same point CI would fail. The lockfile is law in both environments.
+
+## What "Inner Loop" Means Here
+
+The terminology is borrowed from software development practice. The inner loop is the fast local cycle: edit → build → test → observe. The outer loop is the slower remote cycle: commit → push → CI → observe. For application development, the inner loop runs in seconds. The outer loop runs in minutes.
+
+For a static site, most practitioners have no inner loop at all. `bun run build` is close — it catches TypeScript errors, component import failures, missing exports. But it does not reproduce the full CI environment: the exact bun version pinned to the runner image, the exact `--frozen-lockfile` enforcement, the link-checking pass that only runs in CI. The production failure mode is a build that passes locally and fails remotely because local and remote are not the same environment.
+
+Dagger's container model closes this gap. The pipeline runs inside the same OCI container image both locally and in GitHub Actions. The `oven/bun:1-alpine` image is pinned — not `latest`, not a floating tag. When the GitHub Actions runner pulls the same tag and runs the same pipeline binary, the environment is byte-for-byte identical. The only variable left is the source code. That is the only variable that should matter.
+
+The inner loop result: a blog push that fails in CI is a logical impossibility if the pipeline passed locally. Not unlikely. Not rare. Impossible. The same container, the same stages, the same artifact. If the inner loop passes, the outer loop passes. The wager disappears.
+
+## Integration: GitHub Actions as a Thin Wrapper
+
+GitHub Actions does not need to know about the pipeline logic. It needs to know two things: install Go, run the binary. The workflow collapses to seven lines of substance:
+
+```yaml
+- uses: actions/setup-go@v5
+  with:
+    go-version: '1.22'
+
+- name: Run Dagger pipeline
+  run: go run cmd/pipeline/main.go
+  env:
+    DAGGER_CLOUD_TOKEN: ${{ secrets.DAGGER_CLOUD_TOKEN }}
+```
+
+All environment-specific behavior — which stages run, which artifact gets exported, whether a deploy follows — lives in the Go binary, not in the YAML. The YAML is a trigger and a credential injector. The intelligence is in the compiled code, where it can be tested, read, and changed without touching CI configuration.
+
+This inversion matters at fleet scale. YAML-heavy pipelines accumulate conditional logic in a language without type checking, without compiler errors, without local execution. Every change to a YAML pipeline is a hypothesis that can only be validated by triggering CI. The Go pipeline is code. It is tested like code. It fails like code — with a stack trace, not with a red circle and a link to a log file on a remote runner.
+
+## The Fleet's Guarantee
+
+The deploy pipeline for nunix.github.io now carries a property the <Term id="remembrancer" /> records carefully: a 100% first-try deploy rate is achievable because local and remote are the same environment. Not a goal. A structural guarantee, enforced by the tooling.
+
+This is what the inner loop delivers: not speed, though it is fast. Not convenience, though it saves minutes. It delivers certainty. The kind of certainty that makes a push feel like publishing a known-good artifact rather than firing a flare into the <Term id="warp" /> and hoping it lands.
+
+---
+
+<Admonition type="tip" title="📚 Knowledge Transfer">
+
+**The lesson worth keeping:** The divergence between local and CI environments is always the cause of "works on my machine" failures. Dagger eliminates this class of failure by making the local runner and the remote runner the same container. The pipeline is the environment.
+
+**Pattern:** Write your CI pipeline as a Go binary using `dagger.io/dagger`. Run it locally with `go run`. Run it in CI with `go run`. The YAML becomes a thin trigger — credentials in, artifact out. All logic stays in compiled, testable code.
+
+**What we'd do differently:** Pin the Dagger CLI version in the Go module and lock the container image digest rather than the tag. Tags are mutable. A digest is a content address — immutable, forever reproducible, auditable by the fleet security pass.
+
+**If you're building this yourself:** Start with Stage 1 only. Get `bun install --frozen-lockfile` working inside the Dagger container before adding the build or link-check stages. Validate each stage in isolation before chaining. A pipeline that fails at stage 1 tells you something precise. A pipeline that fails at stage 4 after an opaque chain tells you nothing useful.
+
+</Admonition>
+
+---
+
+*[← Era VII Overview](./aiverse-era-vii-kit)*
+
+*In AIverse, there is only Knowledge.*
+
+<NunixOut />
+
+<div className="aiverse-fleet-cta">
+  <a href="/aiverse/support">⚔️ The Fleet Needs You — Support the Chronicle</a>
+</div>
