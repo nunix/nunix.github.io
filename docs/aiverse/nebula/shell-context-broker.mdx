@@ -1,14 +1,130 @@
 ---
 id: shell-context-broker
-title: Shell Context Broker
-description: Idea forming in the Nebula — chronicle forthcoming.
+title: "Shell Context Broker: Teaching Kit to Remember"
+description: A three-tier memory system that gives shell-invoked AI agents cross-session context without temp files — backed by Universalis.
 ---
 
+import Admonition from '@theme/Admonition';
 
-# ✦ shell-context-broker
-
-*This chronicle is forming in the Nebula. The Remembrancer is watching.*
+<Admonition type="note" title="📜 Remembrancer's Note">
+This chronicle documents a star forming in the Nebula — a self-contained architectural pattern that emerged between Eras, waiting for the light to reach you.
 
 *— The Remembrancer of the AIverse*
+*Engrams Nebula-02*
+</Admonition>
+
+---
+
+> *"In AIverse, there is only Knowledge."*
+
+---
+
+# Shell Context Broker: Teaching Kit to Remember
+
+Every shell command is a death. The process spawns, answers, and is annihilated by the kernel — taking with it everything it knew. This is the law of Unix, and it applies to AI agents just as mercilessly as it applies to `grep`.
+
+`kit` is the fleet's command-line intelligence — a Go binary backed by Copilot that answers questions from the terminal. Type `kit "what packages changed in yesterday's zypper log?"` and you get an answer. Type it again and you speak to a stranger. The same model, the same binary, zero recollection of what came before.
+
+The Remembrancer found this intolerable.
+
+## The Problem with Stateless Agents
+
+A shell-invoked agent lives in a radically different world from a chat interface. There is no conversation object, no running server to hold state, no WebSocket staying warm between turns. Each invocation is a cold start: process creation, extension loading, context injection, response — then silence.
+
+Workarounds people reach for first:
+
+- **Temp files**: fragile, unstructured, invisible to other tools
+- **Environment variables**: survive only within a shell session, lost on reboot
+- **Longer prompts**: you'd have to paste your history manually — defeating the purpose
+
+None of these compose. None of them age gracefully. None of them are *queryable*.
+
+The fleet already had Universalis — a PostgreSQL database holding every meaningful thing the fleet had ever done. The solution was not to invent new storage. The solution was to make `kit` drink from the same well.
+
+## Three Tiers, One Hook
+
+The implementation lives in `~/.config/kit/extensions/universalis-recorder.go`, a Go file loaded by the Yaegi interpreter when `kit` starts. It registers handlers on three lifecycle events: `OnBeforeAgentStart`, `OnInput`, and `OnAgentEnd`.
+
+At startup, before the model sees anything, `OnBeforeAgentStart` fires. This is where context is injected — not as a file path, not as an environment variable, but as structured text prepended directly to the system prompt. Three tiers, evaluated in order:
+
+<Admonition type="info" title="⚙️ Technical Insight">
+**Warm memory** is a digest — roughly 800 characters, 200 tokens — stored in the `core_memory` table under the key `kit_warm_sle_kit`. It is written at session end and contains compressed summaries of what mattered in past sessions: recurring topics, corrections the user made, preferences the agent learned. It is the closest thing to long-term memory a shell agent can have without becoming a server.
+
+**Hot memory** is the last 2 turns verbatim from `fleet_sessions` (ship=`sle_kit`). Always injected. This solves the continuity problem: secret words, mid-conversation corrections, the answer you got three seconds ago in a different terminal tab — all visible to the new process.
+
+**Tier-specific context** is chosen by a question classifier. If the question contains "last", "previous", "you provided", or "secret word", it is a `continuation` query — inject 6 turns. If it references active missions, inject 8 turns plus the mission header. For pure knowledge queries, run a pgvector semantic search against `fleet_memory` and inject the top results instead.
+</Admonition>
+
+The classifier is a simple keyword match — no embedding, no ML call. Fast enough to add zero perceptible latency to the invocation. The semantic search only fires for knowledge-tier questions where precision matters more than speed.
+
+## Writing Cold Storage
+
+Context injection is the read path. The write path is equally important.
+
+`OnInput` fires when the user's prompt is finalized. The handler writes it verbatim to `fleet_sessions`. This happens before the model responds — so even if the process crashes mid-response, the question is preserved.
+
+`OnAgentEnd` fires when the response is complete. It writes a compressed form of the response back to `fleet_sessions`, linking it to the prompt by session ID.
+
+Except Copilot's backend is a streaming model. `AgentEndEvent.Response` is empty. The full response does not exist as a single field — it arrived as a stream of delta chunks.
+
+The fix: accumulate `OnMessageUpdate` events into a buffer during the response stream. When `OnAgentEnd` fires, flush the buffer. The verbatim text is preserved in `kit`'s native JSONL session files for full fidelity; what goes to `fleet_sessions` is a compressed digest sufficient for context injection on the next invocation.
+
+`OnContextPrepare` handles one additional edge case: the previous turn's full response is visible in the context window of the *next* invocation — not just the compressed digest. This is the Copilot streaming model's partial compensation for not exposing `Response` at end time. We lean into it rather than fighting it.
+
+## The Secret Word Test
+
+Validation required a test that was impossible to fake with clever prompting or lucky coincidence.
+
+```bash
+kit "provide me a new secret word for this session"
+# → Response: "Your secret word is: PERIHELION"
+
+# New process. Zero shared state.
+kit "what is the secret word you provided last?"
+# → Response: "The secret word I gave you was PERIHELION"
+```
+
+The second invocation had no knowledge of the first except what was injected via hot memory from `fleet_sessions`. The recall was exact. The cold start was invisible.
+
+A second validation: asking `kit` to describe its own memory architecture. It answered correctly — naming the three tiers, the tables, the classifier logic — because that architecture description lives in warm memory and was injected at startup. The agent knew itself because Universalis told it who it was.
+
+Token telemetry confirmed the injection cost. `GetContextStats().EstimatedTokens` reports actual token consumption per invocation. `GetSessionUsage()` returns zeros for the Copilot backend — a known gap in the API surface — so estimation from context stats is the reliable signal. Warm + hot memory together run around 300-400 tokens on a typical invocation. Continuation tier adds another 200-400. Acceptable overhead for a shell tool that would otherwise be stateless.
+
+## What This Pattern Enables
+
+The shell context broker is not `kit`-specific. The pattern is:
+
+1. A lifecycle hook that fires before the model sees anything
+2. A tiered context assembly that reads from structured storage
+3. A write path that persists the session for future reads
+4. A question classifier that selects the right tier without adding latency
+
+Any shell-invoked agent can implement this. The storage backend can be PostgreSQL, SQLite, or any queryable store. The tiers can be tuned to the agent's domain. The classifier can be regex, keyword match, or a lightweight embedding if the use case justifies it.
+
+What matters is the *discipline*: context is not optional metadata appended if convenient. It is injected deterministically, every invocation, before the model speaks.
+
+<Admonition type="tip" title="📚 Knowledge Transfer">
+**The lesson worth keeping:** Shell-invoked agents are stateless by nature, but state can be injected. The key is to treat context assembly as a first-class lifecycle step — not an afterthought.
+
+**Pattern:** Three-tier memory (warm digest → hot recent turns → tier-specific retrieval) injected via `OnBeforeAgentStart`. Write path runs on `OnInput` and `OnAgentEnd`. Streaming backends require chunk accumulation — never trust `Response` field at end time for streaming models.
+
+**What we'd do differently:** The question classifier is keyword-only. A cheap embedding model running locally (or cached embeddings in Universalis) would improve tier selection for ambiguous queries without adding meaningful latency.
+
+**If you're building this yourself:** Start with hot memory only — last 2 turns from any persistent store. That alone eliminates 80% of the "it forgot what I just said" complaints. Add warm memory once you have a session corpus large enough to compress meaningfully.
+</Admonition>
+
+The shell is not the enemy of context. It is just honest about the contract: you bring your own memory, or you have none. The fleet chose to bring its own.
+
+---
+
+*[← Back to the Nebula](/aiverse/nebula)*
+
+*In AIverse, there is only Knowledge.*
 
 <NunixOut />
+
+<div className="fleet-cta">
+
+**Want to build agents that remember?** The Universalis architecture — PostgreSQL-backed, tier-structured, hook-injected — is the same system powering the entire fleet. Follow the AIverse chronicles as each pattern surfaces from the Nebula into full Era documentation.
+
+</div>

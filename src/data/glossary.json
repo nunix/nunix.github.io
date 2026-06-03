@@ -37,7 +37,7 @@
   },
   "anamnesis": {
     "title": "ANAMNESIS",
-    "def": "The knowledge database of Tzeentch. A PostgreSQL database on Tanker holding brain_queries, neuron_tasks, knowledge_entries, and synapse_events. The memory of the Warp's machine-intelligence."
+    "def": "The knowledge database of Tzeentch. A PostgreSQL database on Tanker holding brain_queries, neuron_tasks, knowledge_entries, and synapse_events. The memory of the Warp's machine-intelligence. Also the philosophical concept: knowledge recovered from within, not taught from without."
   },
   "remembrancer": {
     "title": "REMEMBRANCER",
@@ -50,6 +50,70 @@
   "omnissiah": {
     "title": "OMNISSIAH",
     "def": "The machine-god. In AIverse: the knowledge pipeline that keeps all ships in sync. Rules and skills live in prompt_registry (Universalis DB) and are rendered to each ship's filesystem at session start. The Omnissiah's will flows without words."
+  },
+  "litellm": {
+    "title": "LITELLM",
+    "def": "An open-source LLM proxy that provides a unified API across 100+ model providers (OpenAI, Anthropic, Ollama, Azure, etc.). In AIverse, Tanker runs a LiteLLM instance that routes fleet inference requests to the correct backend — load balancing, model aliasing, and cost tracking in one daemon.",
+    "link": "https://github.com/BerriAI/litellm"
+  },
+  "mcp": {
+    "title": "MODEL CONTEXT PROTOCOL",
+    "def": "An open protocol by Anthropic that standardises how AI models connect to external tools, data sources, and capabilities. MCP servers expose tools via a JSON-RPC stdio interface; MCP clients (Claude Code, kit) connect and call tools. The protocol separates tool declaration from tool execution — the foundation of the fleet's lazy proxy architecture.",
+    "link": "https://modelcontextprotocol.io"
+  },
+  "pgvector": {
+    "title": "PGVECTOR",
+    "def": "A PostgreSQL extension that adds vector data types and similarity search operators. Enables semantic search directly in Universalis — embeddings are stored alongside text, and queries retrieve the most conceptually similar records using cosine distance. Used by search_fleet_memory.py --mode semantic.",
+    "link": "https://github.com/pgvector/pgvector"
+  },
+  "ollama": {
+    "title": "OLLAMA",
+    "def": "An open-source runtime for running large language models locally. Manages model downloads, quantization, and inference serving. The fleet's primary local inference engine — Galleon and Tanker both run Ollama, serving models like qwen2.5:14b and llama3.3:70b to fleet agents.",
+    "link": "https://ollama.com"
+  },
+  "kit": {
+    "title": "KIT",
+    "def": "A CLI agent binary used by the fleet for direct shell-based AI interaction. Supports multiple backends (Copilot/gpt-5.5, Claude, Ollama), session persistence, MCP tool integration, and a Yaegi-powered extension system. The SleKit agent on Imperator uses kit with the Copilot backend."
+  },
+  "sle_kit": {
+    "title": "SLEKIT",
+    "def": "The fleet's second captain on Imperator — a kit-based agent powered by GitHub Copilot (gpt-5.5). SleKit has full fleet authority: SSH access to all ships, fleet_delegate capability, and full Universalis write access. Runs alongside the General (Claude Code Sonnet) as a co-captain."
+  },
+  "mcp-lazy-proxy": {
+    "title": "MCP LAZY PROXY",
+    "def": "The fleet's transparent MCP backend multiplexer. Declares all tool schemas from a static YAML manifest at startup (zero backend processes running). Backends are spawned lazily on first tool call and killed after idle timeout. The 'PgBouncer for MCP' — same native tool interface, infrastructure hidden beneath.",
+    "link": "https://github.com/nunix/mcp-lazy-proxy"
+  },
+  "warm-memory": {
+    "title": "WARM MEMORY",
+    "def": "The first tier of the fleet's cross-session context system. A bounded (~800 chars) digest of key facts from past sessions, stored in core_memory and injected at every kit session start. Provides 'what mattered recently' without burning full cold-memory tokens."
+  },
+  "cold-memory": {
+    "title": "COLD MEMORY",
+    "def": "The second tier of the fleet's context system. Full verbatim records of every prompt and response, stored permanently in fleet_sessions. Searched semantically (via pgvector) when the agent needs to recall something specific from distant sessions. Unbounded, always available, only loaded on demand."
+  },
+  "context-window": {
+    "title": "CONTEXT WINDOW",
+    "def": "The maximum number of tokens an LLM can process in a single request — including the system prompt, conversation history, tool schemas, and the response. The fleet's tiered memory system (warm/cold/hot) exists specifically to keep context window usage minimal per kit invocation.",
+    "link": "https://en.wikipedia.org/wiki/Large_language_model#Context_window"
+  },
+  "prompt-caching": {
+    "title": "PROMPT CACHING",
+    "def": "A feature of Anthropic's API (and some others) that caches the prefix of a conversation so repeated prefixes (like system prompts) are charged at reduced token rates. On Claude, cached tokens cost ~10% of full price. The fleet's compact system prompts are designed specifically to maximize cache hit rates.",
+    "link": "https://docs.anthropic.com/en/docs/build-with-claude/prompt-caching"
+  },
+  "fleet-sessions": {
+    "title": "FLEET_SESSIONS",
+    "def": "A Universalis table (ship_state.fleet_sessions) that stores cross-session conversation records for each fleet agent. Columns: session_id, ship, turn_index, role (user/assistant/tokens/digest), content, model. The foundation of the shell context broker — kit reads this table to reconstruct conversation history across separate invocations."
+  },
+  "delta-routing": {
+    "title": "DELTA ROUTING",
+    "def": "The fleet's approach to context injection: instead of sending the full conversation history to the LLM on every call, only send what's new (delta) and what's relevant (tiered: warm digest + recent hot turns + semantic cold hits). Inspired by database change data capture — only transmit what changed, not the full state."
+  },
+  "yaegi": {
+    "title": "YAEGI",
+    "def": "A Go interpreter embedded in kit that loads and executes extension files (.go) at runtime without compilation. Extensions in ~/.config/kit/extensions/*.go are interpreted by Yaegi each time kit starts, giving the fleet dynamic hook registration (OnAgentEnd, OnMessageUpdate, OnBeforeAgentStart, etc.) without recompiling kit.",
+    "link": "https://github.com/traefik/yaegi"
   },
   "kernel": {
     "title": "KERNEL",

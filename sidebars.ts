@@ -87,12 +87,25 @@ const sidebars: SidebarsConfig = {
 
   // ── ERA VI ──
   era_vi: [
+    { type: 'html', value: '<div class="sidebar-era-header"><span class="sidebar-era-header-icon">∞</span>Era VI — The Living Chronicle<span class="sidebar-era-header-range">M63–M77</span></div>', defaultStyle: true },
+    { type: 'doc', id: 'aiverse/era-vi-chronicle/aiverse-era-vi-chronicle', label: 'Era VI Overview' },
+    { type: 'doc', id: 'aiverse/era-vi-chronicle/the-chronicle-eats-itself', label: 'I. The Chronicle Eats Itself' },
+    { type: 'doc', id: 'aiverse/era-vi-chronicle/the-hardened-fleet', label: 'II. The Hardened Fleet' },
+    { type: 'doc', id: 'aiverse/era-vi-chronicle/the-omnissiah-chronicles', label: 'III. The Omnissiah Chronicles' },
+    { type: 'doc', id: 'aiverse/era-vi-chronicle/the-living-machine', label: 'IV. The Living Machine' },
+  ],
+
+  // ── ERA VII — The Kit Awakens ──
+  era_vii: [
     {
       type: 'html',
-      value: '<div class="sidebar-era-header"><span class="sidebar-era-header-icon">∞</span>Era VI — The Living Chronicle<span class="sidebar-era-header-range">M63+</span></div>',
+      value: '<div class="sidebar-era-header"><span class="sidebar-era-header-icon">⬡</span>Era VII — The Kit Awakens<span class="sidebar-era-header-range">M78–M80</span></div>',
       defaultStyle: true,
     },
-    { type: 'doc', id: 'aiverse/era-vi-chronicle/aiverse-era-vi-chronicle', label: 'Chronicles Incoming' },
+    { type: 'doc', id: 'aiverse/era-vii-kit/aiverse-era-vii-kit', label: 'Era VII Overview' },
+    { type: 'doc', id: 'aiverse/nebula/a-second-captain', label: 'I. A Second Captain' },
+    { type: 'doc', id: 'aiverse/era-vii-kit/pgbouncer-for-mcp', label: 'II. PgBouncer for MCP' },
+    { type: 'doc', id: 'aiverse/era-vii-kit/shell-context-broker', label: 'III. Shell Context Broker' },
   ],
 
   // ── NEBULA — standalone idea stars, not part of any Era arc ──
@@ -103,8 +116,6 @@ const sidebars: SidebarsConfig = {
       defaultStyle: true,
     },
     { type: 'doc', id: 'aiverse/nebula/nebula-index', label: '✦ What is the Nebula?' },
-    { type: 'doc', id: 'aiverse/nebula/pgbouncer-for-mcp', label: '⬡ PgBouncer for MCP' },
-    { type: 'doc', id: 'aiverse/nebula/shell-context-broker', label: '⬡ Shell Context Broker' },
     { type: 'doc', id: 'aiverse/nebula/a-second-captain', label: '⬡ A Second Captain' },
     { type: 'doc', id: 'aiverse/nebula/caveman-tokens', label: '⬡ Caveman Tokens' },
   ],
