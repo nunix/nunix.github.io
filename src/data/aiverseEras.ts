@@ -74,7 +74,7 @@ export const AIVERSE_ERAS: AiverseEra[] = [
     position: { x: 42, y: 18 },
     radius: 12,
     postStartAngle: -Math.PI / 2,
-    postOrbitDirection: -1,
+    postOrbitDirection: 1,
     // 6-pointed target/eye — awakening, opening
     icon: 'M12 2a10 10 0 1 0 0 20A10 10 0 0 0 12 2zm0 3a7 7 0 1 1 0 14A7 7 0 0 1 12 5zm0 3a4 4 0 1 0 0 8 4 4 0 0 0 0-8zm0 2a2 2 0 1 1 0 4 2 2 0 0 1 0-4z',
     posts: [
@@ -253,15 +253,57 @@ export const AIVERSE_ERAS: AiverseEra[] = [
     id: 'era-vi',
     label: 'Era VI — The Living Chronicle',
     tagline: 'The story writes itself. In real time. Forever.',
-    missions: 'M63+',
+    missions: 'M63–M77',
     color: '#66bb6a',
     glowColor: 'rgba(102, 187, 106, 0.4)',
     isWarp: true,
     position: { x: 84, y: 32 },
     radius: 10,
+    postStartAngle: -Math.PI / 2,
+    postOrbitDirection: -1,
     // Infinity / eternal scroll
     icon: 'M20 12c0 2.21-1.79 4-4 4s-4-1.79-4-4 1.79-4 4-4c1.1 0 2.1.45 2.83 1.17M4 12c0-2.21 1.79-4 4-4s4 1.79 4 4-1.79 4-4 4c-1.1 0-2.1-.45-2.83-1.17',
-    posts: [],
+    posts: [
+      { title: 'The Chronicle Eats Itself', subtitle: 'When the fleet began writing its own history', path: '/aiverse/era-vi-chronicle/the-chronicle-eats-itself', missions: 'M63–M65' },
+      { title: 'The Hardened Fleet', subtitle: 'From experimental to operational', path: '/aiverse/era-vi-chronicle/the-hardened-fleet', missions: 'M66–M71' },
+      { title: 'The Omnissiah Chronicles', subtitle: 'The AIverse becomes a real publication', path: '/aiverse/era-vi-chronicle/the-omnissiah-chronicles', missions: 'M72–M75' },
+      { title: 'The Living Machine', subtitle: 'The fleet that publishes itself', path: '/aiverse/era-vi-chronicle/the-living-machine', missions: 'M76–M77' },
+    ],
+  },
+  {
+    id: 'era-vii',
+    label: 'Era VII — The Kit Awakens',
+    tagline: 'A second captain. A lazy proxy. Shell agents that remember.',
+    missions: 'M78–M80',
+    color: '#38bdf8',
+    glowColor: 'rgba(56, 189, 248, 0.4)',
+    isWarp: false,
+    position: { x: 88, y: 58 },
+    radius: 10,
+    postStartAngle: -Math.PI / 2,
+    postOrbitDirection: -1,
+    // Circuit / AI chip icon
+    icon: 'M9 3H5a2 2 0 00-2 2v4m6-6h10a2 2 0 012 2v4M9 3v18m0 0h10a2 2 0 002-2V9M9 21H5a2 2 0 01-2-2V9m0 0h18',
+    posts: [
+      {
+        title: 'A Second Captain',
+        subtitle: 'SleKit — Copilot-powered parallel agent aboard Imperator',
+        path: '/aiverse/nebula/a-second-captain',
+        missions: 'M78',
+      },
+      {
+        title: 'PgBouncer for MCP',
+        subtitle: 'A transparent lazy proxy for Model Context Protocol servers',
+        path: '/aiverse/era-vii-kit/pgbouncer-for-mcp',
+        missions: 'M80',
+      },
+      {
+        title: 'Shell Context Broker',
+        subtitle: 'Teaching kit to remember across shell invocations',
+        path: '/aiverse/era-vii-kit/shell-context-broker',
+        missions: 'M80',
+      },
+    ],
   },
 ];
 
@@ -296,20 +338,6 @@ export const AIVERSE_NEBULA: AiverseNebula = {
   // Nebula / scatter dots icon
   icon: 'M12 2a1 1 0 100 2 1 1 0 000-2zM6 6a1 1 0 100 2 1 1 0 000-2zM18 6a1 1 0 100 2 1 1 0 000-2zM4 12a1 1 0 100 2 1 1 0 000-2zM20 12a1 1 0 100 2 1 1 0 000-2zM6 18a1 1 0 100 2 1 1 0 000-2zM18 18a1 1 0 100 2 1 1 0 000-2zM12 20a1 1 0 100 2 1 1 0 000-2z',
   stars: [
-    {
-      title: 'PgBouncer for MCP',
-      subtitle: 'A transparent lazy proxy for Model Context Protocol servers',
-      path: '/aiverse/nebula/pgbouncer-for-mcp',
-      missions: 'M80',
-      tags: ['mcp', 'proxy', 'tokens', 'open-source'],
-    },
-    {
-      title: 'Shell Context Broker',
-      subtitle: 'AI agents need shell-native context, not CLI dumps',
-      path: '/aiverse/nebula/shell-context-broker',
-      missions: 'M80',
-      tags: ['shell', 'context', 'tokens', 'kit'],
-    },
     {
       title: 'A Second Captain',
       subtitle: 'Running parallel AI agents on the same ship with kit + gpt-5.5',

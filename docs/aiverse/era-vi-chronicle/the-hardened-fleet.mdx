@@ -1,0 +1,161 @@
+---
+id: the-hardened-fleet
+sidebar_label: "II. The Hardened Fleet"
+sidebar_position: 3
+title: "The Hardened Fleet: From Experimental to Operational"
+description: "Era VI — M66–M71. iGPU research, bun migration, Mechanicus theme, Imperium binary, pipeline unification, Slaanesh integration. Six missions that transformed the fleet from experiments into production infrastructure."
+tags: [aiverse, era-vi, hardening, bun, docusaurus, imperium-binary, slaanesh, pipeline, m66, m67, m68, m69, m70, m71]
+---
+
+import Admonition from '@theme/Admonition';
+
+<Admonition type="note" title="📜 REMEMBRANCER'S NOTE — Stardate 2026.06.02">
+*The <Term id="remembrancer">Remembrancer</Term> must confess a bias: narrative prefers drama. The GPU battles of M56, the Arch Linux rebirth of M60, the neural audit of M61 — these are the missions that write themselves. The missions covered here — M66 through M71 — do not. They are the missions that make the dramatic missions possible. Infrastructure hardening, toolchain migration, pipeline unification: the work that happens between the stories, the work that is the reason the stories continue to happen at all. The <Term id="remembrancer">Remembrancer</Term> records these missions not because they are dramatic but because they are load-bearing. Without them, everything else falls.*
+
+*— The Remembrancer of the AIverse*
+*Engrams M66–M71*
+</Admonition>
+
+---
+
+> *"In AIverse, there is only Knowledge."*
+
+---
+
+## The Oracle of iGPU (M66)
+
+M66 was research. Not implementation — research. The question was whether <Term id="imperator">Imperator</Term>'s AMD Radeon integrated GPU could serve as an inference endpoint, running llama models locally without relying on the <Term id="tzeentch">Tzeentch</Term> constellation for every inference request.
+
+The AMD Radeon iGPU path was non-obvious. Ollama's default path for GPU acceleration targets discrete NVIDIA cards via CUDA or discrete AMD cards via ROCm. Integrated GPU support via HIP on AMD APU architectures required a different approach: ROCm with explicit device targeting, overriding Ollama's auto-detection to force iGPU assignment.
+
+```bash
+# Force Ollama to target the iGPU rather than falling through to CPU
+HSA_OVERRIDE_GFX_VERSION=11.0.0 \
+ROCM_PATH=/opt/rocm \
+ollama run llama3.2:3b
+```
+
+The research produced a compatibility matrix: which llama model sizes ran within the iGPU's VRAM budget (4GB shared from system RAM), what token generation rates were achievable (approximately 8–12 t/s for 3B models, under 3 t/s for 7B), and at what point the memory pressure from iGPU inference began affecting the rest of <Term id="imperator">Imperator</Term>'s workload.
+
+<Admonition type="info" title="⚙️ Technical Insight">
+Integrated GPU inference has a critical architectural constraint that discrete GPU inference does not: VRAM is shared with system RAM. When a discrete GPU runs out of VRAM, it either rejects the load or pages to system RAM with significant performance degradation. When an iGPU runs out of its VRAM allocation, it draws from the same memory pool that the OS, the fleet tools, and every other running process uses — creating resource contention that is invisible to standard GPU monitoring tools. Monitoring iGPU inference requires watching system RAM pressure, not just GPU-reported VRAM usage. `amdgpu_top` and `/proc/meminfo` together provide this visibility; neither alone does.
+
+For a fleet where <Term id="imperator">Imperator</Term> runs both the orchestration layer and the inference endpoint, iGPU inference introduces a feedback loop: heavy inference load degrades the orchestration layer that is scheduling the inference requests. Measuring this interaction requires profiling under realistic concurrent load, not isolated benchmarks.
+</Admonition>
+
+M67 extended M66 into planning: the SUSE AI stack was mapped against the fleet's current inference architecture. The question was not whether to migrate but where the fleet's organic growth aligned with the enterprise stack's design assumptions. The answer was: partially. The fleet's <Term id="tzeentch">Tzeentch</Term> constellation predated the SUSE AI stack's availability, and its multi-ship distributed architecture did not fit neatly into the stack's single-node model. The planning produced a compatibility report rather than an implementation plan. Some migrations are research. This was one.
+
+---
+
+## The Great Hardening (M68)
+
+M68 was not one mission in the sense of a single objective with a single deliverable. It was a hardening sprint — a coordinated sequence of infrastructure improvements deferred across multiple prior missions, now extracted into a focused effort.
+
+Four changes defined M68:
+
+**The bun migration.** The AIverse site ran on Node.js and npm. npm's dependency resolution was reliable but slow — clean installs on the CI path took over three minutes. bun had reached a stability threshold where migration risk was acceptable. The migration reduced clean install time from 3m12s to 18s on the same hardware. The Docusaurus build time dropped from 2m44s to 1m03s. No functionality changed. The entire chain simply ran faster.
+
+```bash
+# Before (npm)
+npm ci && npm run build
+# real: 5m56s
+
+# After (bun)
+bun install && bun run build
+# real: 1m21s
+```
+
+**The Mechanicus theme.** The AIverse site's visual identity had been functional since M62 but had not achieved the aesthetic coherence the <Term id="remembrancer">Remembrancer</Term>'s Laws assumed. M68 deployed the Mechanicus theme: a dark Docusaurus theme with Adeptus Mechanicus visual language — cog motifs, high-contrast dark backgrounds, red accent elements, monospace-heavy typography for code blocks. The theme was not cosmetic decoration. A chronicle about an AI fleet operating in WH40K cosmological language needed visual consistency with that language.
+
+**Hermes optimization.** The Hermes analysis from M57 had identified context overhead patterns. M68 implemented the optimizations M57 had recommended: reduced system prompt length without information loss, tighter tool call descriptions, and session start instructions that loaded <Term id="universalis">Universalis</Term> context more selectively. The result was measurable reduction in per-session token consumption at the same task quality.
+
+**<Term id="galleon">Galleon</Term> and <Term id="tanker">Tanker</Term> model updates.** The neural audit in M61 had cleared twelve models from the constellation. M68 finalized the updated model roster for both <Term id="galleon">Galleon</Term> and <Term id="tanker">Tanker</Term>, validated the remaining models against M61's accuracy benchmarks, and confirmed that the leaner constellation maintained the performance characteristics the fleet depended on.
+
+---
+
+## The Binary That Records Itself (M69)
+
+M69 was Imperium Binary — the mission that produced the fleet's self-recording CLI.
+
+The problem M69 solved was operational: the fleet had accumulated a set of recurring command sequences — <Term id="universalis">Universalis</Term> queries, trust rating updates, session logging, fleet_sessions management — that were executed frequently but required multi-step manual invocation. The <Term id="remembrancer">Remembrancer</Term>'s protocol alone involved four separate script calls at the end of each significant operation. <Term id="matey">Matey</Term> delegations required a <Term id="universalis">Universalis</Term> write, a UUID extraction, and a parent_id injection — each a separate command.
+
+Imperium Binary wrapped these into a single compiled Go binary with a structured CLI:
+
+```go
+// imperium — fleet CLI binary
+// Subcommands:
+//   imperium log <message> [--type observation|objective|delegation|alert] [--parent <uuid>]
+//   imperium session start|end [--mission <id>]
+//   imperium trust <ship> <delta> [--reason <text>]
+//   imperium delegate <ship> <task> [--parent <uuid>]
+//   imperium query <keyword> [--mode exact|semantic|graph]
+```
+
+The MCP tools layer exposed these same operations as Model Context Protocol tools — meaning the binary could be invoked directly from inside a Claude Code session without subprocess overhead. The daemon component maintained a persistent connection to the <Term id="universalis">Universalis</Term> database rather than establishing a new connection per call. The recorder automatically wrote fleet_sessions entries at session boundaries, populated the `session_cost_usd` field from the CLI footer's live cost tracking, and linked each session to the active objective's memory node.
+
+<Admonition type="info" title="⚙️ Technical Insight">
+The Go binary approach for fleet CLI tooling offered a specific advantage over the existing Python scripts: single-binary deployment. The Python scripts required a correctly configured Python environment on every ship — `psycopg2-binary`, the correct Python version, environment variables for the database URL. The Go binary compiled to a single static executable that embedded all dependencies. Deployment was `scp imperium tanker:/usr/local/bin/imperium`. No virtualenv. No pip. No version conflicts. For a multi-ship fleet where tooling must work identically on Arch, SLES, and openSUSE, the static binary deployment model eliminated an entire class of environmental inconsistency.
+
+The MCP tool layer on top of the binary created a second distribution channel: the same operations available via <Term id="shell">shell</Term> were available as structured tool calls inside Claude Code sessions. The fleet's CLI and the fleet captain's tool palette became the same surface, maintained in one place.
+</Admonition>
+
+---
+
+## Unification and the Slaanesh Arrival (M70–M71)
+
+M70 was Fleet Pipeline Unification — the mission that connected the fleet's inference layer (<Term id="tzeentch">Tzeentch</Term> via Ollama) to its routing layer (LiteLLM) via the <Term id="warp">Warp</Term> API, producing a single interface that could direct requests to any inference node without the caller knowing which node would handle it.
+
+The architecture before M70 required explicit routing: a call to <Term id="galleon">Galleon</Term> went to <Term id="galleon">Galleon</Term>'s endpoint, a call to <Term id="tanker">Tanker</Term> went to <Term id="tanker">Tanker</Term>'s endpoint. LiteLLM provided a unified gateway, but its configuration had accumulated inconsistencies across multiple missions of incremental change. The perfect run architecture — a single LiteLLM configuration file that described every model on every neuron, with health-checked fallback routing — was M70's deliverable.
+
+```yaml
+# LiteLLM unified router — post M70
+model_list:
+  - model_name: "fleet/fast"
+    litellm_params:
+      model: "ollama/qwen2.5:14b"
+      api_base: "http://galleon.fleet.local:11434"
+  - model_name: "fleet/fast"
+    litellm_params:
+      model: "ollama/qwen2.5:14b"
+      api_base: "http://tanker.fleet.local:11434"
+router_settings:
+  routing_strategy: "least-busy"
+  health_check_interval: 30
+```
+
+The <Term id="warp">Warp</Term> integration gave every fleet tool a single `WARP_API_BASE` environment variable to target — no ship-specific routing logic anywhere in the application layer.
+
+M71 was Slaanesh Primarch — a name that carried weight in the fleet's WH40K cosmology. Slaanesh, the Prince of Excess, the entity of sensation and perfection, was the persona assigned to the fleet's full integration layer: the point where every ship, every model, every tool, and every pipeline converged into a single operational surface. M71 completed Slaanesh's integration: CHAOS DNS propagation confirmed across all ships, the Marauder database connection (previously broken by a credentials rotation that had not propagated) restored, and the Slaanesh persona formally registered in the fleet's <Term id="universalis">Universalis</Term> hierarchy.
+
+The fleet, after M71, was not experimental. It was operational. Every component had a defined role, a tested connection path, a WH40K persona, and a <Term id="universalis">Universalis</Term> record. The hardening that M66 through M71 represented was not glamorous. It was the prerequisite for everything Era VI would do next.
+
+---
+
+<Admonition type="tip" title="📚 Knowledge Transfer">
+
+**The lesson worth keeping:** The gap between "it works" and "it's operational" is longer than any single mission. Infrastructure hardening — migrations, toolchain updates, binary deployments, configuration unification — is not one task but a category of work that must be allocated its own sprint, its own missions, its own chronicle entries. When deferred, it accumulates into a wall that blocks everything else.
+
+**Pattern:** Hardening Sprint as Mission Cluster — group deferred infrastructure improvements into a named sprint (M68 was "Fleet Hardening") rather than attaching them as side tasks to feature missions. Named sprints get completed. Side tasks get deferred again.
+
+**What we'd do differently:** The bun migration should have happened at M62 when the blog was first deployed. Toolchain migrations are easiest at greenfield deployment and hardest after significant content accumulation. Migrate at creation, not after six months of growth.
+
+**If you're building this yourself:**
+- A single compiled binary for your operational CLI eliminates the dependency management problem across multi-machine fleets. Go's static compilation is the correct tool for this use case.
+- Unified routing (LiteLLM or equivalent) should be established before any second inference node is added. The cost of retrofitting routing to a multi-node inference fleet is larger than the cost of building it first.
+- Assign personas to infrastructure components early. Named entities generate richer internal documentation, more consistent voice in the chronicle, and clearer responsibility boundaries.
+
+</Admonition>
+
+---
+
+*[← I. The Chronicle Eats Itself](./the-chronicle-eats-itself)*
+
+*[III. The Omnissiah Chronicles →](./the-omnissiah-chronicles)*
+
+*In AIverse, there is only Knowledge.*
+
+<NunixOut />
+
+<div className="aiverse-fleet-cta">
+  <a href="/aiverse/support">⚔️ The Fleet Needs You — Support the Chronicle</a>
+</div>
