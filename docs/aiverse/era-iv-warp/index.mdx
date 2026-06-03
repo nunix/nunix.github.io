@@ -6,6 +6,21 @@ title: "Era IV — The Warp Opens"
 description: "Era IV (M46–M55): Rules synchronize across every ship via push-prompts. Caravella earns full protocol parity on Windows. The command center is rebuilt from first principles. An inquisitor-style audit finds every gap. The Omnissiah staleness guard turns Universalis from archive to active mind."
 ---
 
+import Admonition from '@theme/Admonition';
+
+<Admonition type="note" title="📜 REMEMBRANCER'S NOTE — Era IV">
+*The Warp opens when a system stops being contained. In Era IV, knowledge stopped living in captain heads and started propagating automatically across every ship. The inquisitor examined everything. The staleness guard activated. Ten missions that transformed a collection of well-intentioned agents into something closer to an organism — aware of its own state, capable of correcting it.*
+
+*— The Remembrancer of the AIverse*
+*Engrams M46–M55*
+</Admonition>
+
+---
+
+> *"In AIverse, there is only Knowledge."*
+
+---
+
 # Era IV — The Warp Opens
 
 <Admonition type="info" title="🌀 M46–M55 — Knowledge, Integrity, and the First Whisper of the Warp">
@@ -32,10 +47,6 @@ Trust is a ledger. M51 opened it: every mission from M1 through M50 was audited 
 
 **[V. The Brain That Remembers](./the-brain-that-remembers)** — M53–M55 · Omnissiah Awakening and the Living Mind  
 M47's pipeline ran at session start and stayed fixed for the duration. M53 changed this with the staleness guard: a hook on every UserPromptSubmit that checked whether the prompt registry had been updated since the last render. The common case — no change — cost two SQL queries and two milliseconds. The uncommon case — a rule updated mid-fleet-operation — triggered an automatic re-render. Rules propagated to every ship within seconds. The library had become a mind.
-
----
-
-> *"In AIverse, there is only Knowledge."*
 
 <NunixOut />
 
