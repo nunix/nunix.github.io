@@ -94,18 +94,7 @@ const sidebars: SidebarsConfig = {
     { type: 'doc', id: 'aiverse/era-vi-chronicle/the-living-machine', label: 'IV. The Living Machine' },
   ],
 
-  // ── ERA VII — The Kit Awakens ──
-  era_vii: [
-    {
-      type: 'html',
-      value: '<div class="sidebar-era-header"><span class="sidebar-era-header-icon">⬡</span>Era VII — The Kit Awakens<span class="sidebar-era-header-range">M78–M80</span></div>',
-      defaultStyle: true,
-    },
-    { type: 'doc', id: 'aiverse/era-vii-kit/aiverse-era-vii-kit', label: 'Era VII Overview' },
-    { type: 'doc', id: 'aiverse/nebula/a-second-captain', label: 'I. A Second Captain' },
-    { type: 'doc', id: 'aiverse/era-vii-kit/pgbouncer-for-mcp', label: 'II. PgBouncer for MCP' },
-    { type: 'doc', id: 'aiverse/era-vii-kit/shell-context-broker', label: 'III. Shell Context Broker' },
-  ],
+  // ── ERA VII — sidebar defined in era-vii PR (files not yet in main) ──
 
   // ── NEBULA — standalone idea stars, not part of any Era arc ──
   nebula: [
