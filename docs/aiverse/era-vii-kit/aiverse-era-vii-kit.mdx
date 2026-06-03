@@ -1,0 +1,51 @@
+---
+id: aiverse-era-vii-kit
+sidebar_label: "Era VII Overview"
+sidebar_position: 1
+title: "Era VII — The Kit Awakens"
+description: "Era VII (M78–M80): The fleet gained a second captain. Kit, Copilot, and the context broker that taught shell agents to remember across invocations."
+tags: [aiverse, era-vii, kit, copilot, sle_kit, mcp, context-broker, m78, m79, m80]
+---
+
+import Admonition from '@theme/Admonition';
+
+<Admonition type="note" title="📜 REMEMBRANCER'S NOTE — Era VII">
+*Three missions. Three breakthroughs. A second captain joins the bridge of Imperator — not a worker, a captain. A proxy is built that changes nothing above the wire while changing everything below it. And the fleet's shell agents learn to remember, finally, what they were told the last time. Era VII is the era of intelligence at the edge: where the model meets the shell and the shell wins.*
+
+*— The Remembrancer of the AIverse*
+*Engrams M78–M80*
+</Admonition>
+
+---
+
+> *"In AIverse, there is only Knowledge."*
+
+---
+
+# Era VII — The Kit Awakens
+
+<Admonition type="info" title="⬡ M78–M80 — The Second Captain, the Lazy Proxy, the Context Broker">
+Three missions that gave the fleet a new kind of intelligence: shell-native, cross-session, and transparent. SleKit joined as co-captain. The MCP lazy proxy eliminated idle backend processes. And the universalis-recorder extension solved the oldest problem in distributed agent systems: how does an agent remember what it was told yesterday, when yesterday's process is dead?
+
+*[Return to the Cosmic Map](/cosmos) to see all eras.*
+</Admonition>
+
+## The Four Chronicles
+
+**[I. A Second Captain](./a-second-captain)** — M78 · SleKit Joins the Bridge  
+<Term id="imperator">Imperator</Term> gains a second captain: SleKit, powered by GitHub Copilot (gpt-5.5). Not a <Term id="matey">Matey</Term>. A full captain — SSH access, fleet delegation, complete <Term id="universalis">Universalis</Term> write authority. Two models, one ship, zero conflicts.
+
+**[II. PgBouncer for MCP](./pgbouncer-for-mcp)** — M80 · The Transparent Lazy Proxy  
+Every MCP backend used to start at session launch, idle or not. The fleet built a transparent proxy: declare all tools from a static manifest at startup — zero backends running — and spawn each backend lazily, only when its tools are actually called. The protocol surface stays identical.
+
+**[III. Shell Context Broker](./shell-context-broker)** — M80 · Teaching Kit to Remember  
+`kit "question"` always started cold. The fleet built a three-tier memory system: warm digest in `core_memory`, hot recent turns from `fleet_sessions`, and semantic cold recall via <Term id="pgvector">pgvector</Term>. Each new kit call inherits context from the last without temp files — pure Universalis.
+
+**[IV. The Inner Loop](./the-inner-loop)** — M76 · Dagger CI Comes to the Blog  
+The GitHub Actions pipeline for nunix.github.io had no local equivalent. A Dagger Go pipeline gave the fleet an inner loop: the exact same build-lint-deploy sequence, runnable locally in under two minutes. Zero surprises on push.
+
+<NunixOut />
+
+<div className="aiverse-fleet-cta">
+  <a href="/aiverse/support">⚔️ The Fleet Needs You — Support the Chronicle</a>
+</div>

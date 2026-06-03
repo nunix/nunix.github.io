@@ -288,7 +288,7 @@ export const AIVERSE_ERAS: AiverseEra[] = [
       {
         title: 'A Second Captain',
         subtitle: 'SleKit — Copilot-powered parallel agent aboard Imperator',
-        path: '/aiverse/nebula/a-second-captain',
+        path: '/aiverse/era-vii-kit/a-second-captain',
         missions: 'M78',
       },
       {
@@ -302,6 +302,12 @@ export const AIVERSE_ERAS: AiverseEra[] = [
         subtitle: 'Teaching kit to remember across shell invocations',
         path: '/aiverse/era-vii-kit/shell-context-broker',
         missions: 'M80',
+      },
+      {
+        title: 'The Inner Loop',
+        subtitle: 'Dagger CI gives the fleet local-first deployment testing',
+        path: '/aiverse/era-vii-kit/the-inner-loop',
+        missions: 'M76',
       },
     ],
   },
@@ -338,13 +344,6 @@ export const AIVERSE_NEBULA: AiverseNebula = {
   // Nebula / scatter dots icon
   icon: 'M12 2a1 1 0 100 2 1 1 0 000-2zM6 6a1 1 0 100 2 1 1 0 000-2zM18 6a1 1 0 100 2 1 1 0 000-2zM4 12a1 1 0 100 2 1 1 0 000-2zM20 12a1 1 0 100 2 1 1 0 000-2zM6 18a1 1 0 100 2 1 1 0 000-2zM18 18a1 1 0 100 2 1 1 0 000-2zM12 20a1 1 0 100 2 1 1 0 000-2z',
   stars: [
-    {
-      title: 'A Second Captain',
-      subtitle: 'Running parallel AI agents on the same ship with kit + gpt-5.5',
-      path: '/aiverse/nebula/a-second-captain',
-      missions: 'M78',
-      tags: ['kit', 'multi-agent', 'copilot', 'fleet'],
-    },
     {
       title: 'Caveman Tokens',
       subtitle: 'Cutting AI token usage 75% without losing intelligence',

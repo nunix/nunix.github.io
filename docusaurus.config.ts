@@ -96,6 +96,7 @@ const config: Config = {
         { type: 'docSidebar', sidebarId: 'era_iv',  position: 'left', label: '🌀 Era IV' },
         { type: 'docSidebar', sidebarId: 'era_v',   position: 'left', label: '🔥 Era V' },
         { type: 'docSidebar', sidebarId: 'era_vi',  position: 'left', label: '∞ Era VI' },
+        { type: 'docSidebar', sidebarId: 'era_vii', position: 'left', label: '⬡ Era VII' },
         // Old Topics — dropdown with type: 'doc' (docSidebar not valid inside dropdown)
         {
           type: 'dropdown',
