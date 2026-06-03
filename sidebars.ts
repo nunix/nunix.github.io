@@ -7,7 +7,6 @@ const sidebars: SidebarsConfig = {
     { type: 'doc', id: 'aiverse/aiverse-index',   label: '📖 What is AIverse?' },
     { type: 'doc', id: 'aiverse/updates/aiverse-updates', label: "🗒️ Author's Updates" },
     { type: 'link', label: '🗺️ Cosmic Map', href: '/cosmos' },
-    { type: 'link', label: '✦ Idea Nebula', href: '/aiverse/nebula' },
     { type: 'doc', id: 'aiverse/aiverse-support', label: '⚔️ Support the Chronicle' },
   ],
 
