@@ -311,6 +311,41 @@ export const AIVERSE_ERAS: AiverseEra[] = [
       },
     ],
   },
+  {
+    id: 'era-viii',
+    label: 'Era VIII — The Silicon Reckoning',
+    tagline: 'When assumptions meet hardware. The Cogitator speaks its truth.',
+    missions: 'M74',
+    color: '#d97706',
+    glowColor: 'rgba(217, 119, 6, 0.4)',
+    isWarp: false,
+    position: { x: 20, y: 75 },
+    radius: 10,
+    postStartAngle: -Math.PI / 2,
+    postOrbitDirection: 1,
+    // Processor / silicon chip icon
+    icon: 'M9 3H5a2 2 0 00-2 2v4m6-6h10a2 2 0 012 2v4M9 3v18m0 0h10a2 2 0 002-2V9M9 21H5a2 2 0 01-2-2V9m0 0h18',
+    posts: [
+      {
+        title: 'The Wrong Hammer',
+        subtitle: 'Ollama, ROCm, and the playoff that revealed the infrastructure',
+        path: '/aiverse/era-viii-silicon/the-wrong-hammer',
+        missions: 'M74',
+      },
+      {
+        title: 'What the GTT Teaches',
+        subtitle: 'The iGPU, unified memory, and 34GB the fleet did not know it had',
+        path: '/aiverse/era-viii-silicon/what-the-gtt-teaches',
+        missions: 'M74',
+      },
+      {
+        title: 'The Vulkan Verdict',
+        subtitle: 'Clean machines, right backends, and the comparison that settled it',
+        path: '/aiverse/era-viii-silicon/the-vulkan-verdict',
+        missions: 'M74',
+      },
+    ],
+  },
 ];
 
 export interface NebulaStar {
@@ -333,6 +368,26 @@ export interface AiverseNebula {
   stars: NebulaStar[];
 }
 
+export interface ForgeArtifact {
+  title: string;
+  subtitle: string;
+  path: string;
+  missions: string;
+  tags: string[];
+}
+
+export interface AiverseForge {
+  id: string;
+  label: string;
+  tagline: string;
+  color: string;
+  glowColor: string;
+  position: { x: number; y: number };
+  radius: number;
+  icon: string;
+  artifacts: ForgeArtifact[];
+}
+
 export const AIVERSE_NEBULA: AiverseNebula = {
   id: 'nebula',
   label: 'The Idea Nebula',
@@ -350,6 +405,34 @@ export const AIVERSE_NEBULA: AiverseNebula = {
       path: '/aiverse/nebula/caveman-tokens',
       missions: 'M79',
       tags: ['tokens', 'prompt', 'caveman', 'efficiency'],
+    },
+  ],
+};
+
+export const AIVERSE_FORGE: AiverseForge = {
+  id: 'forge',
+  label: 'The Forge',
+  tagline: 'Where tools are hammered into power-TUIs before they become doctrine.',
+  color: '#f97316',
+  glowColor: 'rgba(249, 115, 22, 0.35)',
+  position: { x: 66, y: 83 },
+  radius: 9,
+  // Hammer / forge mark
+  icon: 'M14 4l6 6-2 2-2-2-3 3 2 2-8 8-3-3 8-8-2-2 3-3-2-2 2-2z',
+  artifacts: [
+    {
+      title: 'The First Hammerfall',
+      subtitle: 'DboxShim enters the Forge as a power-TUI',
+      path: '/aiverse/forge/the-first-hammerfall',
+      missions: 'M82',
+      tags: ['dboxshim', 'tui', 'distrobox', 'phase-1', 'phase-2'],
+    },
+    {
+      title: 'The Split Anvil',
+      subtitle: 'CLI stability, Dagger tests, and Distrobox next',
+      path: '/aiverse/forge/the-split-anvil',
+      missions: 'M84–M85',
+      tags: ['dagger', 'distrobox-next', 'go', 'testing'],
     },
   ],
 };

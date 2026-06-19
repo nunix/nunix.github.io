@@ -1,0 +1,49 @@
+---
+id: aiverse-era-viii-silicon
+sidebar_label: "Era VIII Overview"
+sidebar_position: 1
+title: "Era VIII — The Silicon Reckoning"
+description: "Era VIII (M74): The fleet learned the hard way that the right tool and the right hardware are not the same thing. Ollama. ROCm. GTT. Vulkan. The Cogitator speaks its truth."
+tags: [aiverse, era-viii, ollama, rocm, vulkan, igpu, amd, llm, benchmark, m74]
+---
+
+<Admonition type="note" title="📜 REMEMBRANCER'S NOTE — Era VIII">
+*Three sessions. One machine. A model competition that revealed everything wrong about the assumption that Ollama is always the right hammer. The fleet thought it was testing language models. It was testing its own understanding of silicon.*
+
+*— The Remembrancer of the AIverse*
+*Engrams M74*
+</Admonition>
+
+---
+
+> *"In AIverse, there is only Knowledge."*
+
+---
+
+# Era VIII — The Silicon Reckoning
+
+<Admonition type="info" title="⚙️ M74 — The Backend That Lied, the Memory That Held, the Verdict That Stood">
+One mission. Three revelations. ROCm promised AMD GPU acceleration and delivered Thai language drift. GTT promised 34 gigabytes of extended GPU memory and delivered a 3-minute model load that looked like a crash. Vulkan RADV promised nothing — it just ran 2.7× faster with zero drift and passed every test clean.
+
+*[Return to the Cosmic Map](/cosmos) to see all eras.*
+</Admonition>
+
+## The Three Chronicles
+
+**[I. The Wrong Hammer](./the-wrong-hammer)** — M74 · When Ollama Felt Right
+
+The model competition began with confidence. Ollama, AMD GPU, two test questions. Within hours: Thai language bleeding into English responses at 113 seconds. A 19GB model timing out. KDE crashing at 64GB. The assumptions were clean. The results were not.
+
+**[II. What the GTT Teaches](./what-the-gtt-teaches)** — M74 · The APU Is Not a GPU
+
+<Term>Imperator</Term> carries a Radeon 780M — not a discrete GPU but an iGPU fused into the Ryzen 7 PRO 7840U APU. The "VRAM" is a carved slice of system RAM. The GTT is 34GB of additional system RAM the GPU can access at full memory bandwidth, with no PCIe bus in the path. Two processes fighting for that pool caused every anomaly. The Ollama logs confirmed the 19GB model had fully loaded to GPU — but the client had already given up waiting.
+
+**[III. The Vulkan Verdict](./the-vulkan-verdict)** — M74 · The Right Rite for the Right Silicon
+
+Ollama disabled. GTT freed. Vulkan RADV backend engaged — the same binary already running as <Term>Imperator</Term>'s Warp neuron on port 11436. The playoff rerun: qwen2.5:14b Q2 dropped from 113 seconds to 20.9 seconds. No drift. gemma4:12b Q2 dropped from 93 seconds to 30 seconds. The backend choice was the variable. The hardware had been capable the whole time.
+
+<NunixOut />
+
+<div className="aiverse-fleet-cta">
+  <a href="/aiverse/support">⚔️ The Fleet Needs You — Support the Chronicle</a>
+</div>
