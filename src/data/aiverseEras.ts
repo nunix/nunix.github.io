@@ -344,6 +344,12 @@ export const AIVERSE_ERAS: AiverseEra[] = [
         path: '/aiverse/era-viii-silicon/the-vulkan-verdict',
         missions: 'M74',
       },
+      {
+        title: 'The Rigged Arena',
+        subtitle: 'The champion timed out. The Emperor had asked a real question.',
+        path: '/aiverse/era-viii-silicon/the-rigged-arena',
+        missions: 'M74',
+      },
     ],
   },
 ];

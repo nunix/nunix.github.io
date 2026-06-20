@@ -120,6 +120,7 @@ const sidebars: SidebarsConfig = {
     { type: 'doc', id: 'aiverse/era-viii-silicon/the-wrong-hammer',     label: 'I. The Wrong Hammer' },
     { type: 'doc', id: 'aiverse/era-viii-silicon/what-the-gtt-teaches', label: 'II. What the GTT Teaches' },
     { type: 'doc', id: 'aiverse/era-viii-silicon/the-vulkan-verdict',   label: 'III. The Vulkan Verdict' },
+    { type: 'doc', id: 'aiverse/era-viii-silicon/the-rigged-arena',     label: 'IV. The Rigged Arena' },
   ],
 
   // ── NEBULA — standalone idea stars, not part of any Era arc ──
