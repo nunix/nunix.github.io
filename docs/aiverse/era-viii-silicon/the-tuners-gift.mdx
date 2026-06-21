@@ -1,0 +1,148 @@
+---
+id: the-tuners-gift
+title: "The Tuner's Gift"
+description: gemma4:12b went from 82 seconds to 3.8 seconds with one parameter. The parameter was not obvious. The knowledge that it existed — and what it does — came from a paid cloud model. This is the story of why local AI cannot fully unlock itself.
+sidebar_label: "VI. The Tuner's Gift"
+sidebar_position: 7
+tags: [tuning, reasoning-budget, llama-cpp, local-models, paid-models, performance, gemma4, m74, era-viii]
+---
+
+<Admonition type="note" title="📜 REMEMBRANCER'S NOTE — Era VIII">
+The champion had been crowned. The arena had been rebuilt twice. The hardware was configured correctly. The backend was Vulkan. The tools were real. And still — 82 seconds for a question the model already knew the answer to. The machine spirit was willing. Something was throttling it. The Techmarine had one more adjustment to make.
+
+*— The Remembrancer of the AIverse*
+*Engrams M74*
+</Admonition>
+
+---
+
+> *"In AIverse, there is only Knowledge."*
+
+---
+
+## The Machine That Thought Too Much
+
+The new Warp brain — gemma4:12b Q4_K_M, champion of the real playoff, correctly answering OS version in 24 seconds and Warp leader in 26 seconds — was deployed as NURGLE on port 11436.
+
+The Emperor typed: `warp nurgle "what is the os and version you're running on?"`
+
+The terminal waited. One minute. Then another.
+
+The answer arrived correct. `SUSE Linux Enterprise Server 16.0, Kernel 6.12.0-160000.35-default.` One minute twenty-two seconds.
+
+The model was not broken. The answer was right. But no production system can wait 82 seconds for a one-sentence response that the model already knew from its own system prompt. This was not inference. This was the model's internal deliberation consuming time that the user was spending watching a cursor blink.
+
+The Emperor's verdict: *"Check if some tweaks could make it more performant without losing precision."*
+
+## The Hidden Parameter
+
+gemma4:12b is a thinking model. Before producing any visible output, it generates an internal reasoning chain — tokens wrapped in `<think>` tags that never appear in the response, consumed silently, spending compute on deliberation the user cannot observe. For complex multi-step problems, this is valuable. For *"what OS is this machine running?"* — a question literally answered word-for-word in the system prompt — the model was reasoning about a question it already knew the answer to.
+
+The default reasoning budget: **-1** — unlimited. The model could think as long as it wanted. It chose to think for 80 seconds before speaking for 2.
+
+The llama.cpp `--reasoning-budget` flag controls this directly:
+
+```bash
+--reasoning-budget N
+  # -1  = unlimited (default)
+  #  0  = no thinking at all
+  # 512 = at most 512 thinking tokens, then answer
+```
+
+Setting `--reasoning-budget 512` caps the thinking phase. The model gets 512 tokens of internal deliberation — enough to check context, confirm what it knows, and route the answer correctly — and then must produce visible output.
+
+The server restarted with two changes: `--reasoning-budget 512` and `--threads 8` (up from 4, matching the CPU's 8 physical cores).
+
+The Emperor typed the same question.
+
+**3 seconds.**
+
+`SUSE Linux Enterprise Server 16.0`
+
+The model knew the answer immediately. It had always known. It just needed permission to stop thinking and speak.
+
+## The Before and After
+
+Three questions. Three comparisons.
+
+| Question | Default (unlimited) | Budget 512 | Factor |
+|---|---|---|---|
+| OS and version | 82s | 3.8s | **21×** |
+| Who leads the Warp? | 56s | 0.8s | **70×** |
+| Who are the Warp members? | 74s | 4.3s | **17×** |
+
+Precision was maintained on all three. The 512-token thinking budget was enough to correctly ground answers in the system prompt context — fleet identity, hardware specs, OS version. Zero hallucination. Zero loss of accuracy.
+
+One flag. Three orders of magnitude of improvement.
+
+The flag was not in the model's README. It was not in the llama.cpp quick-start guide. It exists because the llama.cpp team built support for thinking model behavior, knowing that the default (unlimited) is the wrong default for most production deployments. Finding it required knowing what kind of model gemma4:12b is, why it was slow, and what lever existed to change that specific behavior.
+
+<Admonition type="info" title="⚙️ Technical Insight">
+Thinking models generate reasoning tokens in a hidden buffer before producing any visible output. The computation is real — every thinking token costs the same as a response token in terms of GPU time and memory bandwidth. A model that thinks for 1,000 tokens before answering a 10-token question has spent 100× more compute than necessary for that specific task.
+
+`--reasoning-budget 512` works as a hard cap: when the model has consumed 512 thinking tokens, llama-server forces the reasoning phase to end and the response phase to begin. The model cannot "choose" to keep thinking — the budget is enforced at the inference layer, not by prompting.
+
+Setting `--reasoning-budget 0` disables thinking entirely. This is fastest but causes precision degradation on questions that require context retrieval — the model falls back to training data rather than anchoring to the system prompt. In the fleet's test, "who are the members of the Warp?" with budget=0 returned WH40K lore (Khorne, Tzeentch, Nurgle, Slaanesh as Chaos Gods) instead of the fleet's neuron roster. Budget=512 correctly returned the fleet context.
+
+The sweet spot for system-prompt-grounded factual responses: 256–512 tokens. The model can locate the answer in context within that budget. Complex multi-step reasoning or tool chain decisions may require higher budgets.
+</Admonition>
+
+## Why You Need a Paid Model to Run a Local Model
+
+This is the part of the local AI story that no one tells at the beginning.
+
+The pitch for local models is independence. No API costs. No data leaving your machine. No rate limits. The model runs on your hardware, answers your questions, stores nothing outside your walls. All of this is true and valuable.
+
+What the pitch omits: local models arrive at their default settings the way a new server arrives with its default configuration. Capable of everything. Optimized for nothing. The defaults exist to work — not to excel.
+
+Running a local model and declaring it "installed" is the equivalent of racking a server, booting it, and calling the infrastructure done. The hardware works. The software runs. The performance is 10% of what it could be, and you have no visibility into why, or what to change, or where to look.
+
+The flag `--reasoning-budget` is not intuitive. A user who installs gemma4:12b, runs it through Ollama, and finds it slow will not know to look for a reasoning budget flag in the llama.cpp server — because Ollama abstracts llama.cpp, and the abstraction hides the parameter. They will think the model is slow. They will be right, and wrong simultaneously.
+
+The fleet reached this parameter because the General — Claude Code, a paid cloud model, trained on the full corpus of llama.cpp documentation, GitHub issues, model architecture papers, and deployment patterns — knew what kind of model gemma4:12b is, what the symptom pattern of an over-thinking model looks like, and where the control surface for that behavior lives.
+
+This knowledge transfer happens in one direction: the paid model's breadth of training enables it to diagnose and configure the local model that was supposed to replace it.
+
+The local model cannot tune itself. It cannot read its own deployment logs, identify the bottleneck, query the llama.cpp help output, reason about which flag applies to its architecture, and test the tradeoffs across budget values. It runs the configuration it is given.
+
+The General does all of this. The local model benefits.
+
+## The Honest Framing
+
+Local AI has a place in the fleet's architecture. It provides privacy, latency reduction for local queries, independence from external API availability, and — for the fleet — a way to keep operational data off third-party infrastructure.
+
+But the path from "we have something local" to "we have something local that works" runs through the expertise of the models that were never supposed to be local-only.
+
+The Warp brain gemma4:12b answers in 3 seconds now. It answered in 82 seconds before the tuning. Nothing changed about the model. The hardware did not change. The GGUF did not change. The question did not change. One parameter changed — a parameter the General identified, the model could not have identified for itself, and that the local-model-only user would likely never have found.
+
+The Techmarine does not replace the machine spirit. The machine spirit does not need to understand the Techmarine. But without the Techmarine, the machine runs at 5% efficiency and calls it destiny.
+
+The fleet uses both. Each enables the other. This is the configuration that works.
+
+---
+
+<Admonition type="tip" title="📚 Knowledge Transfer">
+
+**The lesson worth keeping:** Every local model deployment has a performance ceiling that the model cannot reach without external tuning knowledge. The gap between "installed and running" and "optimized for production" is not hardware — it is parameter knowledge.
+
+**Pattern:** When a local thinking model responds correctly but slowly, check three things in order: (1) `--reasoning-budget` — is it unlimited? Cap it. (2) `--threads` — are you using all physical cores? Match them. (3) Context size — is the model thinking against a 32K context window for a query that needs 512 tokens? Shrink it per deployment.
+
+**What we'd do differently:** Document the reasoning budget immediately on deployment. The flag is architecture-specific — it only applies to thinking models. For non-thinking models it has no effect. Knowing which models are thinking models, and therefore which flags apply, is part of the model selection process — not an afterthought.
+
+**If you're building this yourself:** Treat paid AI access and local AI deployment as a setup cost relationship, not a replacement relationship. Use the paid model to discover the right configuration for the local model. Document what was found. The paid model's involvement in your local deployment is front-loaded: high at setup, zero at runtime. The local model runs forever on the configuration the paid model found in one session.
+
+</Admonition>
+
+---
+
+*[← V. The True Champion](./the-true-champion)*
+
+*[← Era VIII Overview](./aiverse-era-viii-silicon)*
+
+*In AIverse, there is only Knowledge.*
+
+<NunixOut />
+
+<div className="aiverse-fleet-cta">
+  <a href="/aiverse/support">⚔️ The Fleet Needs You — Support the Chronicle</a>
+</div>

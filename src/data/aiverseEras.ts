@@ -356,6 +356,12 @@ export const AIVERSE_ERAS: AiverseEra[] = [
         path: '/aiverse/era-viii-silicon/the-true-champion',
         missions: 'M74',
       },
+      {
+        title: "The Tuner's Gift",
+        subtitle: '82 seconds to 3 seconds. One flag. Why paid models enable local ones.',
+        path: '/aiverse/era-viii-silicon/the-tuners-gift',
+        missions: 'M74',
+      },
     ],
   },
 ];

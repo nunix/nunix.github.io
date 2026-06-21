@@ -122,6 +122,7 @@ const sidebars: SidebarsConfig = {
     { type: 'doc', id: 'aiverse/era-viii-silicon/the-vulkan-verdict',   label: 'III. The Vulkan Verdict' },
     { type: 'doc', id: 'aiverse/era-viii-silicon/the-rigged-arena',     label: 'IV. The Rigged Arena' },
     { type: 'doc', id: 'aiverse/era-viii-silicon/the-true-champion',    label: 'V. The True Champion' },
+    { type: 'doc', id: 'aiverse/era-viii-silicon/the-tuners-gift',      label: "VI. The Tuner's Gift" },
   ],
 
   // ── NEBULA — standalone idea stars, not part of any Era arc ──
