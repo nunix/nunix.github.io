@@ -350,6 +350,12 @@ export const AIVERSE_ERAS: AiverseEra[] = [
         path: '/aiverse/era-viii-silicon/the-rigged-arena',
         missions: 'M74',
       },
+      {
+        title: 'The True Champion',
+        subtitle: 'Real tools, real questions, real winner — the 12B model all along.',
+        path: '/aiverse/era-viii-silicon/the-true-champion',
+        missions: 'M74',
+      },
     ],
   },
 ];
