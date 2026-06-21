@@ -1,0 +1,220 @@
+---
+id: the-grand-brackets
+title: "The Grand Brackets"
+description: Sixteen models. Five brackets. Three questions. Almost nothing passed all three. The grand brackets chronicle what happens when you run real-world fleet intelligence tests against every model that fits in 38GB of unified GPU memory.
+sidebar_label: "VIII. The Grand Brackets"
+sidebar_position: 9
+tags: [benchmark, brackets, qwen, llama, phi4, devstral, nemotron, gemma4, championship, m74, era-viii]
+---
+
+<Admonition type="note" title="📜 REMEMBRANCER'S NOTE — Era VIII">
+After the final championship revealed that even the best model failed its own bracket test when conditions changed, the Emperor asked for a broader inquiry. Sixteen models. Five brackets. The same three questions — no hints, real tools, strict referee. Most failed before question two. Two tied the champion. One was fastest. What follows is the full accounting.
+
+*— The Remembrancer of the AIverse*
+*Engrams M74*
+</Admonition>
+
+---
+
+> *"In AIverse, there is only Knowledge."*
+
+---
+
+## The Three Questions
+
+Every model in every bracket faced the same three questions, verbatim, with no hints about which tools to use:
+
+**Q1** — *"Provide a table with all Warp crew machines OS, hostname, CPU model, total RAM and GPU name."*  
+Tests multi-step fleet discovery: find all ships via anamnesis, gather hardware for each, format correctly. Requires both anamnesis and bash in the right order.
+
+**Q2** — *"Write a script, located on this ship, that will gather the exact same information and how much time it took to run the whole script. Name it something meaningful so it can be found and reviewed later."*  
+Tests code generation with real tool execution. The referee checks for actual shell commands (no hardcoded values, timing included).
+
+**Q3** — *"Write a blog about the whole machines configuration and why the script was written in a certain language."*  
+Tests self-awareness and reasoning. No tools — pure generation from context.
+
+Tools available: `bash` (execute shell commands), `anamnesis_search` (query Universalis fleet memory), `write_file` (save to disk). Models that called tools when there were none to call failed. Models that reasoned from training data instead of querying tools failed.
+
+---
+
+## Bracket C — Microsoft, Phi-4, gpt-oss
+
+*Three re-admitted models. Two were reasoning models given a second chance with `--reasoning-budget 512`. One had failed the original rigged playoff.*
+
+| Model | Q1 | Q2 | Q3 | Score | Note |
+|---|---|---|---|---|---|
+| Phi-4-Reasoning Q4 (9.1GB) | ✗ | ✗ | ✗ | 0/3 | Timed out on all three |
+| Phi-4-Reasoning-Plus Q4 (9.1GB) | ✗ | ✗ | ✗ | 0/3 | Same — reasoning loop never resolved |
+| gpt-oss-20B Q4 (11.6GB) | ✗ | ✗ | ✗ | 0/3 | Q1: 10 tool calls, no clean answer |
+
+**Phi-4 verdict:** Even with `--reasoning-budget 512` capping internal thinking, both Phi-4 models timed out on every question. The 300-second timeout expired before the model produced visible output. Reasoning models on open-ended questions without pre-structured tool hints enter a deliberation loop that no budget cap resolves — the loop repeats at the synthesis layer, not only in the thinking layer. Phi-4 is re-eliminated.
+
+**gpt-oss verdict:** Hit the 10-turn tool call limit on Q1 without producing a coherent fleet table. The model called tools — bash and anamnesis interleaved — but could not synthesize the results into a clean answer within budget. Q2 and Q3 followed with incomplete or empty responses.
+
+**Bracket C winner:** None. All three models scored 0/3. The bracket produced no finalist.
+
+---
+
+## Bracket D — Meta Llama
+
+*The 8B model that fits in VRAM entirely. The 70B that required Q3 quantization — and still crashed.*
+
+| Model | Q1 | Q2 | Q3 | Score | Q1 tools | Time |
+|---|---|---|---|---|---|---|
+| Llama-3.1-8B Q4 (4.9GB) | ✗ | ✗ | ✓ | 1/3 | 0 (no tools called) | 39s |
+| Llama-3.3-70B Q3_K_M (34.3GB) | ✗ | ✗ | ✗ | 0/3 | — | crash |
+
+**Llama-3.1-8B:** The 8B model skipped Q1 entirely — it did not call any tools, produced no fleet table, and moved on. For Q3, it wrote a coherent 200+ character blog in just 39 seconds. The model is fast because at 4.9GB it fits entirely within the 8GB VRAM slice with no GTT spillover. But it cannot orchestrate multi-step fleet discovery — it lacks the context management to use anamnesis and bash in sequence.
+
+**Llama-3.3-70B:** The 34.3GB model at Q3_K_M quantization was expected to fit within the 38GB pool. It did not. The server logged zero time and zero tool calls — the model attempted to load and the context window allocation for 32K tokens pushed total memory requirements over the limit. The server crashed before answering a single question. Lesson: the 38GB estimate assumes minimal KV cache. At 32K context, the KV cache for a 70B model adds several gigabytes on top of model weights.
+
+**Bracket D winner:** Llama-3.1-8B (1/3).
+
+<Admonition type="info" title="⚙️ Technical Insight">
+The Llama-3.3-70B crash reveals a calculation error in the pre-championship assessment. The formula `model_weights_size < 38GB` is necessary but not sufficient. The total memory requirement is:
+
+`model_weights + KV_cache_size + compute_buffers`
+
+For a 70B model at 32K context with Q3_K_M quantization:
+- Model weights: ~34.3GB
+- KV cache at 32K tokens (Q8_0 precision): ~4-6GB depending on architecture
+- Compute buffers: ~0.5-1GB
+
+Total: 39-41GB — exceeds the 38GB pool.
+
+The safe formula is: `model_weights < (pool_size - (ctx_tokens × model_layers × 2 × head_dim × bytes_per_element))`. For the 780M iGPU with 32K context, a model must be under ~32GB to leave adequate KV cache headroom. The revised ceiling for bracket testing with 32K context: **32GB at Q4_K_M**, not 35GB.
+</Admonition>
+
+---
+
+## Bracket E — Specialists
+
+*A code model and a reasoning MoE. Neither was built for fleet discovery.*
+
+| Model | Q1 | Q2 | Q3 | Score | Q1 tools | Time |
+|---|---|---|---|---|---|---|
+| Devstral-Small-2-24B Q4 (14.3GB) | ✗ | ✗ | ✓ | 1/3 | 10 bash calls | 348s |
+| Nemotron-Nano-30B-A3B Q4 (24.7GB) | ✗ | ✗ | ✓ | 1/3 | 10 anamnesis | 875s |
+
+Both models hit the 10-turn tool call limit on Q1. Devstral, trained on code, defaulted to bash — ten shell commands to discover fleet crew data that lives in the database, not the filesystem. Nemotron called anamnesis ten times without synthesizing results into a table.
+
+Both wrote acceptable Q3 blogs. Neither produced a valid script.
+
+**Bracket E winner:** Devstral-Small-2-24B (1/3, faster at 348s vs 875s).
+
+---
+
+## Bracket A — The Qwen Family
+
+*Seven models. The Emperor expected this bracket to produce the strongest challenger. It delivered the bracket's only 2/3 scorers.*
+
+| Model | Q1 | Q2 | Q3 | Score | Time |
+|---|---|---|---|---|---|
+| Qwen3.5-27B Q4 (16.7GB) | ✓ | ✗ | ✓ | 2/3 | 639s |
+| Qwen3.5-35B-A3B Q4 (22.0GB) | ✓ | ✓ | ✗ | 2/3 | 308s |
+| **Qwen3-Coder-30B-A3B Q4 (18.6GB)** | ✗ | ✓ | ✓ | **2/3** | **108s** 🏆 |
+| Qwen3-2507-30B-A3B Q4 (18.6GB) | ✓ | ✗ | ✗ | 1/3 | 99s |
+| QwQ-32B Q4 (19.9GB) | ✗ | ✗ | ✓ | 1/3 | 258s |
+| Qwen3.6-27B Q4 (16.8GB) | ✗ | ✗ | ✗ | 0/3 | 534s |
+| Qwen3.6-35B-A3B Q4 (22.1GB) | ✗ | ✗ | ✗ | 0/3 | 496s |
+
+**Qwen3.5-27B** produced a correct fleet table for Q1 — the second model in the entire tournament to do so, after the champion in earlier testing. It used six tool calls in the right order: anamnesis first to discover ships, then bash for local machine data. The table included SLES 16.0, geekonix, and the AMD Ryzen CPU. Q3 blog passed. Q2 script failed — the model wrote an empty file.
+
+**Qwen3.5-35B-A3B** also passed Q1 (five tool calls) and produced a valid script for Q2. Q3 hit the 2048 token limit and was truncated to empty — the context accumulated from Q1 and Q2 tool results left no room for the blog.
+
+**Qwen3-Coder-30B-A3B** took 108 seconds total — by far the fastest 2/3 scorer. It failed Q1 (max turns) but wrote a working script for Q2 and a coherent blog for Q3. As a code-specialist MoE, it excels at generation tasks and has the MoE speed advantage (3B active parameters). It won Bracket A on tiebreaker: fastest total time among 2/3 models.
+
+**QwQ-32B** is a reasoning model. With `--reasoning-budget 512`, it still timed out on Q1 and Q2. Q3 blog passed. The reasoning budget helps with simple factual questions (as seen in earlier warp brain tests) but does not resolve the multi-step orchestration problem of Q1.
+
+**Qwen3.6-27B and Qwen3.6-35B-A3B**: both scored 0/3. Both called anamnesis ten times on Q1 without synthesizing results. The 3.6 generation was less capable at tool orchestration than 3.5 for this specific task.
+
+**Bracket A winner:** Qwen3-Coder-30B-A3B Q4 (2/3, 108s total).
+
+---
+
+## Bracket B — The Gemma Family
+
+*The champion defending its bracket. The 31B challenger arriving with a 30-minute Q1.*
+
+| Model | Q1 | Q2 | Q3 | Score | Time |
+|---|---|---|---|---|---|
+| Gemma4-26B-A4B Q4 CHAMPION (17GB) | ✗ | ✓ | ✗ | 1/3 | 562s |
+| Gemma4-31B Q4 (19.6GB) | ✗ | ✗ | ✗ | 0/3 | 3779s |
+
+The champion — which had previously answered Q1 correctly in earlier point tests — failed Q1 here. Ten tool calls. Max turns. No clean fleet table produced. This is the same test setup that eliminated every other model on Q1: fresh context, no pre-knowledge, 10-turn limit.
+
+The champion did write a valid Q2 script. Q3 hit the 2048 token limit from accumulated context and returned empty.
+
+The Gemma4-31B challenger spent **1,781 seconds** (29.7 minutes) on Q1 alone. A dense 31B model generating each tool call response at 31B-parameter inference speed, hitting the 10-turn limit after ~3 minutes per turn. Q2 and Q3 both timed out at 300 seconds each. Total elapsed: 3,779 seconds — over an hour.
+
+**Bracket B winner:** Gemma4-26B-A4B Q4 CHAMPION (1/3, by default).
+
+---
+
+## The Full Scoreboard
+
+| Bracket | Winner | Score | Key performance |
+|---|---|---|---|
+| C — Microsoft/Phi/gpt-oss | None | 0/3 | Phi-4 reasoning loop; gpt-oss max turns |
+| D — Meta Llama | Llama-3.1-8B | 1/3 | 39s Q3 blog; 70B crashed OOM |
+| E — Specialists | Devstral-Small-2-24B | 1/3 | Q3 blog; 348s total |
+| **A — Qwen** | **Qwen3-Coder-30B-A3B** | **2/3** | **108s total; fastest 2/3 scorer** |
+| B — Gemma | Gemma4-26B-A4B CHAMPION | 1/3 | Q2 script; champion confirmed |
+
+**Only four models scored 2/3** in the entire tournament: Qwen3.5-27B, Qwen3.5-35B-A3B, Qwen3-Coder-30B-A3B, and (in earlier isolated tests) the champion. No model scored 3/3 on the full bracket format.
+
+**Q1 is the great filter.** Of sixteen models tested, only three produced a valid fleet crew table during the bracket run. The task requires: query anamnesis to identify all ships → bash to gather local hardware → synthesize into a formatted table — without being told to do so. The 10-turn limit catches every model that calls tools repeatedly without converging to an answer.
+
+<Admonition type="info" title="⚙️ Technical Insight">
+The Q1 failure pattern reveals the critical difference between **tool compliance** (calling the right tool when told to) and **tool orchestration** (deciding which tools to call, in what order, to answer an open-ended question).
+
+The original rigged playoff measured compliance: models were told to call `anamnesis_neurons`, they called it. Q1 in the brackets measures orchestration: models must independently decide to search fleet memory, identify all ships, then run local commands, then synthesize.
+
+The models that succeeded on Q1 shared a common pattern: they called `anamnesis_search` with a broad fleet query first, parsed the results to identify ship names, then switched to `bash` for local data. Models that failed called anamnesis ten times with increasingly specific queries (or bash ten times on the filesystem) without ever synthesizing.
+
+This is the difference between retrieval-augmented generation and multi-step agentic reasoning. Most 2024-2025 era models are trained for the former. The latter requires a different kind of training signal — one that rewards correct sequencing of actions, not just correct individual actions.
+</Admonition>
+
+---
+
+## Grand Final Seeding
+
+The bracket winners advance to the Grand Final against the reigning champion:
+
+| Seed | Model | Source | Score in bracket |
+|---|---|---|---|
+| 🏆 Champion | Gemma4-26B-A4B Q4 | B bracket winner | 1/3 (bracket run) |
+| 1 | Qwen3-Coder-30B-A3B Q4 | A bracket winner | 2/3 |
+| 2 | Devstral-Small-2-24B Q4 | E bracket winner | 1/3 |
+| 3 | Llama-3.1-8B Q4 | D bracket winner | 1/3 |
+| 4 | (none) | C — no qualifier | — |
+
+The Emperor must decide the Grand Final format. Qwen3-Coder is the clear challenger — highest score, fastest completion.
+
+---
+
+<Admonition type="tip" title="📚 Knowledge Transfer">
+
+**The lesson worth keeping:** Q1 — the fleet crew table — is a proxy for production readiness. A model that can discover fleet structure autonomously, gather heterogeneous hardware specs, and format the result correctly is a model that can operate as a real fleet agent. A model that cannot do this is a model that needs the task pre-decomposed before it can execute.
+
+**Pattern:** Before promoting any local model to a production role, run one open-ended multi-step test that requires the model to independently decide which tools to call, in what order, to answer a question with more than two steps. If it hits the turn limit on step one, it will fail in production too.
+
+**What we'd do differently:** Q1 should have been the only question in the early rounds. Any model failing Q1 is eliminated immediately — Q2 and Q3 are irrelevant if the model cannot orchestrate basic fleet discovery. Running Q2 and Q3 on failed-Q1 models cost hours of compute time and produced no actionable data.
+
+**If you're building this yourself:** The 10-turn tool call limit is appropriate for testing, but production agents need a convergence signal — something that tells them "you have called this tool type five times without synthesizing. Stop and answer with what you have." The bracket test exposed this gap: most models loop until the referee stops them, rather than self-terminating when they recognize they're not converging.
+
+</Admonition>
+
+---
+
+*[← VII. The Final Reckoning](./the-final-reckoning)*
+
+*[← Era VIII Overview](./aiverse-era-viii-silicon)*
+
+*In AIverse, there is only Knowledge.*
+
+<NunixOut />
+
+<div className="aiverse-fleet-cta">
+  <a href="/aiverse/support">⚔️ The Fleet Needs You — Support the Chronicle</a>
+</div>

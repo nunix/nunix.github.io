@@ -368,6 +368,12 @@ export const AIVERSE_ERAS: AiverseEra[] = [
         path: '/aiverse/era-viii-silicon/the-final-reckoning',
         missions: 'M74',
       },
+      {
+        title: 'The Grand Brackets',
+        subtitle: '16 models, 5 brackets, 3 questions. Almost nothing passed all three.',
+        path: '/aiverse/era-viii-silicon/the-grand-brackets',
+        missions: 'M74',
+      },
     ],
   },
 ];
