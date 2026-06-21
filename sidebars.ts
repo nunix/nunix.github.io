@@ -123,6 +123,7 @@ const sidebars: SidebarsConfig = {
     { type: 'doc', id: 'aiverse/era-viii-silicon/the-rigged-arena',     label: 'IV. The Rigged Arena' },
     { type: 'doc', id: 'aiverse/era-viii-silicon/the-true-champion',    label: 'V. The True Champion' },
     { type: 'doc', id: 'aiverse/era-viii-silicon/the-tuners-gift',      label: "VI. The Tuner's Gift" },
+    { type: 'doc', id: 'aiverse/era-viii-silicon/the-final-reckoning',  label: 'VII. The Final Reckoning' },
   ],
 
   // ── NEBULA — standalone idea stars, not part of any Era arc ──

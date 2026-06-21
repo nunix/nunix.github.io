@@ -362,6 +362,12 @@ export const AIVERSE_ERAS: AiverseEra[] = [
         path: '/aiverse/era-viii-silicon/the-tuners-gift',
         missions: 'M74',
       },
+      {
+        title: 'The Final Reckoning',
+        subtitle: 'Q4 vs Q8. First tool choice decides. One finished. One crashed.',
+        path: '/aiverse/era-viii-silicon/the-final-reckoning',
+        missions: 'M74',
+      },
     ],
   },
 ];
