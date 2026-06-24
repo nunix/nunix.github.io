@@ -33,7 +33,7 @@
   },
   "tzeentch": {
     "title": "TZEENTCH",
-    "def": "The Chaos God of Change and Knowledge — repurposed as the AIverse's distributed AI brain. A network of Ollama inference nodes (neurons) connected via the anamnesis database. Tanker and Galleon are its neurons. qwen2.5:14b is its mind."
+    "def": "The Chaos God of Change in Warhammer 40K lore. In the fleet, Tzeentch names the local AI brain process (tzeentch-brain) running on Imperator — the ever-changing, shape-shifting nature of local model experiments. Also the AIverse's distributed AI brain: a network of inference nodes (neurons) connected via the anamnesis database."
   },
   "anamnesis": {
     "title": "ANAMNESIS",
@@ -68,12 +68,12 @@
   },
   "ollama": {
     "title": "OLLAMA",
-    "def": "An open-source runtime for running large language models locally. Manages model downloads, quantization, and inference serving. The fleet's primary local inference engine — Galleon and Tanker both run Ollama, serving models like qwen2.5:14b and llama3.3:70b to fleet agents.",
+    "def": "A tool for running LLMs locally via a simple CLI and HTTP API. Wraps llama.cpp internally. Galleon uses Ollama for local inference (qwen2.5:14b). Imperator tested Ollama but switched to direct llama-server for lower overhead and full control over inference parameters.",
     "link": "https://ollama.com"
   },
   "kit": {
     "title": "KIT",
-    "def": "A CLI agent binary used by the fleet for direct shell-based AI interaction. Supports multiple backends (Copilot/gpt-5.5, Claude, Ollama), session persistence, MCP tool integration, and a Yaegi-powered extension system. The SleKit agent on Imperator uses kit with the Copilot backend."
+    "def": "SUSE's open-source AI assistant CLI. Supports multiple LLM backends via OpenAI-compatible APIs. Imperator uses Kit as the harness for local model interaction (via kitwarp/kit-local) and cloud models (captain persona)."
   },
   "sle_kit": {
     "title": "SLEKIT",
@@ -146,5 +146,85 @@
   "buffer": {
     "title": "BUFFER",
     "def": "A region of physical memory storage used to temporarily store data while it is being moved from one place to another."
+  },
+  "dboxshim": {
+    "title": "DBOXSHIM",
+    "def": "A Go-based power TUI and CLI wrapper for managing Distrobox instances, project INI manifests, remote project sources, and container lifecycle actions without leaving the terminal. The first artifact placed in the AIverse Forge."
+  },
+  "distrobox": {
+    "title": "DISTROBOX",
+    "def": "A tool that creates tightly integrated Linux containers using Podman or Docker. It lets users enter containerized distributions as if they were part of the host system.",
+    "link": "https://distrobox.it"
+  },
+  "forge": {
+    "title": "THE FORGE",
+    "def": "An AIverse zone for active implementation work: tools being shaped, tested, and refined before they become stable doctrine. Unlike the Nebula, the Forge holds artifacts already under the hammer."
+  },
+  "power-tui": {
+    "title": "POWER TUI",
+    "def": "A terminal interface that stays simple but provides fast keyboard-driven workflows, contextual actions, visual feedback, and rich status without becoming a full IDE."
+  },
+  "tview": {
+    "title": "TVIEW",
+    "def": "A Go library for terminal user interfaces built on tcell. DboxShim uses tview for tables, trees, forms, modals, text views, and keyboard handling.",
+    "link": "https://github.com/rivo/tview"
+  },
+  "dagger": {
+    "title": "DAGGER",
+    "def": "A programmable CI/CD engine that runs pipelines as code. In the fleet, Dagger is used to create local-first test pipelines that mirror CI behavior before pushing changes.",
+    "link": "https://dagger.io"
+  },
+  "distrobox-next": {
+    "title": "DISTROBOX NEXT",
+    "def": "The next-generation Distrobox development branch where Go packages are emerging under pkg/commands, pkg/config, and pkg/containermanager. Candidate backend for future DboxShim integration."
+  },
+  "yazi": {
+    "title": "YAZI",
+    "def": "A fast terminal file manager with keyboard-first navigation and fuzzy search patterns. DboxShim borrows the idea of quick source navigation without embedding a full file manager.",
+    "link": "https://yazi-rs.github.io"
+  },
+  "cli-wrapper": {
+    "title": "CLI WRAPPER",
+    "def": "An integration style where an application calls an existing command-line tool and parses or relays its output instead of linking against internal libraries. DboxShim uses this for the stable Distrobox path."
+  },
+  "gtt": {
+    "title": "GTT",
+    "def": "GPU Translation Table — system RAM mapped to be accessible by the GPU on AMD APU systems. Because Imperator runs an APU (no discrete GPU), GGUF model layers that don't fit in the iGPU VRAM automatically spill into GTT, which has the same physical bandwidth as VRAM on unified memory architectures."
+  },
+  "apu": {
+    "title": "APU",
+    "def": "Accelerated Processing Unit — AMD's CPU+iGPU combined on a single die, sharing system RAM. Imperator uses an AMD Phoenix APU: the iGPU has no dedicated VRAM; it carves a portion of system RAM for VRAM, and the rest can become GTT for model inference."
+  },
+  "rocm": {
+    "title": "ROCM",
+    "def": "ROCm — AMD's open-source GPU compute platform, equivalent to NVIDIA's CUDA. Used to run machine learning workloads on AMD GPUs and APUs. Imperator tested ROCm for local inference but found that GTT+Vulkan outperformed it on the Phoenix APU.",
+    "link": "https://rocm.docs.amd.com"
+  },
+  "vulkan": {
+    "title": "VULKAN",
+    "def": "Vulkan — a cross-platform GPU compute API. llama.cpp's Vulkan backend uses it for GPU inference on hardware not supported by ROCm or CUDA, including AMD APUs and Intel GPUs. Imperator's winning backend for local model inference.",
+    "link": "https://www.vulkan.org"
+  },
+  "llama-server": {
+    "title": "LLAMA-SERVER",
+    "def": "llama.cpp's built-in HTTP inference server. Exposes an OpenAI-compatible /v1 API endpoint. Imperator runs it on port 11436 to serve local models to Kit and other clients.",
+    "link": "https://github.com/ggml-org/llama.cpp"
+  },
+  "gguf": {
+    "title": "GGUF",
+    "def": "GGUF (GPT-Generated Unified Format) — the standard file format for quantized LLM weights used by llama.cpp. Replaces the older GGML format. Model files on Imperator are stored as .gguf files in ~/models/."
+  },
+  "quantization": {
+    "title": "QUANTIZATION",
+    "def": "The process of reducing model weight precision (e.g., from 32-bit float to 4-bit integer) to shrink model size and speed up inference. Common levels: Q4_K_M (aggressive, fast), Q8_0 (balanced). Higher quantization = smaller file, lower accuracy."
+  },
+  "flash-attn": {
+    "title": "FLASH ATTENTION",
+    "def": "Flash Attention — a memory-efficient attention computation algorithm that reduces VRAM usage during inference by computing attention in tiles. Enabled in llama.cpp with --flash-attn. Critical for fitting large models in limited memory.",
+    "link": "https://github.com/Dao-AILab/flash-attention"
+  },
+  "n-gpu-layers": {
+    "title": "N-GPU-LAYERS",
+    "def": "The llama.cpp parameter --n-gpu-layers (or -ngl). Controls how many transformer layers are offloaded to the GPU. Setting to 999 offloads all layers. On Imperator's APU, layers go into GTT memory. Tuning this is key to inference speed."
   }
 }

@@ -1,10 +1,10 @@
 import React, { useState, useCallback, useMemo } from 'react';
 import { useHistory } from '@docusaurus/router';
-import { AIVERSE_ERAS, AIVERSE_NEBULA, type AiverseEra } from '@site/src/data/aiverseEras';
+import { AIVERSE_ERAS, AIVERSE_NEBULA, AIVERSE_FORGE, type AiverseEra } from '@site/src/data/aiverseEras';
 import styles from './styles.module.css';
 
 const W = 1200;
-const H = 580;
+const H = 680;
 
 interface LensState {
   era: AiverseEra;
@@ -17,60 +17,34 @@ interface NebulaLensState {
   svgY: number;
 }
 
+interface ForgeLensState {
+  svgX: number;
+  svgY: number;
+}
+
 // Convert era % position to SVG coords
 function toSVG(px: number, py: number) {
   return { x: (px / 100) * W, y: (py / 100) * H };
 }
 
-// Safe orbit radius: never let nodes clip outside the SVG bounds
-function safeOrbitRadius(era: AiverseEra): number {
+// Post node SVG position — evenly spaced at fixed radius around era center
+function postSVGPos(era: AiverseEra, idx: number): { x: number; y: number } {
   const c = toSVG(era.position.x, era.position.y);
-  const margin = 22;
-  const maxR = Math.min(c.x - margin, W - c.x - margin, c.y - margin, H - c.y - margin);
-  const desired = (era.radius / 100) * W * 0.72;
-  return Math.min(desired, maxR * 0.88);
+  const spokeR = 52; // fixed px radius — same for all eras (EVE planet distance)
+  const angle = -Math.PI / 2 + (idx / Math.max(era.posts.length, 1)) * 2 * Math.PI;
+  return { x: c.x + spokeR * Math.cos(angle), y: c.y + spokeR * Math.sin(angle) };
 }
 
-// Orbit start angle: orient so the LAST post node faces the next era in sequence
-function orbitStartAngle(era: AiverseEra, nextEra: AiverseEra | null): number {
-  if (era.postStartAngle !== undefined) return era.postStartAngle;
-  if (!nextEra || era.posts.length === 0) return -Math.PI / 2;
-  const c = toSVG(era.position.x, era.position.y);
-  const nc = toSVG(nextEra.position.x, nextEra.position.y);
-  const angleToNext = Math.atan2(nc.y - c.y, nc.x - c.x);
-  const n = era.posts.length;
-  return angleToNext - ((n - 1) / n) * 2 * Math.PI;
-}
-
-// Post node SVG position (orbit around era center)
-function postSVGPos(era: AiverseEra, idx: number, startAngle: number) {
-  const c = toSVG(era.position.x, era.position.y);
-  const orbitR = safeOrbitRadius(era);
-  const dir = era.postOrbitDirection ?? 1;
-  const angle = startAngle + dir * (idx / era.posts.length) * 2 * Math.PI;
-  return { x: c.x + orbitR * Math.cos(angle), y: c.y + orbitR * Math.sin(angle) };
-}
-
-// Build sequential pathway: all post nodes in order, then era centers for empty eras
+// Build pathway connecting era CENTERS only
 function buildPathD(eras: typeof AIVERSE_ERAS): string {
-  const pts: { x: number; y: number }[] = [];
-  for (let e = 0; e < eras.length; e++) {
-    const era = eras[e];
-    const nextEra = eras[e + 1] ?? null;
-    if (era.posts.length > 0) {
-      const sa = orbitStartAngle(era, nextEra);
-      era.posts.forEach((_, i) => pts.push(postSVGPos(era, i, sa)));
-    } else {
-      pts.push(toSVG(era.position.x, era.position.y));
-    }
-  }
+  const pts = eras.map(e => toSVG(e.position.x, e.position.y));
   if (pts.length < 2) return '';
   let d = `M ${pts[0].x} ${pts[0].y}`;
   for (let i = 1; i < pts.length; i++) {
-    const p = pts[i - 1], c = pts[i];
-    const cpx = (p.x + c.x) / 2 + (i % 2 === 0 ? -30 : 30);
-    const cpy = (p.y + c.y) / 2 + (i % 2 === 0 ? 20 : -20);
-    d += ` Q ${cpx} ${cpy} ${c.x} ${c.y}`;
+    const p = pts[i - 1], q = pts[i];
+    const cpx = (p.x + q.x) / 2 + (i % 2 === 0 ? -20 : 20);
+    const cpy = (p.y + q.y) / 2;
+    d += ` Q ${cpx} ${cpy} ${q.x} ${q.y}`;
   }
   return d;
 }
@@ -95,11 +69,12 @@ const STARS = [
 export default function CosmicMap() {
   const [lens, setLens] = useState<LensState | null>(null);
   const [nebulaLens, setNebulaLens] = useState<NebulaLensState | null>(null);
+  const [forgeLens, setForgeLens] = useState<ForgeLensState | null>(null);
   const [hoveredPost, setHoveredPost] = useState<string | null>(null);
   const history = useHistory();
   const pathD = useMemo(() => buildPathD(AIVERSE_ERAS), []);
 
-  const closeAllLens = useCallback(() => { setLens(null); setNebulaLens(null); }, []);
+  const closeAllLens = useCallback(() => { setLens(null); setNebulaLens(null); setForgeLens(null); }, []);
 
   const handleEraClick = useCallback((e: React.MouseEvent, era: AiverseEra) => {
     e.stopPropagation();
@@ -147,6 +122,17 @@ export default function CosmicMap() {
           {/* Nebula soft blur — distinct from zone blur, looser spread */}
           <filter id="nebulaBlur" x="-80%" y="-80%" width="260%" height="260%">
             <feGaussianBlur stdDeviation="42" />
+          </filter>
+          {/* Forge gas gradient — ember/orange, hotter than the Nebula */}
+          <radialGradient id="forgeGas" cx="50%" cy="50%" r="50%">
+            <stop offset="0%"   stopColor="#fb923c" stopOpacity="0.30" />
+            <stop offset="25%"  stopColor="#f97316" stopOpacity="0.18" />
+            <stop offset="55%"  stopColor="#9a3412" stopOpacity="0.09" />
+            <stop offset="82%"  stopColor="#431407" stopOpacity="0.04" />
+            <stop offset="100%" stopColor="#06060f" stopOpacity="0" />
+          </radialGradient>
+          <filter id="forgeBlur" x="-80%" y="-80%" width="260%" height="260%">
+            <feGaussianBlur stdDeviation="38" />
           </filter>
         </defs>
 
@@ -279,12 +265,91 @@ export default function CosmicMap() {
           );
         })()}
 
+        {/* Forge — active implementation zone, not on pathway */}
+        {(() => {
+          const fc = toSVG(AIVERSE_FORGE.position.x, AIVERSE_FORGE.position.y);
+          const fr = (AIVERSE_FORGE.radius / 100) * W * 1.2;
+          const artifactR = (AIVERSE_FORGE.radius / 100) * W * 0.55;
+          return (
+            <g key="forge">
+              {/* Forge gas cloud — ember radial gradient, blurred like hot smoke */}
+              <circle
+                cx={fc.x} cy={fc.y}
+                r={fr * 2.0}
+                fill="url(#forgeGas)"
+                filter="url(#forgeBlur)"
+              />
+              <circle
+                cx={fc.x + fr * 0.4} cy={fc.y - fr * 0.18}
+                r={fr * 1.25}
+                fill="url(#forgeGas)"
+                opacity={0.5}
+                filter="url(#forgeBlur)"
+              />
+              {/* Forge center node */}
+              <circle
+                cx={fc.x} cy={fc.y}
+                r={(AIVERSE_FORGE.radius / 100) * W * 0.22}
+                fill={AIVERSE_FORGE.color}
+                fillOpacity={0.09}
+                stroke={AIVERSE_FORGE.color}
+                strokeWidth="1"
+                strokeOpacity={0.45}
+                strokeDasharray="5 3"
+                filter="url(#eraGlow)"
+                onClick={(e) => { e.stopPropagation(); setForgeLens({ svgX: fc.x, svgY: fc.y }); }}
+                style={{ cursor: 'pointer' }}
+              />
+              <text
+                x={fc.x} y={fc.y - (AIVERSE_FORGE.radius / 100) * W * 0.22 - 6}
+                textAnchor="middle"
+                fill={AIVERSE_FORGE.color}
+                fontSize="9"
+                fontFamily="monospace"
+                fontWeight="bold"
+                opacity={0.75}
+                style={{ pointerEvents: 'none', userSelect: 'none' }}
+              >
+                ⚒ FORGE
+              </text>
+              {AIVERSE_FORGE.artifacts.map((artifact, i) => {
+                const angle = (i / AIVERSE_FORGE.artifacts.length) * 2 * Math.PI + Math.PI / 5;
+                const ax = fc.x + artifactR * Math.cos(angle);
+                const ay = fc.y + artifactR * Math.sin(angle);
+                return (
+                  <g
+                    key={artifact.path}
+                    onClick={() => history.push(artifact.path)}
+                    style={{ cursor: 'pointer' }}
+                  >
+                    <circle
+                      cx={ax} cy={ay} r={4}
+                      fill={AIVERSE_FORGE.color}
+                      opacity={0.65}
+                      filter="url(#nodeGlow)"
+                    />
+                    <text
+                      x={ax} y={ay - 8}
+                      textAnchor="middle"
+                      fill={AIVERSE_FORGE.color}
+                      fontSize="7.5"
+                      fontFamily="monospace"
+                      opacity={0.60}
+                      style={{ pointerEvents: 'none', userSelect: 'none' }}
+                    >
+                      {artifact.missions}
+                    </text>
+                  </g>
+                );
+              })}
+            </g>
+          );
+        })()}
+
         {/* Era centers + post nodes */}
-        {AIVERSE_ERAS.map((era, eraIdx) => {
+        {AIVERSE_ERAS.map((era) => {
           const c = toSVG(era.position.x, era.position.y);
-          const eraR = (era.radius / 100) * W * 0.28;
-          const nextEra = AIVERSE_ERAS[eraIdx + 1] ?? null;
-          const sa = orbitStartAngle(era, nextEra);
+          const eraR = 16;
 
           return (
             <g key={era.id}>
@@ -300,6 +365,15 @@ export default function CosmicMap() {
                 filter="url(#eraGlow)"
                 onClick={(e) => handleEraClick(e, era)}
                 style={{ cursor: 'pointer' }}
+              />
+              {/* Outer ring — star corona */}
+              <circle
+                cx={c.x} cy={c.y}
+                r={eraR + 9}
+                fill="none"
+                stroke={era.color}
+                strokeWidth="0.5"
+                strokeOpacity={0.35}
               />
               {/* Era label */}
               <text
@@ -328,7 +402,7 @@ export default function CosmicMap() {
 
               {/* Post nodes */}
               {era.posts.map((post, i) => {
-                const pos = postSVGPos(era, i, sa);
+                const pos = postSVGPos(era, i);
                 const nodeId = `${era.id}-${i}`;
                 const isHovered = hoveredPost === nodeId;
                 return (
@@ -359,13 +433,12 @@ export default function CosmicMap() {
                         filter="url(#nodeGlow)"
                       />
                     )}
-                    {/* Diamond node (rotated square) */}
-                    <rect
-                      x={pos.x - 5} y={pos.y - 5}
-                      width="10" height="10"
+                    {/* Planet node — small circle */}
+                    <circle
+                      cx={pos.x} cy={pos.y}
+                      r={isHovered ? 5.5 : 4}
                       fill={era.color}
-                      opacity={isHovered ? 1 : 0.75}
-                      transform={`rotate(45 ${pos.x} ${pos.y})`}
+                      opacity={isHovered ? 1 : 0.72}
                       filter="url(#nodeGlow)"
                     />
                     {/* Post label */}
@@ -463,8 +536,43 @@ export default function CosmicMap() {
         </div>
       )}
 
+      {/* Forge lens popup */}
+      {forgeLens && (
+        <div
+          className={styles.lens}
+          style={{
+            '--lens-color': AIVERSE_FORGE.color,
+            '--lens-glow': AIVERSE_FORGE.glowColor,
+            left: `${(forgeLens.svgX / W) * 100}%`,
+            top: `${(forgeLens.svgY / H) * 100}%`,
+          } as React.CSSProperties}
+          onClick={(e) => e.stopPropagation()}
+        >
+          <button className={styles.lensClose} onClick={() => setForgeLens(null)}>×</button>
+          <div className={styles.lensHeader}>
+            <span className={styles.lensMissions}>active builds</span>
+            <h3 className={styles.lensTitle}>{AIVERSE_FORGE.label}</h3>
+            <p className={styles.lensTagline}>{AIVERSE_FORGE.tagline}</p>
+          </div>
+          <ul className={styles.lensPosts}>
+            {AIVERSE_FORGE.artifacts.map((artifact) => (
+              <li key={artifact.path}>
+                <button
+                  className={styles.lensPostLink}
+                  onClick={() => { history.push(artifact.path); setForgeLens(null); }}
+                >
+                  <span className={styles.postMission}>{artifact.missions}</span>
+                  <span className={styles.postTitle}>{artifact.title}</span>
+                  <span className={styles.postSubtitle}>{artifact.subtitle}</span>
+                </button>
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
+
       <div className={styles.legend}>
-        <span className={styles.legendTitle}>AIVERSE COSMOS · CLICK AN ERA NODE TO EXPLORE · ✦ NEBULA</span>
+        <span className={styles.legendTitle}>AIVERSE COSMOS · CLICK AN ERA NODE TO EXPLORE · ✦ NEBULA · ⚒ FORGE</span>
       </div>
     </div>
   );

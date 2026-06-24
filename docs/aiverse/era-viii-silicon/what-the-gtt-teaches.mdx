@@ -39,7 +39,7 @@ GTT Total Memory (B):     34,359,738,368   (34 GB)
 GTT Total Used Memory (B): 27,260,846,080  (27 GB used)
 ```
 
-Twenty-seven gigabytes of GTT consumed before any playoff model had loaded. This explained the timeouts immediately: there was no room left in the GPU-accessible memory pool.
+Twenty-seven gigabytes of <Term id="gtt">GTT</Term> consumed before any playoff model had loaded. This explained the timeouts immediately: there was no room left in the GPU-accessible memory pool.
 
 But it raised a larger question: what is GTT, and why does it have 34 gigabytes when the GPU shows only 8GB of VRAM?
 
@@ -88,7 +88,7 @@ load_tensors:        ROCm0 model buffer size = 17790.11 MiB
 msg="client connection closed before llama-server finished loading, aborting load"
 ```
 
-All 61 layers had been offloaded to GPU. The ROCm memory buffer was 17.4GB — the entire model, fully resident in GPU-accessible memory. The model had loaded. The client had disconnected because the 120-second test timeout had fired before the load completed.
+All 61 layers had been offloaded to GPU. The <Term id="rocm">ROCm</Term> memory buffer was 17.4GB — the entire model, fully resident in GPU-accessible memory. The model had loaded. The client had disconnected because the 120-second test timeout had fired before the load completed.
 
 The model was not broken. The test was.
 
@@ -97,7 +97,7 @@ The model was not broken. The test was.
 Even after understanding the GTT, one anomaly remained unexplained: why was GTT at 27GB before any test model had loaded?
 
 The accounting:
-- Warp neuron (port 11436): mistral-nemo-12b loaded via Vulkan, ~8GB in GTT
+- Warp neuron (port 11436): mistral-nemo-12b loaded via <Term id="vulkan">Vulkan</Term>, ~8GB in GTT
 - Ollama background process (pid 69990): phi4-reasoning:plus partially loaded, ~11GB in GTT
 - Ollama's model cache from previous rounds: gemma4:12b, qwen2.5:14b fragments still mapped
 

@@ -52,7 +52,7 @@ Six models ran in order, smallest to largest.
 
 Q1: called `bash(uname -r)` — kernel version only, not OS name. Answer: *"This machine is running OS version 6.12.0-160000.35-default."* The model chose the wrong command and missed SLES entirely. FAIL.
 
-Q2: called `anamnesis_search(leader of the Warp)` — found real results. Synthesized the answer in Thai. Language drift, as first observed in the Ollama/ROCm sessions. The problem followed the model to the new backend. FAIL.
+Q2: called `anamnesis_search(leader of the Warp)` — found real results. Synthesized the answer in Thai. Language drift, as first observed in the Ollama/<Term id="rocm">ROCm</Term> sessions. The problem followed the model to the new backend. FAIL.
 
 Score: **0/2**.
 
@@ -137,7 +137,7 @@ gemma4:12b ran the same reasoning with 75 tokens. Fewer reasoning steps, same co
 
 ## The Deployment
 
-gemma4:12b Q4_K_M now runs as the Warp brain on port 11436 — <Term>Imperator</Term>'s Warp neuron (NURGLE), replacing the long-serving mistral-nemo-12b. Same Vulkan backend. Same flags: `--ctx-size 8192 --n-gpu-layers 999 --flash-attn on --parallel 2 --cache-type-k q8_0 --cache-type-v q8_0`.
+gemma4:12b Q4_K_M now runs as the Warp brain on port 11436 — <Term>Imperator</Term>'s Warp neuron (NURGLE), replacing the long-serving mistral-nemo-12b. Same <Term id="vulkan">Vulkan</Term> backend. Same flags: `--ctx-size 8192 --n-gpu-layers 999 --flash-attn on --parallel 2 --cache-type-k q8_0 --cache-type-v q8_0`.
 
 The Third Championship is already planned. Every model that passed the real test — gemma4:12b and gemma4-26B-A4B — will run across all quantizations: Q4, Q8, and BF16 (unquantized). For gemma4-26B-A4B, BF16 (50.5GB in two shards) exceeds the unified memory pool of 33GB and will be skipped — the hardware limit is real, and the Remembrancer does not pretend otherwise.
 

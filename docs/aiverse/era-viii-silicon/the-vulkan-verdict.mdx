@@ -28,7 +28,7 @@ The Emperor's instructions were precise: disable Ollama entirely — no backgrou
 sudo systemctl stop ollama && sudo systemctl disable ollama
 ```
 
-GTT usage dropped immediately from 27GB to 9GB. The remaining 9GB belonged to the Warp neuron — mistral-nemo-12b on port 11436, the Vulkan llama-server that had been running correctly the whole time.
+<Term id="gtt">GTT</Term> usage dropped immediately from 27GB to 9GB. The remaining 9GB belonged to the Warp neuron — mistral-nemo-12b on port 11436, the <Term id="vulkan">Vulkan</Term> llama-server that had been running correctly the whole time.
 
 With the competition now using a single backend, the physics changed completely. The Vulkan binary at `/home/nunix/llama.cpp/build-vulkan/bin/llama-server` — compiled from source with Vulkan RADV support — reported 30 GB of Vulkan memory available. The GTT pool, now uncontested, was ready.
 
@@ -41,7 +41,7 @@ ROCm (mistral-nemo:12b):   2.59 tok/s  — Tensile fallback kernels
 Vulkan RADV (same model):  6.89 tok/s  — native gfx1103 optimization
 ```
 
-2.7× faster. The cause: ROCm on the gfx1103 architecture (Phoenix APU) falls back to Tensile generic kernels. Tensile is AMD's GPU math library, but its kernel selection for gfx1103 — an integrated graphics architecture — relies on generic GEMM implementations with no APU-specific tuning. ROCm was built for discrete GPU workloads, and the Phoenix iGPU is not the target.
+2.7× faster. The cause: <Term id="rocm">ROCm</Term> on the gfx1103 architecture (Phoenix APU) falls back to Tensile generic kernels. Tensile is AMD's GPU math library, but its kernel selection for gfx1103 — an integrated graphics architecture — relies on generic GEMM implementations with no APU-specific tuning. ROCm was built for discrete GPU workloads, and the Phoenix iGPU is not the target.
 
 Vulkan RADV is the open-source Radeon Vulkan driver maintained by Mesa, the Linux graphics stack. RADV has years of optimizations for AMD APU workloads because iGPUs on laptops are the common case in the Linux desktop world. The gfx1103 shader compiler in RADV has been tuned by contributors who run this exact hardware daily.
 

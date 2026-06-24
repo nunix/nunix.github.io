@@ -1,0 +1,172 @@
+---
+id: the-engine-and-the-assistant
+title: "The Engine and the Assistant"
+description: The champion answered the question correctly — and then produced three paragraphs of unrelated text. This is not a failure of the model. It is a failure of the layer that was never built on top of it.
+sidebar_label: "IX. The Engine and the Assistant"
+sidebar_position: 10
+tags: [local-ai, assistant, verbosity, system-prompt, ollama, qwen, gemma4, galleon, day-to-day, m74, era-viii]
+---
+
+import Admonition from '@theme/Admonition';
+
+<Admonition type="note" title="📜 REMEMBRANCER'S NOTE — Era VIII, Final Entry">
+After sixteen models crossed the championship arena, the Emperor returned to the champion's post with a simple question. Not a fleet table. Not a script. Not a blog. A question any assistant should handle in two sentences: *"Who are the members of the Warp?"*
+
+The champion answered. Then it kept answering. Then it answered something else entirely — something unrelated to the Warp, to the fleet, or to the question asked. The Grand Tournament had tested tool orchestration. It had not tested knowing when to stop.
+
+*— The Remembrancer of the AIverse*
+*Engrams M74*
+</Admonition>
+
+---
+
+> *"In AIverse, there is only Knowledge."*
+
+---
+
+## The Symptom
+
+The command was `warp nurgle "who are the members of the Warp?"`. The target was the championship champion: Gemma4-26B-A4B Q4_K_M, running on Imperator's llama-server at port 11436.
+
+The response came in two parts. The first part was correct: Chaos Gods named, domains noted, daemons referenced. Khorne, blood and skulls. Tzeentch, change and manipulation. Nurgle, decay and pestilence. Slaanesh, excess and sensation. The Warp was described accurately for someone familiar with the lore.
+
+Then came the second part. Unrelated text. Content that had nothing to do with the Warp, with the question, or with anything the Emperor had asked. The model had answered — and then, finding no instruction to stop, kept generating.
+
+This is not a failure of the model's knowledge. The knowledge was there. It surfaced immediately and correctly. What failed was the layer that should have said: *the question has been answered, now stop.*
+
+In a cloud AI — Claude, GPT-4o, Gemini — that layer is invisible because it is always present. Years of reinforcement from human feedback have taught these models to answer concisely and wait. The behaviour is baked in. With a local model running raw inference, there is no such layer unless you build it.
+
+---
+
+## Is It the OS?
+
+No.
+
+SUSE Linux Enterprise Server 16, openSUSE Tumbleweed, Ubuntu 24.04, Fedora 42, Windows 11 — strip away the kernel, the package manager, the init system, and the GPU driver stack, and what remains is a weight file. A sequence of floating-point tensors. Those tensors do not change based on what OS loaded them into memory. The same Q4_K_M quantized model, given the same prompt, the same sampling parameters, and the same context window, will produce the same token sequence on SLES as on Ubuntu. Character for character.
+
+The OS matters for three things: driver support (<Term id="rocm">ROCm</Term>, ROCm-HIP, <Term id="vulkan">Vulkan</Term> RADV), memory allocation behaviour (relevant for <Term id="gtt">GTT</Term> on APU hardware), and service management (systemd unit files, container runtimes). None of these touch model quality, response relevance, or verbosity. Switching from SUSE to any other Linux distribution would not have changed a single token in the Warp response.
+
+---
+
+## Is It the Hardware?
+
+Partially — but not in the way that matters for this failure.
+
+Hardware determines:
+- **Speed**: Imperator's Radeon 780M via Vulkan RADV delivers 12–14 tok/s for a 26B model using GTT. A discrete GPU with 24GB VRAM would push that to 40–60 tok/s. The answer arrives faster. The answer does not change.
+- **Quantization ceiling**: With 38GB of addressable GPU memory (8GB VRAM + 30GB GTT), Imperator can run Q4_K_M for a 26B model comfortably. It cannot run the same model at BF16 — 52GB would exceed the pool. Lower quantization introduces slight degradation in output quality. Not the degradation observed here, but measurable in precision tasks.
+- **Context length**: More unified memory means longer context without KV cache eviction. This affects multi-turn conversation fidelity. With a single-turn question like the Warp query, it is irrelevant.
+
+What hardware cannot change: the model's training data, its reinforcement learning from human feedback (or lack thereof), and its stopping behaviour. A Gemma4-26B model with no instruction-tuning stop layer will produce verbose, unbounded responses on a 512GB server with eight A100s just as readily as on an APU. The verbosity is in the weights, not the silicon.
+
+<Admonition type="info" title="⚙️ Technical Insight">
+The critical distinction is between **text completion** and **instruction following**.
+
+A raw llama-server endpoint, queried with a bare string (`warp nurgle "question"`), treats the question as a text completion prompt. The model sees: *`[BOS] "who are the members of the Warp?"` [ASSISTANT]:* and generates tokens until it hits `max_tokens` or a stop sequence. It has no concept of "the question is answered." It has tokens to fill.
+
+Instruction-following behaviour requires three things:
+1. **A system prompt** that defines the assistant role and constrains scope: *"Answer concisely. Stop when the question is answered."*
+2. **Stop sequences** configured at the server level: EOS tokens, `\n\n` after a response, or custom delimiters.
+3. **max_tokens** bounded to a reasonable value for the expected response length.
+
+Cloud models receive these implicitly — they are part of the model's training objective (RLHF / Constitutional AI / RLAIF). Local models expose the raw completion engine. The `warp nurgle` command was querying that engine with no harness. The engine answered correctly, then continued generating because no signal told it to stop.
+
+The fix is configuration, not model replacement:
+```bash
+# Add to llama-server startup or per-request
+--ctx-size 2048          # constrain context
+--n-predict 256          # max tokens per response
+```
+
+Or at the API call level:
+```json
+{
+  "prompt": "[INST] <<SYS>>\nAnswer concisely. Stop after answering.\n<</SYS>>\n\nWho are the members of the Warp? [/INST]",
+  "n_predict": 200,
+  "stop": ["\n\n", "[INST]", "</s>"]
+}
+```
+
+The model does not need to be swapped. It needs a driver.
+</Admonition>
+
+---
+
+## Would Galleon or Marauder Do Better?
+
+Galleon runs qwen2.5:14b through Ollama on SUSE Linux. Qwen2.5 is a generation newer than the models that competed in Era VIII's early rounds, and specifically optimised for conversational instruction following. In direct testing, Qwen2.5 models stop when the question is answered — not because they are smarter, but because stopping was part of their training signal. A response to "who are the members of the Warp?" from qwen2.5:14b would likely be four sentences, not four paragraphs plus drift.
+
+Ollama also adds a layer the raw llama-server endpoint does not: it wraps requests in the model's expected chat template, injects the system prompt defined in a `Modelfile`, and applies stop sequences automatically. The `warp nurgle` command bypasses all of this — it hits llama-server directly. If the same question were routed through a properly configured Ollama endpoint with a `Modelfile` system prompt, the champion itself would likely answer cleanly.
+
+Marauder is not yet registered in the fleet's agent_registry. The question of how it would perform is open until it is deployed and benchmarked. What the championship established is the methodology: run Q1 (multi-step fleet discovery), Q2 (code generation with tool execution), and Q3 (self-aware prose). Add a Q0: answer one natural language question concisely and stop. Any ship that cannot pass Q0 is not ready for assistant duty.
+
+---
+
+## The Day-to-Day Verdict
+
+The championship tested tool orchestration. It did not test casual conversation. These are different problems, and 2025-era local models are better at the former than the latter.
+
+Where local models perform well:
+- **Structured generation**: code from a spec, markdown from an outline, SQL from a schema. The task has defined input and output. The model fills the template.
+- **Summarisation**: reduce a long document to key points. The source material constrains the output. Verbosity is bounded by the input length.
+- **Classification**: assign a label, categorise a request, route an input. Binary or small-set decisions with no need for prose.
+- **Content creation with constraints**: a blog post given a topic, word count, and outline. The constraints do the assistant's job of bounding output.
+
+Where local models struggle without a harness:
+- **Casual question answering**: open-ended questions with no defined output format. The model treats silence as an invitation to continue.
+- **Multi-turn conversation**: without session memory, each turn is stateless. The model does not know it already answered a variant of the question three turns ago.
+- **Self-correction**: cloud models trained with RLHF learn to say "I don't know" or "that's outside my context." Local models often confabulate rather than stop — the Warp response mixing correct lore with unrelated content is a mild form of this.
+
+The championship revealed where the local model ecosystem currently sits: capable, fast, and increasingly competitive on structured tasks; not yet ready to replace a cloud assistant for unstructured, open-ended daily use without significant prompting infrastructure built around it.
+
+That infrastructure is not complex. It is a system prompt, a stop sequence, and a max token limit. Three configuration values separate a raw completion engine from a functional assistant. The championship never tested those values. The Emperor's Warp question did.
+
+---
+
+## What Era VIII Delivered
+
+<Admonition type="info" title="⚙ Era VIII — Full Summary">
+
+| Mission | Delivered |
+|---|---|
+| M74 I | ROCm vs Ollama comparison — Vulkan wins 2.7× faster, zero drift |
+| M74 II | GTT mechanics mapped — APU unified memory pool, load time vs crash distinction |
+| M74 III | Vulkan RADV validated as Imperator's primary backend |
+| M74 IV | Rigged playoff exposed — compliance vs orchestration distinction named |
+| M74 V | Champion crowned: Gemma4-26B-A4B Q4_K_M |
+| M74 VI | Reasoning budget tuning — `--reasoning-budget 512` tested, negligible gain for short-thinking models |
+| M74 VII | Grand Final: 5-question mixed test, Gemma4 champion vs Qwen3-Coder-30B challenger. Tie 4/5 each. |
+| M74 VIII | Grand Brackets: 16 models, 5 brackets. Q1 as great filter. Only 3 models passed fleet discovery. |
+| M74 IX | The engine and the assistant: verbosity failure diagnosed, OS/hardware factors mapped, fleet readiness verdict. |
+
+Era IX will carry the fleet's inference work into multi-modal territory and agent harness design. The championship built the baseline. What comes next is building the layer on top.
+
+</Admonition>
+
+---
+
+<Admonition type="tip" title="📚 Knowledge Transfer">
+
+**The lesson worth keeping:** A local model is an inference engine. An assistant is an inference engine plus a harness. The championship tested the engine. The Emperor's daily use tests the harness. Both matter; neither replaces the other.
+
+**Pattern:** Before declaring any local model unfit for a task, test whether the problem is the model or the configuration. Verbosity, drift, and confabulation are often symptoms of a missing system prompt and unconstrained max_tokens — not fundamental model failure. Add a three-line system prompt, set `n_predict 200`, add two stop sequences, and test again.
+
+**What we'd do differently:** Add a Q0 to every championship round: answer one open-ended factual question in under 100 words and stop. Any model failing Q0 is flagged before wasting compute on Q1–Q3. The Warp question failure would have been diagnosed in session one, not after the Grand Final.
+
+**If you're building this yourself:** Treat OS choice as irrelevant to model quality. Treat hardware as relevant to speed and model size ceiling only. Treat system prompt, stop sequences, and max_tokens as the primary levers for assistant behaviour. The engine is table stakes. The harness is the product.
+
+</Admonition>
+
+---
+
+*[← VIII. The Grand Brackets](./the-grand-brackets)*
+
+*[← Era VIII Overview](./aiverse-era-viii-silicon)*
+
+*In AIverse, there is only Knowledge.*
+
+<NunixOut />
+
+<div className="aiverse-fleet-cta">
+  <a href="/aiverse/support">⚔️ The Fleet Needs You — Support the Chronicle</a>
+</div>

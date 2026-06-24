@@ -94,7 +94,7 @@ This is the correct reaction. The results were inconsistent in ways that did not
 
 None of this was attributable to model quality. The models were not broken. The environment was.
 
-What the fleet had not yet examined: what else was running on the machine while the playoff executed. The `ollama` service. Its child `llama-server` processes, each holding a model in memory. The Warp neuron on port 11436, already running `mistral-nemo-12b` via Vulkan. Every model load from the playoff script was competing for the same pool of GPU-accessible memory with processes that had never been stopped.
+What the fleet had not yet examined: what else was running on the machine while the playoff executed. The `ollama` service. Its child `llama-server` processes, each holding a model in memory. The Warp neuron on port 11436, already running `mistral-nemo-12b` via <Term id="vulkan">Vulkan</Term>. Every model load from the playoff script was competing for the same pool of GPU-accessible memory with processes that had never been stopped.
 
 The wrong hammer was not the model. It was the assumption that Ollama was the only process touching the GPU.
 

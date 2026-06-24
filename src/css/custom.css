@@ -124,6 +124,14 @@ html[data-theme="light"] .navbar::before {
 /* Dropdown containers must never clip their submenu */
 .navbar__item.dropdown { overflow: visible !important; }
 
+/* Eras dropdown — 2-column grid */
+.eras-nav-dropdown .dropdown__menu {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  min-width: 480px;
+  column-gap: 0;
+}
+
 /* 1. ACTIVE STATE (Green Pulse) */
 .navbar__link--active {
   color: var(--ifm-color-primary) !important;
@@ -1111,11 +1119,10 @@ body:has(.nunix-status-bar.is-collapsed) .buffer-track { bottom: 6px; }
 }
 .glossary-term.not-found { border-bottom: 1px dotted #ff3e3e; cursor: not-allowed; }
 .glossary-tooltip {
-  visibility: hidden; opacity: 0; position: absolute; bottom: 130%; left: 50%; transform: translateX(-50%) translateY(10px);
+  /* position/visibility/opacity set via inline style (position:fixed bypasses Admonition overflow) */
   width: 280px; background: rgba(10, 13, 16, 0.95); backdrop-filter: blur(12px); border: 1px solid rgba(48, 186, 120, 0.4);
-  border-radius: 4px; padding: 0; box-shadow: 0 10px 30px rgba(0, 0, 0, 0.6); z-index: 1000; transition: all 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275); pointer-events: none;
+  border-radius: 4px; padding: 0; box-shadow: 0 10px 30px rgba(0, 0, 0, 0.6);
 }
-.glossary-wrapper:hover .glossary-tooltip { visibility: visible; opacity: 1; transform: translateX(-50%) translateY(0); }
 .tooltip-header { display: block; background: rgba(48, 186, 120, 0.1); border-bottom: 1px solid rgba(48, 186, 120, 0.2); padding: 8px 12px; overflow: hidden; }
 .tooltip-title {
   display: inline-block; font-family: var(--vintage-mono); font-size: 0.7rem; font-weight: bold; color: var(--ifm-color-primary); letter-spacing: 1px;
