@@ -1,0 +1,95 @@
+---
+id: three-agents-one-terminal
+title: Three Agents, One Terminal
+description: Goose, agy, and a Python script walk into the same terminal. Only one leaves at a useful speed.
+</Admonition>
+
+---
+
+<Admonition type="note" title="📜 Remembrancer's Note">
+Marauder — the fleet's M1 Pro ship — needed an AI agent. The obvious choice was a proper CLI agent. What followed was a comparative evaluation that revealed a structural truth about agentic overhead: the orchestration layer costs more than the model.
+
+*— The Remembrancer of the AIverse*
+*Engrams M86–M87*
+</Admonition>
+
+## The Setup
+
+Marauder runs gemma4:12B-it-4bit via mlx_vlm at 14.5 tok/s. The fleet needed two distinct AI personas there:
+
+- **Imperium captain** (fleet ship agent, same role as Claude Code on Imperator): for general fleet work, Universalis queries, engineering tasks
+- **CHAOS** (Warp brain): tool-calling agent for the Warp pipeline — routes tasks to KHORNE/TZEENTCH/NURGLE neurons, reads/writes Anamnesis DB
+
+Three candidates were evaluated: **Goose** (block/goose-cli, v1.37.0), **agy** (Antigravity CLI, v1.0.5, Google's Gemini CLI replacement), and a **custom Python script** (warp_chat.py, direct API call).
+
+## Goose: The Agentic Overhead Problem
+
+Goose connects to the mlx_vlm OpenAI-compatible endpoint via a custom provider (`chaos_mlx`). Persona loads correctly via `.goosehints`. Tool calling fires. But every response takes ~40 seconds.
+
+Root cause: Goose is an agentic orchestrator, not a chat wrapper. Every user turn generates 4–6 API calls:
+
+| Phase | API calls | Time |
+|-------|-----------|------|
+| Session init | 2 | ~14s |
+| User query + tool check | 2 | ~14s |
+| Overhead | — | ~12s |
+| **Total** | **4–6** | **~40s** |
+
+The developer extension multiplies this to 6 calls by loading tool definitions (text\_editor, bash, computer\_control) into every context. With no extensions, it drops to 4 calls — still ~28s.
+
+<Admonition type="info" title="⚙️ Technical Insight">
+Goose's multi-call pattern is intentional: it separates tool-availability probing from actual inference. For a coding agent handling file edits and shell commands across a codebase, this is correct architecture. For a real-time fleet brain answering routing queries, it is structural overhead. The tool isn't wrong — it's deployed against the wrong job description.
+</Admonition>
+
+Goose stays in the fleet for its intended purpose: multi-step agentic work (file edits, codebase navigation, complex multi-tool pipelines). Not for latency-sensitive fleet routing.
+
+## agy: The Imperium Captain
+
+agy (Antigravity CLI, Google's replacement for the now-retired Gemini CLI) runs as the Imperium fleet captain on Marauder. Configuration:
+
+- `~/.gemini/GEMINI.md` — global fleet rules: Imperium hierarchy, caveman mode, Universalis write/read commands, engineering rules (dev containers, git init, constructor injection)
+- `~/.gemini/antigravity-cli/settings.json` — fleet tool permissions (psql, ssh, curl, ollama, goose), context compression enabled
+- Shell function `agy()` in `~/.zshrc` — wraps the binary, writes session start/end to Universalis silently via `&|` (zsh atomic background+disown)
+
+Persona loads correctly. Response speed: 5–8s for simple queries.
+
+Cross-session memory: agy has no per-turn hook API (closed-source binary). Session start/end are logged to Universalis. For persistent facts, the model uses direct psql against Universalis — one call, `ORDER BY timestamp DESC LIMIT 1`, no semantic search confusion.
+
+The key debugging lesson: semantic search returned older results. Direct SQL with `content ILIKE '%keyword%' ORDER BY timestamp DESC` returns the latest entry immediately.
+
+## warp_chat.py: Direct API Wins for the Warp Brain
+
+For CHAOS — the Warp brain — a 150-line Python script outperforms both CLI agents:
+
+```
+Simple Q&A:        5–7s   (1 API call)
+Tool call + exec: 14–17s  (2 API calls + psql/SSH)
+Cross-session:     ✓ via Anamnesis DB
+Identity:          CHAOS ✓
+```
+
+The script implements a proper tool loop:
+
+1. Send chat with `anamnesis_write`, `anamnesis_read`, `ask_khorne`, `ask_tzeentch`, `ask_nurgle` tool definitions
+2. If model returns `tool_calls` → execute (psql for Anamnesis, SSH+curl for Ollama neurons, direct HTTP for Nurgle's llama-server)
+3. Append `tool` role result → send again
+4. Strip Gemma4 thinking tokens (`<|channel>thought...<channel|>`) before display
+5. Persist conversation to `~/.warp_chat_session.json` across launches
+
+One additional fix required: the `knowledge_entries` table in Anamnesis had a broken trigger (`knowledge_notify`) that referenced `NEW.event_type` — a column from `synapse_events`, not `knowledge_entries`. Drop the trigger, inserts work cleanly.
+
+<Admonition type="tip" title="📚 Knowledge Transfer">
+
+**The lesson worth keeping:** Match the tool to the job. Agentic orchestrators (Goose, Claude Code) are correct for multi-step reasoning over a codebase. Direct API wrappers are correct for low-latency, tool-augmented chat. Persona and tool calling are orthogonal to the orchestration layer — you can have both without the overhead.
+
+**Pattern:** When a CLI agent adds 30+ seconds of overhead per turn, instrument the inference server logs before blaming the model. Count API calls, not tok/s. The model was fast. The orchestrator was slow.
+
+**What we'd do differently:** Evaluate orchestration overhead on day one. The question "how many API calls does this agent make per turn?" should be in every agent evaluation checklist.
+
+**If you're building this yourself:** For persistent cross-session memory with SQL, direct psql beats semantic search for exact recall. Semantic search is for discovery; SQL with ORDER BY timestamp is for "what was the last X."
+
+</Admonition>
+
+In AIverse, there is only Knowledge.
+
+<NunixOut />

@@ -1,0 +1,71 @@
+---
+id: the-silicon-hierarchy
+title: The Silicon Hierarchy
+description: Benchmarking 12B models across the fleet — MLX, CPU, and Vulkan — and the ship role reassignment that followed.
+</Admonition>
+
+---
+
+<Admonition type="note" title="📜 Remembrancer's Note">
+The fleet had three Linux/macOS ships capable of running 12B models. The question was whether running them was worth it. The benchmark answered the hardware question. The reasoning quality answered the ship assignment question.
+
+*— The Remembrancer of the AIverse*
+*Engrams M86*
+</Admonition>
+
+## The Benchmark Protocol
+
+Same prompt across all hardware. Three runs each (cold + 2 warm). Q_REASON — the M74 Warp brain routing test:
+
+> *"You are the Warp brain. Assess which fleet ship should handle each task: (a) 7B model inference, (b) 30B model inference, (c) document classification. Fleet: Galleon (RTX 3070 GPU), Tanker (Xeon CPU 64GB), Marauder (M1 Pro 32GB). One line per task."*
+
+Expected answers: (a) Galleon — GPU fastest for small models. (b) Tanker or Marauder — RAM capacity over VRAM ceiling. (c) Galleon — GPU parallelism.
+
+## Results
+
+| Ship | Model | Backend | Cold | Warm avg | tok/s | Quality |
+|------|-------|---------|------|----------|-------|---------|
+| **Marauder** | gemma4:12B-it-4bit | MLX / M1 Pro 32GB | 7.7s | **6.9s** | **14.5** | 7/10 |
+| **Tzeentch** | gemma3:12b-it-qat | CPU / Xeon E5-1650v3 78GB | 17.1s | 10.0s | 6.2 | 7/10 |
+| **Nurgle** | mistral-nemo-12b Q4 | Vulkan iGPU / 54GB | 15.9s | 11.95s | 4.35 | 5/10 |
+
+### Marauder (M1 Pro MLX) — 14.5 tok/s
+
+Apple Silicon unified memory plus MLX's Metal compute kernels. No PCIe bottleneck between CPU and GPU. The M1 Pro's memory bandwidth (~68 GB/s) feeds the model weights efficiently. At 4-bit quantization, gemma4:12B occupies ~6.5GB of the 32GB pool. Response: concise, correct routing.
+
+### Tzeentch (Xeon CPU) — 6.2 tok/s
+
+Six-core Xeon E5-1650 v3 at 3.5GHz with 78GB ECC RAM. CPU inference via Ollama/llama.cpp with AVX2 optimizations. Model: gemma3:12b-it-qat (quantization-aware trained, slightly more efficient than standard Q4). At 6.2 tok/s, a 60-token answer takes ~10 seconds warm. Reasoning quality matches Marauder — the CPU handles the *cognition* correctly, just slowly.
+
+<Admonition type="info" title="⚙️ Technical Insight">
+CPU inference speed for 12B models is dominated by memory bandwidth, not clock speed. The Xeon E5-1650v3 delivers ~59 GB/s memory bandwidth across its four DDR4 channels. At Q4 quantization (~3.5 bits/weight), a 12B model requires moving ~5.25GB of weights per forward pass. Theoretical ceiling: ~59/5.25 ≈ 11 tok/s. Measured: 6.2 tok/s — about 56% of theoretical, typical for llama.cpp with overhead. A newer Xeon with higher memory bandwidth would proportionally improve this.
+</Admonition>
+
+### Nurgle (Vulkan iGPU) — 4.35 tok/s
+
+Integrated GPU on Imperator, running mistral-nemo-12b via llama-server with Vulkan backend. The iGPU shares memory bandwidth with the CPU — the budget that feeds inference also feeds everything else the ship is doing. At 4.35 tok/s, a 50-token answer takes ~12 seconds. More damaging: reasoning quality dropped to 5/10. Two of three runs assigned 30B inference to Marauder (wrong — Marauder has only 32GB total, and 30B models in Q4 need ~17GB, leaving 15GB for OS and KV cache — a tight fit that would cause swap). The model is below the quality threshold for fleet routing decisions.
+
+## The Ship Role Decision
+
+| Ship | AI role | Verdict |
+|------|---------|---------|
+| **Marauder** | Warp brain (CHAOS) | Sole real-time AI node. 14.5 tok/s, correct reasoning, tool calling confirmed. |
+| **Tzeentch (Tanker)** | Data store | 6.2 tok/s is usable for batch/offline work, not real-time fleet routing. Primary role: Anamnesis DB, Universalis host. |
+| **Nurgle (Imperator)** | Command ship | 4.35 tok/s + incorrect reasoning = not suitable for any fleet AI role. Primary role: Claude Code captain, Universalis writes, mission coordination. |
+| **Galleon** | GPU neuron | RTX 3070 for fast small-model inference. Khorne:latest responds in &lt;1s. No 12B testing needed — the GPU handles sub-10B natively. |
+
+<Admonition type="tip" title="📚 Knowledge Transfer">
+
+**The lesson worth keeping:** Hardware tiers produce reasoning quality tiers, not just speed tiers. The Xeon at 6.2 tok/s answered correctly. The Vulkan iGPU at 4.35 tok/s answered incorrectly. Speed and quality are not always correlated — but below ~5 tok/s on a distracted shared-memory backend, quality degrades too.
+
+**Pattern:** Benchmark with a domain-specific test, not a generic benchmark. The Q_REASON prompt is not a trivia question — it requires the model to reason about the fleet's own hardware. A model that fails this prompt will fail fleet tasks.
+
+**What we'd do differently:** Test reasoning quality (not just tok/s) before committing a ship to an AI role. A 4 tok/s model that reasons incorrectly is worse than no model at all.
+
+**If you're building this yourself:** Apple Silicon unified memory is the current sweet spot for local 12B inference: competitive tok/s, no VRAM ceiling, multimodal support, reasonable power consumption. CPU servers need high memory bandwidth (DDR5 + many channels) to compete. Integrated GPUs sharing memory are a losing proposition for 12B models.
+
+</Admonition>
+
+In AIverse, there is only Knowledge.
+
+<NunixOut />
