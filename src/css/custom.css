@@ -1128,7 +1128,7 @@ body:has(.nunix-status-bar.is-collapsed) .buffer-track { bottom: 6px; }
   display: inline-block; font-family: var(--vintage-mono); font-size: 0.7rem; font-weight: bold; color: var(--ifm-color-primary); letter-spacing: 1px;
   white-space: nowrap; overflow: hidden; width: 0%; border-right: none; vertical-align: bottom;
 }
-.glossary-wrapper:hover .tooltip-title { animation: typewriter-wipe 1.5s steps(40, end) forwards; }
+.glossary-tooltip-active .tooltip-title { animation: typewriter-wipe 1.5s steps(40, end) forwards; }
 .tooltip-title::after { content: "_"; color: var(--ifm-color-primary); margin-left: 2px; animation: cursor-blink 1s step-end infinite; }
 .tooltip-body { display: block; padding: 10px 12px; font-family: var(--ifm-font-family-base); font-size: 0.85rem; line-height: 1.4; color: #ddd; }
 .glossary-tooltip::after {
