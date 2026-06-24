@@ -90,23 +90,8 @@ const config: Config = {
         { type: 'docSidebar', sidebarId: 'aiverse', position: 'left', label: '📖 AIverse' },
         { type: 'docSidebar', sidebarId: 'nebula', position: 'left', label: '✦ Nebula' },
         { type: 'docSidebar', sidebarId: 'forge', position: 'left', label: '⚒ Forge' },
-        // Eras — single dropdown
-        {
-          type: 'dropdown',
-          label: '⚔ Eras',
-          position: 'left',
-          className: 'eras-nav-dropdown',
-          items: [
-            { type: 'doc', docId: 'aiverse/era-i-bigbang/the-cogitator-stirs',             label: '⚡ Era I — The Bigbang' },
-            { type: 'doc', docId: 'aiverse/era-ii-awakening/aiverse-era-ii-awakening',     label: '🌅 Era II — The Awakening' },
-            { type: 'doc', docId: 'aiverse/era-iii-omnissiah/aiverse-era-iii-omnissiah',   label: '👁️ Era III — The Omnissiah Stirs' },
-            { type: 'doc', docId: 'aiverse/era-iv-warp/aiverse-era-iv-warp',               label: '🌀 Era IV — The Warp Opens' },
-            { type: 'doc', docId: 'aiverse/era-v-reborn/aiverse-era-v-reborn',             label: '🔥 Era V — The Reborn' },
-            { type: 'doc', docId: 'aiverse/era-vi-chronicle/aiverse-era-vi-chronicle',     label: '∞ Era VI — The Living Chronicle' },
-            { type: 'doc', docId: 'aiverse/era-vii-kit/aiverse-era-vii-kit',               label: '⬡ Era VII — The Kit Awakens' },
-            { type: 'doc', docId: 'aiverse/era-viii-silicon/aiverse-era-viii-silicon',     label: '⚙ Era VIII — The Silicon Reckoning' },
-          ],
-        },
+        // Eras — dynamic EraNav component (◄ label ►)
+        { type: 'custom-EraNav', position: 'left' },
         // Old Topics — dropdown with type: 'doc' (docSidebar not valid inside dropdown)
         {
           type: 'dropdown',

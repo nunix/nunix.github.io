@@ -124,13 +124,6 @@ html[data-theme="light"] .navbar::before {
 /* Dropdown containers must never clip their submenu */
 .navbar__item.dropdown { overflow: visible !important; }
 
-/* Eras dropdown — 2-column grid */
-.eras-nav-dropdown .dropdown__menu {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  min-width: 480px;
-  column-gap: 0;
-}
 
 /* 1. ACTIVE STATE (Green Pulse) */
 .navbar__link--active {
