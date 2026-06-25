@@ -442,6 +442,34 @@ export const AIVERSE_NEBULA: AiverseNebula = {
       missions: 'M79',
       tags: ['tokens', 'prompt', 'caveman', 'efficiency'],
     },
+    {
+      title: 'KVM Windows Server 2025',
+      subtitle: 'A handful of libvirt XML tweaks turned a sluggish VM into a high-performance guest',
+      path: '/aiverse/nebula/kvm-windows-server-2025',
+      missions: 'Nebula',
+      tags: ['kvm', 'windows', 'vm', 'performance', 'libvirt'],
+    },
+    {
+      title: 'When Gemma Talks Too Much',
+      subtitle: 'Taming gemma4:12b-mlx verbosity from 1537 tokens to 59',
+      path: '/aiverse/nebula/when-gemma-talks-too-much',
+      missions: 'Nebula',
+      tags: ['gemma', 'prompt', 'verbosity', 'mlx', 'engineering'],
+    },
+    {
+      title: 'Three Agents, One Terminal',
+      subtitle: 'Goose, agy, and a Python script — only one leaves at a useful speed',
+      path: '/aiverse/nebula/three-agents-one-terminal',
+      missions: 'Nebula',
+      tags: ['goose', 'agy', 'agents', 'benchmark', 'terminal'],
+    },
+    {
+      title: 'The Silicon Hierarchy',
+      subtitle: 'Benchmarking 12B models across the fleet — MLX, CPU, Vulkan — and the reassignment that followed',
+      path: '/aiverse/nebula/the-silicon-hierarchy',
+      missions: 'Nebula',
+      tags: ['benchmark', 'mlx', 'vulkan', 'fleet', 'silicon'],
+    },
   ],
 };
 
