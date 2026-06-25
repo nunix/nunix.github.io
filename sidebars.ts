@@ -141,6 +141,7 @@ const sidebars: SidebarsConfig = {
     { type: 'doc', id: 'aiverse/nebula/three-agents-one-terminal', label: '✦ Three Agents, One Terminal' },
     { type: 'doc', id: 'aiverse/nebula/the-silicon-hierarchy',     label: '✦ The Silicon Hierarchy' },
     { type: 'doc', id: 'aiverse/nebula/caveman-tokens',            label: '✦ Caveman Tokens' },
+    { type: 'doc', id: 'aiverse/nebula/the-ghost-monitor',         label: '✦ The Ghost Monitor' },
   ],
 
   // ── FORGE — active implementation chronicles ──

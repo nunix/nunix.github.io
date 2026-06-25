@@ -17,9 +17,8 @@ import GlossaryTerm from '@site/src/components/GlossaryTerm';
 import type {MDXComponentsObject} from '@theme/MDXComponents';
 
 const NunixOut: React.FC = () => (
-  <div style={{ 
-    marginTop: '2rem', 
-    color: 'var(--ifm-color-primary)', 
+  <div className="nunix-out-sig" style={{
+    color: 'var(--ifm-color-primary)',
     fontWeight: 'bold',
     fontStyle: 'italic',
     textAlign: 'right'
