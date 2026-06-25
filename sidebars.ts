@@ -7,6 +7,7 @@ const sidebars: SidebarsConfig = {
     { type: 'doc', id: 'aiverse/aiverse-index',   label: '📖 What is AIverse?' },
     { type: 'doc', id: 'aiverse/updates/aiverse-updates', label: "🗒️ Author's Updates" },
     { type: 'link', label: '🗺️ Cosmic Map', href: '/cosmos' },
+    { type: 'link', label: '⚒ Forge', href: '/aiverse/forge' },
     { type: 'doc', id: 'aiverse/aiverse-support', label: '⚔️ Support the Chronicle' },
   ],
 
@@ -108,6 +109,25 @@ const sidebars: SidebarsConfig = {
     { type: 'doc', id: 'aiverse/era-vii-kit/the-inner-loop', label: 'IV. The Inner Loop' },
   ],
 
+  // ── ERA VIII — The Silicon Reckoning ──
+  era_viii: [
+    {
+      type: 'html',
+      value: '<div class="sidebar-era-header"><span class="sidebar-era-header-icon">⚙</span>Era VIII — The Silicon Reckoning<span class="sidebar-era-header-range">M74</span></div>',
+      defaultStyle: true,
+    },
+    { type: 'doc', id: 'aiverse/era-viii-silicon/aiverse-era-viii-silicon', label: 'Era VIII Overview' },
+    { type: 'doc', id: 'aiverse/era-viii-silicon/the-wrong-hammer',     label: 'I. The Wrong Hammer' },
+    { type: 'doc', id: 'aiverse/era-viii-silicon/what-the-gtt-teaches', label: 'II. What the GTT Teaches' },
+    { type: 'doc', id: 'aiverse/era-viii-silicon/the-vulkan-verdict',   label: 'III. The Vulkan Verdict' },
+    { type: 'doc', id: 'aiverse/era-viii-silicon/the-rigged-arena',     label: 'IV. The Rigged Arena' },
+    { type: 'doc', id: 'aiverse/era-viii-silicon/the-true-champion',    label: 'V. The True Champion' },
+    { type: 'doc', id: 'aiverse/era-viii-silicon/the-tuners-gift',      label: "VI. The Tuner's Gift" },
+    { type: 'doc', id: 'aiverse/era-viii-silicon/the-final-reckoning',  label: 'VII. The Final Reckoning' },
+    { type: 'doc', id: 'aiverse/era-viii-silicon/the-grand-brackets',        label: 'VIII. The Grand Brackets' },
+    { type: 'doc', id: 'aiverse/era-viii-silicon/the-engine-and-the-assistant', label: 'IX. The Engine and the Assistant' },
+  ],
+
   // ── NEBULA — standalone idea stars, not part of any Era arc ──
   nebula: [
     {
@@ -115,8 +135,24 @@ const sidebars: SidebarsConfig = {
       value: '<div class="sidebar-era-header"><span class="sidebar-era-header-icon">✦</span>The Idea Nebula<span class="sidebar-era-header-range">standalone</span></div>',
       defaultStyle: true,
     },
-    { type: 'doc', id: 'aiverse/nebula/nebula-index', label: '✦ What is the Nebula?' },
-    { type: 'doc', id: 'aiverse/nebula/caveman-tokens', label: '⬡ Caveman Tokens' },
+    { type: 'doc', id: 'aiverse/nebula/nebula-index',                label: '✦ What is the Nebula?' },
+    { type: 'doc', id: 'aiverse/nebula/kvm-windows-server-2025',   label: '✦ KVM Windows Server 2025' },
+    { type: 'doc', id: 'aiverse/nebula/when-gemma-talks-too-much', label: '✦ When Gemma Talks Too Much' },
+    { type: 'doc', id: 'aiverse/nebula/three-agents-one-terminal', label: '✦ Three Agents, One Terminal' },
+    { type: 'doc', id: 'aiverse/nebula/the-silicon-hierarchy',     label: '✦ The Silicon Hierarchy' },
+    { type: 'doc', id: 'aiverse/nebula/caveman-tokens',            label: '✦ Caveman Tokens' },
+  ],
+
+  // ── FORGE — active implementation chronicles ──
+  forge: [
+    {
+      type: 'html',
+      value: '<div class="sidebar-era-header"><span class="sidebar-era-header-icon">⚒</span>The Forge<span class="sidebar-era-header-range">active builds</span></div>',
+      defaultStyle: true,
+    },
+    { type: 'doc', id: 'aiverse/forge/forge-index', label: '⚒ What is the Forge?' },
+    { type: 'doc', id: 'aiverse/forge/the-first-hammerfall', label: 'I. The First Hammerfall' },
+    { type: 'doc', id: 'aiverse/forge/the-split-anvil', label: 'II. The Split Anvil' },
   ],
 
   // ── OLD TOPICS (preserved content) ──

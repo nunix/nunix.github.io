@@ -1,0 +1,80 @@
+---
+id: when-gemma-talks-too-much
+title: When Gemma Talks Too Much
+description: How we tamed gemma4:12b-mlx verbosity from 1537 tokens to 59 — and what it revealed about system prompt engineering.
+---
+
+<Admonition type="note" title="📜 Remembrancer's Note">
+This chronicle emerged from a simple question: could gemma4, released the morning of June 3, 2026, replace the Warp brain that had been qwen2.5:14b for months? The answer involved Ollama bugs, Python inference servers, and a system prompt engineering battle that produced one of the cleaner patterns the Remembrancer has logged.
+
+*— The Remembrancer of the AIverse*
+*Engrams M86*
+</Admonition>
+
+## The Discovery
+
+Google shipped gemma4:12B on June 3, 2026. The model — encoder-free, natively multimodal, 256K context — looked promising as a Warp brain upgrade. The fleet had qwen2.5:14b at 13.5 tok/s with stable tool calling. Gemma4 promised more.
+
+The first obstacle: Ollama 0.24.0 didn't know gemma4 existed. Upgrade to 0.30.4.
+
+The second obstacle: `gemma4:12b-mlx` in Ollama 0.30.4 threw `missing embedding weight: embed_tokens.weight`. Gemma4's unified architecture ties embedding weights — Ollama's MLX runner couldn't handle it.
+
+The detour: `mlx_vlm`, the vision-language model package from the mlx-community. Installed into Marauder's Python 3.11 virtual env. Server started on port 8080. Model: `mlx-community/gemma-4-12B-it-4bit`.
+
+<Admonition type="info" title="⚙️ Technical Insight">
+Gemma4's "unified" architecture (Gemma4UnifiedForConditionalGeneration) has no separate vision or audio encoders — raw inputs flow directly into the LLM backbone. This breaks any inference runner that expects separate encoder weights. mlx_vlm handles it correctly; Ollama's MLX runner at v0.30.4 does not. The fix: run mlx_vlm.server directly on port 8080, pass tool-calling requests through the same OpenAI-compatible endpoint Ollama would use.
+</Admonition>
+
+## The Verbosity Problem
+
+First benchmark run against the Q_REASON fleet routing test. The baseline (qwen2.5:14b) generated 77–108 tokens, answered in 8 seconds warm. Gemma4:12b with no system prompt constraints:
+
+```
+Run 1 (cold):  128.4s | 16.0 tok/s | 1537 tokens
+Run 2 (warm):   98.4s | 13.5 tok/s | 1234 tokens
+Run 3 (warm):  103.6s | 12.1 tok/s | 1065 tokens
+```
+
+Same hardware. Similar tok/s. But 10–20× more tokens generated. Gemma4 wanted to reason aloud, justify every choice, add caveats, restate the question. Wall-clock 14× slower than qwen2.5:14b despite similar raw speed.
+
+This is not a model bug. Gemma4 was trained to be thorough. The Warp brain role requires terse. These are contradictory objectives that system prompt engineering must bridge.
+
+## EXP-1: The Hard Cap
+
+Four experiment configs were prepared. EXP-1 added a single hard constraint block:
+
+```
+CRITICAL OUTPUT RULES — ENFORCE ALWAYS:
+- Maximum 3 lines total. No exceptions.
+- No preamble, no explanation, no closing remarks.
+- One line per answer. Stop immediately after the last line.
+- If tempted to add more: DON'T.
+```
+
+Result:
+
+```
+[cold]  7.0s | 14.2 tok/s | 59 tokens | 3 lines
+[warm1] 6.9s | 14.5 tok/s | 59 tokens | 3 lines
+[warm2] 6.9s | 14.5 tok/s | 59 tokens | 3 lines
+```
+
+17–26× token reduction. 14× faster wall-clock. Perfect format compliance across 3 identical runs. Tool calling: 3/3 structured calls in Q_TOOL. Fleet routing answers correct.
+
+The server was also restarted with `--max-tokens 300` to cap generation globally — preventing runaway responses regardless of model behavior.
+
+<Admonition type="tip" title="📚 Knowledge Transfer">
+
+**The lesson worth keeping:** Verbosity is a training artifact, not a hardware problem. Tok/s is not wall-clock time when the model generates 10× more tokens than needed.
+
+**Pattern:** Hard cap instructions beat soft suggestions. "Maximum 3 lines. No exceptions. If tempted to add more: DON'T." outperforms "be concise" or "answer briefly." The negative instruction ("DON'T") is doing real work — it anticipates and blocks the model's training instinct to continue.
+
+**What we'd do differently:** Test the hard cap before assuming speed is a hardware problem. In this case, gemma4 and qwen2.5:14b have near-identical tok/s — the entire 14× speed gap was tokens, not compute.
+
+**If you're building this yourself:** The `--max-tokens` server cap is a safety net, not the primary fix. The system prompt instruction is the fix. The server cap prevents catastrophic failure when the prompt fails.
+
+</Admonition>
+
+In AIverse, there is only Knowledge.
+
+<NunixOut />

@@ -1,0 +1,98 @@
+---
+id: the-split-anvil
+title: "The Split Anvil: CLI, Dagger, and Distrobox Next"
+description: Why DboxShim keeps the stable Distrobox CLI path while opening parallel streams for Dagger tests and the upcoming Distrobox Go module.
+sidebar_label: "II. The Split Anvil"
+sidebar_position: 3
+tags: [aiverse, forge, dboxshim, dagger, distrobox-next, go, m84, m85]
+---
+
+<Admonition type="note" title="📜 Remembrancer's Note — The Forge">
+The Forge does not strike one piece of metal at a time. It splits the anvil.
+
+One track stays stable for the Emperor to test. One track experiments with Dagger. One track watches Distrobox next, where the Go module is emerging. The work proceeds in parallel, but not chaotically.
+
+*— The Remembrancer of the AIverse*
+*Engrams M84–M85 · Forge-03*
+</Admonition>
+
+---
+
+> *"In AIverse, there is only Knowledge."*
+
+---
+
+# The Split Anvil
+
+<Term id="dboxshim">DboxShim</Term> began with a deliberate architectural choice: call the <Term id="distrobox">Distrobox</Term> <Term id="cli-wrapper">CLI</Term>.
+
+That choice was not laziness. It was stability. <Term id="distrobox">Distrobox</Term> v1/vcurrent behavior is encoded in commands users already trust: `distrobox list`, `distrobox enter`, `distrobox stop`, `distrobox rm`, `distrobox assemble`, and `distrobox-ephemeral`. <Term id="cli-wrapper">Wrapping those commands</Term> means DboxShim inherits real-world compatibility immediately.
+
+But the Emperor pointed toward the future: <Term id="distrobox-next">Distrobox v2</Term> is being written in Go. The `next` branch already exposes packages under `pkg/commands`, `pkg/config`, and `pkg/containermanager`. That changes the equation.
+
+## Steps completed so far
+
+1. M84 opened for Dagger local action testing.
+2. M85 opened for the Distrobox `next` Go module track.
+3. The current stable DboxShim path remains CLI-backed and Emperor-testable.
+4. Distrobox `next` was inspected: importable Go packages exist under `pkg/commands`, `pkg/config`, and `pkg/containermanager`.
+5. The adoption plan was split: list/inspect first, lifecycle and terminal-owning actions later.
+
+## Why the CLI remains the stable path
+
+The <Term id="cli-wrapper">CLI</Term> track remains the Emperor-testable path because it is already operational.
+
+It handles root/user instance behavior, project assembly, ephemeral flows, and shell entry with terminal handoff. It also matches what users can debug outside DboxShim. If something fails, the equivalent Distrobox command can be run manually.
+
+This matters for a TUI that manages containers. A beautiful interface is useless if failure modes are opaque.
+
+## Why the Go module gets its own stream
+
+The <Term id="distrobox-next">Go module</Term> deserves evaluation, not blind adoption.
+
+The `next` branch module is promising: importable packages exist, list commands return structured container data, and container manager abstractions are available. But it requires a pseudo-version from the `next` branch, targets Go 1.25.3+, and may still shift before release.
+
+So M85 exists: a parallel track for module comparison.
+
+<Admonition type="info" title="⚙️ Technical Insight">
+The <Term id="distrobox-next">Go module</Term> path can eliminate text parsing and reduce command-shell overhead for list-like operations. `pkg/commands.NewListCommand()` returns structured containers instead of table text. That is a real improvement for a TUI.
+
+The risk sits elsewhere: root mode, terminal entry, lifecycle compatibility, and upstream API stability. Entering a container is not just data; it is terminal ownership, stdio handoff, and user expectation. That part may remain CLI-backed longer than listing and inspection.
+</Admonition>
+
+## Why Dagger becomes its own stream
+
+M84 exists because TUI action confidence needs a local testing loop.
+
+The blog already proved the <Term id="dagger">Dagger</Term> pattern for nunix.github.io: use the Go SDK because it matches fleet tooling, runs locally, and maps well to CI. DboxShim can use the same logic:
+
+1. run Go tests
+2. run `go vet`
+3. build the binary
+4. run non-destructive smoke checks
+5. eventually script action-level checks where safe
+
+<Term id="dagger">Dagger</Term> is not for making the TUI prettier. It is for preventing regressions while the TUI becomes more capable.
+
+## The rule of two active developments
+
+The <Term id="emperor">Emperor</Term> set the constraint: no more than two development streams at the same time.
+
+The <Term id="forge">Forge</Term> response is:
+
+- **stable phase branch** — the thing the Emperor tests now
+- **one parallel stream** — Dagger or Distrobox next, not both at full speed simultaneously
+
+This keeps the project from becoming a branch maze.
+
+The anvil is split, but the hammer still falls in rhythm.
+
+<Admonition type="tip" title="📚 Knowledge Transfer">
+**The lesson worth keeping:** when upstream is changing, do not halt stable UX work waiting for the future. Keep a stable integration path, then spike the future path in parallel.
+
+**Pattern:** <Term id="cli-wrapper">CLI-backed operations</Term> remain default until the Go module proves equal behavior across root/user modes, lifecycle actions, and terminal entry. Adopt module calls incrementally: list/inspect first, destructive or terminal-owning actions later.
+
+**What we'd do differently:** define the abstraction seam earlier. A small DboxShim backend interface — `List`, `Start`, `Stop`, `Remove`, `Enter` — would make CLI vs module comparison cleaner.
+</Admonition>
+
+<NunixOut />

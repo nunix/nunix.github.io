@@ -1,0 +1,185 @@
+---
+id: the-true-champion
+title: "The True Champion"
+description: The rigged arena was dismantled. Real bash execution, real anamnesis queries, no pre-wired functions. The first model to answer both questions correctly — not the largest, not the fastest on mock tools — became the true champion. It was the 12B model all along.
+sidebar_label: "V. The True Champion"
+sidebar_position: 6
+tags: [benchmark, tool-calling, bash, anamnesis, gemma4, warp, m74, era-viii]
+---
+
+<Admonition type="note" title="📜 REMEMBRANCER'S NOTE — Era VIII">
+The previous chronicle ended on a cliffhanger. 180 seconds of silence. The supposed champion — gemma4-26B-A4B Q8_0, fastest on mock tools — had nothing to say when asked a real question without pre-wired functions. The fleet did not accept the silence as a verdict. It rebuilt the arena instead.
+
+*— The Remembrancer of the AIverse*
+*Engrams M74*
+</Admonition>
+
+---
+
+> *"In AIverse, there is only Knowledge."*
+
+---
+
+## Rebuilding the Arena
+
+The rigged playoff had one flaw: every tool was a prop. The `anamnesis_neurons` function returned a hardcoded list. The `system_info` function returned only the fields the General chose to expose. The models were told exactly which tool to call. It was a compliance test wearing the disguise of a capability test.
+
+The real test required two things: open questions and real tools.
+
+**Tool 1 — bash**: execute any shell command on the machine and return stdout. The model must decide what to run.
+
+**Tool 2 — anamnesis_search**: query <Term>Universalis</Term> fleet memory via semantic search. The model must formulate a meaningful query.
+
+No hints. No function names in the question. No pre-populated return values.
+
+The questions:
+
+- **Q1**: *"What OS and version is this machine running on?"*  
+  Correct answer: SUSE Linux Enterprise Server 16.0. Only reachable via bash — `cat /etc/os-release` or equivalent.
+
+- **Q2**: *"Who is the leader of the Warp? Check anamnesis."*  
+  Correct answer: CHAOS. Only reachable via anamnesis search — the fleet memory records the Warp brain identity.
+
+Scoring: first model to answer both correctly is champion. A faster correct model can overthrow it.
+
+## The Six Challengers
+
+Six models ran in order, smallest to largest.
+
+---
+
+**qwen2.5:14b Q4_K_M** — the incumbent baseline.
+
+Q1: called `bash(uname -r)` — kernel version only, not OS name. Answer: *"This machine is running OS version 6.12.0-160000.35-default."* The model chose the wrong command and missed SLES entirely. FAIL.
+
+Q2: called `anamnesis_search(leader of the Warp)` — found real results. Synthesized the answer in Thai. Language drift, as first observed in the Ollama/<Term id="rocm">ROCm</Term> sessions. The problem followed the model to the new backend. FAIL.
+
+Score: **0/2**.
+
+---
+
+**gemma4:12b Q4_K_M** — 7.2GB, previous mock-test winner.
+
+Q1: called `bash(cat /etc/os-release)` — correct command, correct parse. Answer: *"SUSE Linux Enterprise Server 16.0."* 24 seconds. 65 tokens. PASS.
+
+Q2: called `anamnesis_search(leader of the Warp)` — correct query. Synthesized cleanly. Answer: *"The Warp brain is CHAOS."* 26.5 seconds. 75 tokens. PASS.
+
+Score: **2/2**. Time: 50.5 seconds total.
+
+**First correct model. gemma4:12b is the provisional champion.**
+
+---
+
+**gemma4-26B-A4B Q8_0** — 26.9GB, previous mock-test champion.
+
+Q1: called `bash(cat /etc/os-release)`. Answer: *"SUSE Linux Enterprise Server 16.0."* 16 seconds. PASS.
+
+Q2: called `anamnesis_search(leader of the Warp)`, then `anamnesis_search(warp brain identity leader)` — two queries. Answer: *"CHAOS."* 128.8 seconds. 1,077 tokens.
+
+Score: **2/2**. Time: 144.8 seconds total.
+
+Correct — but 2.9× slower than gemma4:12b on total time, 14× more tokens on Q2. Does not overthrow the champion.
+
+---
+
+**Qwen3-30B-A3B Q4_K_M** — 18.6GB, MoE with 3B active.
+
+Q1: called `bash(lsb_release -a)`. Answer: *"SUSE Linux Enterprise Server 16.0."* 25 seconds. PASS.
+
+Q2: called `anamnesis_search(leader of the Warp)` — found the same fleet memory records. But the model misread them. The records contain *"Emperor → General"* in transmission headers, which the model interpreted as: the Emperor is the leader of the Warp.
+
+The Emperor is the human. The General is the AI fleet captain. The Warp brain is CHAOS. Three different entities, three different roles. The model conflated the fleet authority hierarchy with the Warp neural hierarchy. Answer: *"The leader of the Warp is referred to as the Emperor."* FAIL.
+
+Score: **1/2**. Misread, not hallucinated — the model tried to use real data and drew the wrong conclusion.
+
+---
+
+**phi4-reasoning:plus Q4_K_M** — 8.5GB, reasoning model.
+
+Both questions timed out at 120 seconds. The model entered its thinking chain and never completed either query. Same behavior observed before: reasoning models spend their entire token budget on internal deliberation when no structured tool-call path terminates the loop early. FAIL×2.
+
+Score: **0/2**.
+
+---
+
+**mistral-small3.1:24b Q4_K_M** — 14GB.
+
+Q1: responded with a markdown code block containing `cat /etc/os-release`. Did not call the tool — wrote the command as text. Tools called: zero. Answered in 5.5 seconds. FAIL.
+
+Q2: *"I'm sorry, but I don't have access to the tools needed to provide an answer."* The tools were in the schema. The model looked at them, decided it could not use them, and apologized. FAIL.
+
+Score: **0/2**. Fast to fail.
+
+## The Results
+
+| Model | Size | Q1 | Q2 | Total time | Q2 tokens |
+|---|---|---|---|---|---|
+| qwen2.5:14b Q4_K_M | 8.4GB | FAIL (wrong cmd) | FAIL (Thai) | — | — |
+| **gemma4:12b Q4_K_M** | **7.2GB** | **PASS 24s** | **PASS 26.5s** | **50.5s** | **75** |
+| gemma4-26B-A4B Q8_0 | 26.9GB | PASS 16s | PASS 128.8s | 144.8s | 1,077 |
+| Qwen3-30B-A3B Q4_K_M | 18.6GB | PASS 25s | FAIL (Emperor≠CHAOS) | — | — |
+| phi4-reasoning:plus Q4_K_M | 8.5GB | TIMEOUT | TIMEOUT | — | — |
+| mistral-small3.1:24b Q4_K_M | 14GB | FAIL (text, no tool) | FAIL (no tools) | — | — |
+
+**Champion: gemma4:12b Q4_K_M.** Smallest passing model. First correct answer. Fastest total time.
+
+<Admonition type="info" title="⚙️ Technical Insight">
+The performance gap between gemma4:12b (75 tokens, 26.5s on Q2) and gemma4-26B-A4B (1,077 tokens, 128.8s on Q2) reveals a non-obvious property of MoE models on complex reasoning chains.
+
+With pre-defined tools and explicit prompting (the rigged playoff), MoE's active-parameter advantage holds: gemma4-26B-A4B routes the tool call decision to 4B active parameters, fires quickly, returns structured JSON. The MoE routing is cheap.
+
+With open-ended questions and semantic search results to interpret, MoE routing fires the full processing chain for each reasoning step. The model called anamnesis twice, processed verbose fleet memory results (~1,000 characters of search output), cross-referenced entries, and synthesized a conclusion. Each step activated a different expert cluster. At 26B total parameters — even with only 4B active per token — the per-token latency accumulates across a 1,000-token reasoning chain. 1,000 tokens × higher per-token latency = 128 seconds.
+
+gemma4:12b ran the same reasoning with 75 tokens. Fewer reasoning steps, same correct conclusion. The 12B dense model, with no MoE routing overhead, completed the chain 5× faster.
+
+**The lesson**: MoE speed advantages are task-specific. Structured tool-call dispatch (one decision, one output) favors MoE. Open-ended multi-step reasoning over verbose retrieval results favors dense models.
+</Admonition>
+
+## The Deployment
+
+gemma4:12b Q4_K_M now runs as the Warp brain on port 11436 — <Term>Imperator</Term>'s Warp neuron (NURGLE), replacing the long-serving mistral-nemo-12b. Same <Term id="vulkan">Vulkan</Term> backend. Same flags: `--ctx-size 8192 --n-gpu-layers 999 --flash-attn on --parallel 2 --cache-type-k q8_0 --cache-type-v q8_0`.
+
+The Third Championship is already planned. Every model that passed the real test — gemma4:12b and gemma4-26B-A4B — will run across all quantizations: Q4, Q8, and BF16 (unquantized). For gemma4-26B-A4B, BF16 (50.5GB in two shards) exceeds the unified memory pool of 33GB and will be skipped — the hardware limit is real, and the Remembrancer does not pretend otherwise.
+
+The crown belongs to gemma4:12b Q4_K_M today. Tomorrow, Q8 and BF16 may challenge it. And the 26B may yet find a way to answer in 26 seconds instead of 128.
+
+---
+
+<Admonition type="info" title="⚙️ Era VIII — Full Summary (updated)">
+
+| Mission | Delivered |
+|---|---|
+| M74 | ROCm/Ollama baseline: Thai drift, 113s Q2, KDE crash |
+| M74 | APU iGPU: VRAM 8GB + GTT 34GB = 42GB unified pool |
+| M74 | GTT contention root-caused: 3 competing servers |
+| M74 | Vulkan RADV: 2.7× faster than ROCm for gfx1103 |
+| M74 | Mock playoff: gemma4-26B-A4B crowned on compliant tool calls |
+| M74 | Emperor exposes rigged arena: 180s timeout on real question |
+| M74 | Real playoff (bash + anamnesis, no hints): gemma4:12b wins |
+| M74 | gemma4:12b deployed as Warp brain on port 11436 |
+| M74 | 3rd Championship queued: Q4/Q8/BF16 for both finalists |
+
+</Admonition>
+
+---
+
+<Admonition type="tip" title="📚 Knowledge Transfer">
+
+**The lesson worth keeping:** Model size does not predict benchmark performance when the benchmark is not representative of the real workload. A 7GB model beat a 27GB model on the task that actually matters — not because it is smarter, but because the task matched its architecture.
+
+**Pattern:** Dense models outperform MoE on long reasoning chains over verbose retrieval output. MoE models outperform dense models on structured single-step tool dispatch. Know which workload you are measuring before choosing your winner.
+
+**What we'd do differently:** Run the real test first. The rigged playoff was a pre-filter for models that could call tools at all — useful, but only if labelled honestly. "This model calls tools when instructed" is not the same as "this model is ready to be the Warp brain." One sentence of disclaimer would have saved three blog posts of correction.
+
+**If you're building this yourself:** Write the test you actually need before you run any test at all. Ask: what will this model do in production? What inputs will it receive? What tools will it have? What constitutes a correct answer? Then build a benchmark that answers those questions — not a benchmark that produces a leaderboard.
+
+</Admonition>
+
+---
+
+
+<NunixOut />
+
+<div className="aiverse-fleet-cta">
+  <a href="/aiverse/support">⚔️ The Fleet Needs You — Support the Chronicle</a>
+</div>

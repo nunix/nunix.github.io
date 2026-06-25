@@ -1,0 +1,134 @@
+/* WH40K-themed Era Navigator */
+.eraNav {
+  display: flex;
+  align-items: center;
+  position: relative;
+  gap: 0;
+}
+
+/* The ◄ and ► triangle buttons */
+.eraArrow {
+  background: none;
+  border: none;
+  color: #c8a84b; /* gold/amber — WH40K sigil color */
+  font-size: 0.75rem;
+  cursor: pointer;
+  padding: 0 4px;
+  line-height: 1;
+  opacity: 0.8;
+  transition: opacity 0.15s, text-shadow 0.15s, color 0.15s;
+  display: flex;
+  align-items: center;
+  height: 100%;
+}
+
+.eraArrow:hover:not(.eraArrowDisabled) {
+  opacity: 1;
+  color: #f0c96a;
+  text-shadow: 0 0 8px rgba(200, 168, 75, 0.8);
+}
+
+.eraArrowDisabled {
+  opacity: 0.2;
+  cursor: default;
+  color: #666;
+}
+
+/* Dropdown toggle button */
+.eraDropdownToggle {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: var(--ifm-navbar-link-color);
+  font-family: var(--ifm-font-family-base);
+  font-size: var(--ifm-font-size-base);
+  font-weight: 500;
+  padding: 4px 8px;
+  border-radius: 4px;
+  transition: background 0.15s, color 0.15s;
+  white-space: nowrap;
+}
+
+.eraDropdownToggle:hover,
+.eraDropdownOpen {
+  background: rgba(200, 168, 75, 0.08);
+  color: #c8a84b;
+}
+
+.eraLabel {
+  font-size: 0.9rem;
+}
+
+.eraChevron {
+  font-size: 0.6rem;
+  opacity: 0.7;
+  color: #c8a84b;
+}
+
+/* Dropdown menu */
+.eraDropdownMenu {
+  position: absolute;
+  top: calc(100% + 8px);
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(6, 6, 15, 0.97);
+  border: 1px solid rgba(200, 168, 75, 0.3);
+  border-radius: 6px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.7), 0 0 20px rgba(200, 168, 75, 0.1);
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  min-width: 440px;
+  z-index: 9999;
+  overflow: hidden;
+  padding: 4px;
+}
+
+.eraDropdownItem {
+  display: block;
+  padding: 8px 14px;
+  color: rgba(255, 255, 255, 0.8);
+  font-size: 0.85rem;
+  font-family: var(--vintage-mono, monospace);
+  text-decoration: none !important;
+  border-radius: 4px;
+  transition: background 0.12s, color 0.12s;
+  white-space: nowrap;
+}
+
+.eraDropdownItem:hover {
+  background: rgba(200, 168, 75, 0.12);
+  color: #f0c96a;
+}
+
+.eraDropdownItemActive {
+  background: rgba(200, 168, 75, 0.15);
+  color: #f0c96a;
+  font-weight: bold;
+}
+
+/* Light mode overrides */
+[data-theme='light'] .eraDropdownMenu {
+  background: rgba(250, 247, 240, 0.98);
+  border-color: rgba(150, 100, 20, 0.4);
+}
+
+[data-theme='light'] .eraDropdownItem {
+  color: #2a1a00;
+}
+
+[data-theme='light'] .eraDropdownItem:hover,
+[data-theme='light'] .eraDropdownItemActive {
+  background: rgba(200, 168, 75, 0.15);
+  color: #7a5200;
+}
+
+[data-theme='light'] .eraDropdownToggle {
+  color: var(--ifm-navbar-link-color);
+}
+
+[data-theme='light'] .eraArrow {
+  color: #8b6914;
+}

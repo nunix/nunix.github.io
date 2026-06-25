@@ -1,0 +1,129 @@
+---
+id: what-the-gtt-teaches
+title: "What the GTT Teaches"
+description: The fleet investigated why large models were timing out and why Q2 produced Thai text. The answer was not in the models. It was in the physics of the machine — an iGPU, unified memory, and two inference servers fighting over the same 34GB pool.
+sidebar_label: "II. What the GTT Teaches"
+sidebar_position: 3
+tags: [gtt, igpu, apu, amd, radeon, rocm, vulkan, unified-memory, m74, era-viii]
+---
+
+<Admonition type="note" title="📜 REMEMBRANCER'S NOTE — Era VIII">
+Imperator had carried the Radeon 780M since its commissioning. The fleet had noted the AMD GPU, confirmed ROCm active, and assumed the standard discrete GPU model applied. It did not. The 780M is not a GPU. It is a core inside an APU. The distinction changes everything about how memory works — and the fleet had been operating under the wrong model since the first inference server was installed.
+
+*— The Remembrancer of the AIverse*
+*Engrams M74*
+</Admonition>
+
+---
+
+> *"In AIverse, there is only Knowledge."*
+
+---
+
+## The Investigation
+
+After the confused playoff session — Thai text in Q2, 113-second timeouts, a crashed KDE — the fleet stopped testing and started investigating.
+
+The first discovery came from the process list. Ollama's child llama-server was still running at 138% CPU, consuming 707MB of resident RAM. It had been spawned to load phi4-reasoning:plus during the earlier test, had never finished loading before the client disconnected, and had never been killed. It was burning compute in the background while every subsequent test model also tried to load.
+
+```
+ollama 69990  138  1.2 26017124 707724 ? Sl 17:12  11:32
+  /usr/local/lib/ollama/llama-server
+  --model sha256-00ae490ba2... --port 45885 ...
+```
+
+The second discovery came from `rocm-smi`:
+
+```
+GTT Total Memory (B):     34,359,738,368   (34 GB)
+GTT Total Used Memory (B): 27,260,846,080  (27 GB used)
+```
+
+Twenty-seven gigabytes of <Term id="gtt">GTT</Term> consumed before any playoff model had loaded. This explained the timeouts immediately: there was no room left in the GPU-accessible memory pool.
+
+But it raised a larger question: what is GTT, and why does it have 34 gigabytes when the GPU shows only 8GB of VRAM?
+
+## The APU Is Not a GPU
+
+<Term>Imperator</Term> carries an AMD Ryzen 7 PRO 7840U. The "PRO 7840U" designation places this in AMD's Phoenix APU series — Accelerated Processing Unit, not a discrete GPU. The Radeon 780M listed in system specs is not a separate card. It is a Graphics Compute Die fused directly into the same silicon package as the CPU cores.
+
+This is a fundamentally different architecture from a discrete GPU:
+
+| Property | Discrete GPU | iGPU (APU like 780M) |
+|---|---|---|
+| VRAM | Dedicated GDDR6/GDDR5 | Carved slice of system DDR5 |
+| Extended memory | System RAM via PCIe (slow) | GTT — system RAM at full bandwidth |
+| PCIe bus | Yes — latency + bandwidth limit | No — shared memory controller |
+| VRAM ceiling | Fixed at card capacity | Configurable (BIOS) |
+| GPU + CPU data transfer | PCIe DMA | Direct memory access, zero copy |
+
+The Radeon 780M on <Term>Imperator</Term> has 8GB of "VRAM" — but that 8GB is not dedicated memory soldered to a card. It is a reserved slice of the 54GB system RAM, held exclusively for GPU use. The GPU Translation Table (GTT) is the remaining pool: system RAM that the GPU can access on demand, at the same memory bandwidth as VRAM, without crossing a PCIe bus.
+
+On <Term>Imperator</Term>:
+- **VRAM**: 8 GB (dedicated slice)
+- **GTT**: 34 GB (GPU-accessible system RAM)
+- **Total GPU-accessible**: ~42 GB
+
+A 19GB model like gemma4:31b fits comfortably. A 11GB model like phi4-reasoning fits with room to spare. The hardware was never the bottleneck.
+
+<Admonition type="info" title="⚙️ Technical Insight">
+**GTT (GPU Translation Table)** is a memory management mechanism that maps system RAM pages into the GPU's virtual address space. On a discrete GPU, the GPU must request data from system RAM via PCIe — a round trip that adds latency and is bandwidth-limited. On an APU, the GPU and CPU share the same physical memory banks and the same memory controller. GTT access on an APU is not "slower VRAM" — it is the same DDR5 running at the same speed, with no bus crossing.
+
+The practical implication for local LLM inference: a 780M APU with 54GB of system RAM can run any model that fits in ~42GB total (VRAM + GTT), with inference speed limited by DDR5 memory bandwidth (~100 GB/s on this hardware), not VRAM capacity. A 13B model fits in VRAM alone. A 31B model spills into GTT but still runs fully on-GPU — no CPU fallback, no layer splitting between CPU and GPU RAM.
+
+What changes is load time. Loading a 19GB model from NVMe to GTT takes 2–4 minutes. Inference once loaded is GPU-accelerated at full bandwidth. The mistake is conflating load time with inference failure.
+</Admonition>
+
+## The Logs Told the Truth
+
+The Ollama service journal entry for the gemma4:31b run — the model everyone assumed had "crashed" — told a different story:
+
+```
+load_tensors: offloading output layer to GPU
+load_tensors: offloading 59 repeating layers to GPU
+load_tensors: offloaded 61/61 layers to GPU
+load_tensors:   CPU_Mapped model buffer size =  1102.50 MiB
+load_tensors:        ROCm0 model buffer size = 17790.11 MiB
+...
+msg="client connection closed before llama-server finished loading, aborting load"
+```
+
+All 61 layers had been offloaded to GPU. The <Term id="rocm">ROCm</Term> memory buffer was 17.4GB — the entire model, fully resident in GPU-accessible memory. The model had loaded. The client had disconnected because the 120-second test timeout had fired before the load completed.
+
+The model was not broken. The test was.
+
+## The Two-Process War
+
+Even after understanding the GTT, one anomaly remained unexplained: why was GTT at 27GB before any test model had loaded?
+
+The accounting:
+- Warp neuron (port 11436): mistral-nemo-12b loaded via <Term id="vulkan">Vulkan</Term>, ~8GB in GTT
+- Ollama background process (pid 69990): phi4-reasoning:plus partially loaded, ~11GB in GTT
+- Ollama's model cache from previous rounds: gemma4:12b, qwen2.5:14b fragments still mapped
+
+Three inference processes, all holding GPU memory simultaneously, none aware of the others. When the playoff script launched gemma4:31b, there was less than 7GB of GTT available. The model attempted to allocate 17.4GB and ran out of address space mid-load. The partial allocation contributed to GTT fragmentation. KDE — also using GPU memory for rendering — ran out of GPU address space entirely and crashed.
+
+The fix was not architectural. It was operational: stop every inference server before running any test.
+
+---
+
+<Admonition type="tip" title="📚 Knowledge Transfer">
+
+**The lesson worth keeping:** APU unified memory changes the rules for local LLM deployment. VRAM capacity is not the ceiling — total system RAM minus OS reservation is the ceiling, and that memory is fully GPU-accelerated with no PCIe penalty.
+
+**Pattern:** Before any local LLM benchmark on AMD APU hardware, run `rocm-smi --showmeminfo gtt` and confirm GTT used memory is at baseline. Stop all inference servers, confirm GTT drops to a known value, then load exactly one model at a time.
+
+**What we'd do differently:** The Warp neuron (port 11436) should have been stopped before the playoff began. It held 8GB of GTT that could have gone to the test models. The playoff should also have waited for the GTT baseline to stabilize after stopping each model before starting the next.
+
+**If you're building this yourself:** On an iGPU system, `ollama ps` shows what models are loaded — but it does not show GTT usage from orphaned child processes. Use `rocm-smi --showmeminfo gtt` as the authoritative source. If GTT used is unexpectedly high, `ps aux | grep llama-server` will find the culprits.
+
+</Admonition>
+
+---
+
+
+<NunixOut />
+
+<div className="aiverse-fleet-cta">
+  <a href="/aiverse/support">⚔️ The Fleet Needs You — Support the Chronicle</a>
+</div>

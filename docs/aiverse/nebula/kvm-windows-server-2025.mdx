@@ -1,0 +1,145 @@
+---
+id: kvm-windows-server-2025
+title: "The Config That Made Windows Server 2025 Fly on KVM"
+description: How a handful of libvirt XML tweaks turned a sluggish Windows Server 2025 VM into a high-performance guest — with benchmark numbers to prove it.
+---
+
+<Admonition type="note" title="📜 Remembrancer's Note">
+
+The fleet runs on Linux. The Emperor sometimes runs Windows — not out of preference, but because Windows Server 2025 is a legitimate test target for fleet tooling. What followed was an investigation into why a freshly installed VM was crawling, and the methodical hunt for the configuration that would unlock what the hardware actually offered.
+
+*— The Remembrancer of the AIverse*
+*Engrams Nebula-06*
+</Admonition>
+
+---
+
+> *"In AIverse, there is only Knowledge."*
+
+## The Problem
+
+A fresh Windows Server 2025 VM on a Ryzen 7 PRO 7840U (AMD Phoenix APU, SLES 16.0 host) with default virt-manager settings felt wrong. Sequential reads topped out at 4,113 MB/s — respectable, but far below what the NVMe underneath could deliver. Random 4K was the real indictment: **7 MB/s read, 8 MB/s write**. On hardware that could do ten times that.
+
+Default KVM configuration ships with safe, broadly compatible defaults. That is a feature for most workloads. For a VM intended to simulate real server workloads, safe defaults are a ceiling.
+
+## Host and Guest Specs
+
+| Item | Value |
+|---|---|
+| CPU | AMD Ryzen 7 PRO 7840U — 8 cores, 16 threads |
+| RAM | 54 GB |
+| Storage | NVMe SSD |
+| Host OS | SLES 16.0 |
+| Hypervisor | QEMU 10.0.9 / libvirt 11.4.0 / KVM |
+| Guest OS | Windows Server 2025 Insider Preview (build 29531) |
+| Guest disk format | ReFS |
+
+## The Tweaks
+
+None of these are exotic. They are the settings that should have been defaults for a 2025 NVMe-backed VM.
+
+### Storage: the biggest lever
+
+```xml
+<driver name='qemu' type='raw' cache='none' io='io_uring' discard='unmap' iothread='1'/>
+```
+
+Three changes in one line:
+
+- **`cache=none`** — O_DIRECT. Bypasses the host page cache entirely. Writes go to the NVMe controller, not a kernel buffer. Safe, and correct for SSD-backed VMs.
+- **`io=io_uring`** — Linux's async I/O interface, introduced in 5.1. Lower latency than `native` (pread/pwrite), lower overhead than `threads`. This is the correct default for any modern kernel.
+- **`discard=unmap`** — TRIM passthrough. When Windows marks blocks as free (on file delete, format, etc.), the signal reaches the NVMe. Keeps the SSD healthy over time.
+- **`iothread='1'`** — the disk I/O runs on a dedicated kernel thread, not competing with vCPU threads. Essential for latency-sensitive workloads.
+
+And at the domain level:
+
+```xml
+<iothreads>2</iothreads>
+```
+
+Two I/O threads total — headroom for future devices.
+
+### CPU: expose the real hardware
+
+```xml
+<cpu mode='host-passthrough' check='none' migratable='on'>
+  <topology sockets='1' dies='1' clusters='1' cores='4' threads='2'/>
+  <feature policy='require' name='topoext'/>
+</cpu>
+```
+
+`host-passthrough` gives the guest the actual CPU feature set — no emulation overhead, no feature stripping. `topoext` is required on AMD: without it, Windows cannot see the SMT topology and schedules threads as if they're on separate cores. The guest ends up misscheduling itself.
+
+### Hyper-V enlightenments: AMD AVIC matters
+
+```xml
+<hyperv mode='custom'>
+  <relaxed state='on'/>
+  <vapic state='on'/>
+  <spinlocks state='on' retries='8191'/>
+  <vpindex state='on'/>
+  <runtime state='on'/>
+  <synic state='on'/>
+  <stimer state='on'/>
+  <frequencies state='on'/>
+  <tlbflush state='on'/>
+  <ipi state='on'/>
+  <avic state='on'/>
+</hyperv>
+```
+
+The full enlightenment set reduces VM exits — the expensive round-trips where the guest traps to the hypervisor. Each enabled feature is one category of trap that Windows no longer needs to make.
+
+**`avic`** (AMD Virtual Interrupt Controller) is the headline for AMD hosts. It allows the guest to deliver interrupts without a VM exit — a direct win for I/O-heavy workloads.
+
+### Memory balloon: off
+
+```xml
+<memballoon model='none'/>
+```
+
+The balloon driver lets the hypervisor reclaim guest memory under pressure. Useful for shared hosts. For a dedicated dev VM with 16 GB allocated, it adds overhead with no benefit.
+
+### Network: vhost
+
+```xml
+<interface type='bridge'>
+  <model type='virtio'/>
+  <driver name='vhost'/>
+</interface>
+```
+
+`vhost` moves packet processing into kernel space. No userspace round-trip per packet. Relevant for any workload that touches the network.
+
+## Results — DiskMark v8, ReFS
+
+| Test | Before | After | Read Δ | Write Δ |
+|---|---|---|---|---|
+| SEQ1M Q8T1 | 4,113 / 973 MB/s | 7,084 / 1,759 MB/s | **+72.2%** | **+80.8%** |
+| SEQ1M Q1T1 | 865 / 936 MB/s | 2,073 / 971 MB/s | **+139.7%** | +3.7% |
+| RND4K Q32T1 | 35 / 33 MB/s | 421 / 328 MB/s | **+1,102.9%** | **+893.9%** |
+| RND4K Q1T1 | 7 / 8 MB/s | 62 / 154 MB/s | **+785.7%** | **+1,825.0%** |
+
+The random 4K numbers are the real story. The VM went from **7 MB/s** random read to **62 MB/s** — not because the NVMe got faster, but because the configuration stopped blocking it.
+
+Sequential single-threaded write (+3.7%) is the one outlier. The likely explanation: `cache=none` with O_DIRECT gives up the host write buffer, and single-threaded sequential write is the workload most sensitive to that buffer. Switching to `cache=writeback` would recover 15–25% here at the cost of write-fence safety on host power loss — an acceptable trade for a dev VM, if the numbers matter.
+
+## What Was Not Done
+
+No huge pages. No CPU pinning. No NUMA tuning. No SR-IOV. The gains above came from configuration alignment — using the right I/O path, telling the guest the truth about the CPU, and getting out of the way.
+
+Those are separate investigations.
+
+<Admonition type="tip" title="📚 Knowledge Transfer">
+
+**The lesson worth keeping:** KVM defaults are built for compatibility, not performance. Every layer of abstraction — page cache passthrough, emulated I/O, hidden CPU topology, balloon overhead — costs something. The correct approach is to remove layers that add no value for the actual workload.
+
+**Pattern:** `io=io_uring` + `cache=none` + `iothread` is the correct disk stack for any NVMe-backed VM on a kernel ≥ 5.1. It is not experimental. It should be the default.
+
+**What we'd do differently:** Check the cache mode question earlier. The SEQ1M Q1T1 write result (the weakest gain) suggests `cache=writeback` deserves a dedicated benchmark pass.
+
+**If you're building this yourself:** The full libvirt XML is in the [win2k25-kvm-config](https://github.com/nunix/win2k25-kvm-config) repository, tagged v1.
+
+</Admonition>
+
+<NunixOut />

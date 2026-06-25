@@ -1,0 +1,122 @@
+---
+id: the-wrong-hammer
+title: "The Wrong Hammer"
+description: The fleet began a model competition with clean assumptions — Ollama, AMD GPU, two test questions. Within hours everything looked broken. Thai text in English responses. 113-second timeouts. A KDE crash. The hardware was fine. The setup was not.
+sidebar_label: "I. The Wrong Hammer"
+sidebar_position: 2
+tags: [ollama, rocm, amd, benchmark, language-drift, igpu, m74, era-viii]
+---
+
+<Admonition type="note" title="📜 REMEMBRANCER'S NOTE — Era VIII">
+The competition was supposed to be simple. Pick a new Warp brain. Run two questions. Score the results. The Remembrancer has seen clean missions go sideways before — usually because the question being asked is not the question being answered. The fleet thought it was measuring model quality. It was measuring inference infrastructure.
+
+*— The Remembrancer of the AIverse*
+*Engrams M74*
+</Admonition>
+
+---
+
+> *"In AIverse, there is only Knowledge."*
+
+---
+
+## The Premise
+
+<Term>Imperator</Term>'s Warp brain — the local inference layer that powers tool-calling neurons — had been running qwen2.5:14b since its installation. The model passed tool-calling tests, responded in English, completed tasks. But newer models had shipped. gemma4:12b. gpt-oss:20b. phi4-reasoning. The Emperor ordered a playoff: replace the incumbent or confirm it.
+
+The protocol was established from a prior benchmark session stored in <Term>Universalis</Term>. Two questions, scored on execution:
+
+- **Q1** — Call the `anamnesis_neurons` tool and report all Warp persona names. Tests tool-calling compliance: does the model call the tool and synthesize the result, or describe how it would call the tool instead of doing it?
+- **Q2** — Call the `system_info` tool and report hostname, CPU model, total RAM, and GPU name. Tests the same behavior under a second prompt — and reveals whether the model degrades between turns.
+
+Penalty rule: a model that explains instead of executes is scored FAIL regardless of response quality. The Warp brain must act, not theorize.
+
+The script was ready. The models were loaded. Ollama was the runtime. The AMD GPU — a Radeon 780M — was confirmed active via `rocm-smi`. Everything was aligned.
+
+## Round by Round
+
+The baseline ran first: qwen2.5:14b, the incumbent.
+
+**Q1** returned PASS in 16 seconds. 274 tokens. The model called `anamnesis_neurons` immediately and synthesized a clean list of Warp persona names.
+
+**Q2** took 113.7 seconds. 572 tokens. The model did call the `system_info` tool — twice — but the synthesis response contained Thai-language text interleaved with the English answer. Not a full failure. A contamination. Language drift under inference stress.
+
+```
+Q1=PASS 16.0s 274tok | Q2=PARTIAL FAIL 113.7s 572tok (Thai drift)
+```
+
+Partial fail on the incumbent was not alarming in isolation. The competition continued.
+
+**Round 1**: gpt-oss:20b. Q1 passed in 19 seconds. Q2 hit the token limit silently — no tool calls, no content, finish reason `length`. The model allocated its token budget to reasoning about how to answer instead of answering. Verdict: LOSER. Deleted per Emperor rule.
+
+**Round 2**: gemma4:12b. Q1 passed in 20.6 seconds, 218 tokens — the cleanest token count of any model so far. Q2 passed in 93.3 seconds, 459 tokens. No language drift. No tool call failure. Verdict: WINNER.
+
+```
+Q1=PASS 20.6s 218tok | Q2=PASS 93.3s 459tok
+```
+
+The baseline was partially failing. The challenger had passed. On numbers, gemma4:12b had won Round 2. The fleet should have been done.
+
+## The Wall
+
+Advancing gemma4:12b meant testing gemma4:31b — the next size up. If a 12B model passes, does 31B pass faster and cleaner?
+
+The test ran. And ran. And ran.
+
+At two minutes the script timed out. No response. No tool call. No content. The Ollama process returned nothing.
+
+phi4-reasoning:plus was queued next. Same result. Six minutes. Empty response. Timeout.
+
+The pattern was clear: every model above 12B was timing out. Every model under 12B was passing, slowly. Something in the environment was degrading as model size increased.
+
+Meanwhile, KDE — the desktop environment — crashed during one of the longer test runs. A memory pressure event. The machine had 54GB of RAM; it was running out of something.
+
+<Admonition type="info" title="⚙️ Technical Insight">
+The playoff script used a 120-second timeout on the Ollama API call. For models that load quickly, this is sufficient. For large models loading into GPU-accessible memory for the first time, 120 seconds is not a model failure — it is a loading window. The script was measuring load time as inference time and scoring the loading process as a crash.
+
+A correct playoff implementation for large local models requires two phases: a **pre-warm call** (long timeout, no tools, discard the response) that confirms the model is loaded and the server is responding, followed by the **actual test calls**. Without pre-warming, large model tests are measuring disk-to-memory transfer speed, not inference quality.
+
+The fleet's playoff script did not pre-warm. This single architectural choice caused every timeout in rounds three and beyond.
+
+</Admonition>
+
+## The Confusion Compounds
+
+The Emperor's verdict on the session was direct: *"I'm really confused with all the tests we ran today and the so different results."*
+
+This is the correct reaction. The results were inconsistent in ways that did not point to model quality:
+
+- The baseline (qwen2.5:14b) had passed Q1 cleanly but produced Thai text in Q2.
+- gemma4:12b had passed both questions but Q2 took 93 seconds — nearly a minute and a half for a system info query.
+- Models above 12B had timed out completely.
+- KDE had crashed.
+- Q2 times were 5–7× longer than Q1 times across every model, which should not happen — both questions involve a single tool call and a synthesis response.
+
+None of this was attributable to model quality. The models were not broken. The environment was.
+
+What the fleet had not yet examined: what else was running on the machine while the playoff executed. The `ollama` service. Its child `llama-server` processes, each holding a model in memory. The Warp neuron on port 11436, already running `mistral-nemo-12b` via <Term id="vulkan">Vulkan</Term>. Every model load from the playoff script was competing for the same pool of GPU-accessible memory with processes that had never been stopped.
+
+The wrong hammer was not the model. It was the assumption that Ollama was the only process touching the GPU.
+
+---
+
+<Admonition type="tip" title="📚 Knowledge Transfer">
+
+**The lesson worth keeping:** Variable inference results on a local machine almost always point to resource contention, not model quality. Before attributing inconsistency to model capability, audit what else is running and what GPU memory they hold.
+
+**Pattern:** Establish a clean baseline environment before any benchmark. On a machine with unified GPU memory (iGPU/APU), every process using GPU memory reduces the pool available to the model under test. Two inference servers sharing GTT will interfere with each other in ways that produce anomalous timing, language drift, and apparent crashes.
+
+**What we'd do differently:** Stop all inference servers before the first playoff run. Confirm GPU memory is at baseline. Run one model at a time. Pre-warm each model before timing the test questions. The pre-warm call costs 30–120 seconds but eliminates false timeouts entirely.
+
+**If you're building this yourself:** The symptom "model times out on large inputs but not small" is almost always a memory pressure issue, not a model bug. Check `rocm-smi` GTT usage before assuming the model is broken.
+
+</Admonition>
+
+---
+
+
+<NunixOut />
+
+<div className="aiverse-fleet-cta">
+  <a href="/aiverse/support">⚔️ The Fleet Needs You — Support the Chronicle</a>
+</div>

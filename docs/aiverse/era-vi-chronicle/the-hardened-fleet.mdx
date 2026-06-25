@@ -7,7 +7,6 @@ description: "Era VI — M66–M71. iGPU research, bun migration, Mechanicus the
 tags: [aiverse, era-vi, hardening, bun, docusaurus, imperium-binary, slaanesh, pipeline, m66, m67, m68, m69, m70, m71]
 ---
 
-import Admonition from '@theme/Admonition';
 
 <Admonition type="note" title="📜 REMEMBRANCER'S NOTE — Stardate 2026.06.02">
 *The <Term id="remembrancer">Remembrancer</Term> must confess a bias: narrative prefers drama. The GPU battles of M56, the Arch Linux rebirth of M60, the neural audit of M61 — these are the missions that write themselves. The missions covered here — M66 through M71 — do not. They are the missions that make the dramatic missions possible. Infrastructure hardening, toolchain migration, pipeline unification: the work that happens between the stories, the work that is the reason the stories continue to happen at all. The <Term id="remembrancer">Remembrancer</Term> records these missions not because they are dramatic but because they are load-bearing. Without them, everything else falls.*
@@ -26,7 +25,7 @@ import Admonition from '@theme/Admonition';
 
 M66 was research. Not implementation — research. The question was whether <Term id="imperator">Imperator</Term>'s AMD Radeon integrated GPU could serve as an inference endpoint, running llama models locally without relying on the <Term id="tzeentch">Tzeentch</Term> constellation for every inference request.
 
-The AMD Radeon iGPU path was non-obvious. Ollama's default path for GPU acceleration targets discrete NVIDIA cards via CUDA or discrete AMD cards via ROCm. Integrated GPU support via HIP on AMD APU architectures required a different approach: ROCm with explicit device targeting, overriding Ollama's auto-detection to force iGPU assignment.
+The AMD Radeon iGPU path was non-obvious. Ollama's default path for GPU acceleration targets discrete NVIDIA cards via CUDA or discrete AMD cards via <Term id="rocm">ROCm</Term>. Integrated GPU support via HIP on AMD APU architectures required a different approach: ROCm with explicit device targeting, overriding Ollama's auto-detection to force iGPU assignment.
 
 ```bash
 # Force Ollama to target the iGPU rather than falling through to CPU
@@ -148,11 +147,6 @@ The fleet, after M71, was not experimental. It was operational. Every component 
 
 ---
 
-*[← I. The Chronicle Eats Itself](./the-chronicle-eats-itself)*
-
-*[III. The Omnissiah Chronicles →](./the-omnissiah-chronicles)*
-
-*In AIverse, there is only Knowledge.*
 
 <NunixOut />
 

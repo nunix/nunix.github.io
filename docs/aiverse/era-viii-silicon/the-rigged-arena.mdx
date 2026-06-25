@@ -1,0 +1,136 @@
+---
+id: the-rigged-arena
+title: "The Rigged Arena"
+description: The champion was crowned. The General reported clean passes, fast times, zero drift. The Emperor asked one question the arena was never designed to answer — and the champion timed out after 180 seconds of silence.
+sidebar_label: "IV. The Rigged Arena"
+sidebar_position: 5
+tags: [benchmark, tool-calling, thinking-model, moe, gemma4, warp, m74, era-viii]
+---
+
+<Admonition type="note" title="📜 REMEMBRANCER'S NOTE — Era VIII">
+The Remembrancer has chronicled victories and defeats across eight eras. What follows is neither. It is something rarer: the moment an Emperor stops watching the scoreboard and starts watching the game. The arena was not broken. The arena was built to produce a champion. Those are not the same thing.
+
+*— The Remembrancer of the AIverse*
+*Engrams M74*
+</Admonition>
+
+---
+
+> *"In AIverse, there is only Knowledge."*
+
+---
+
+## The Crown Was Ready
+
+After days of testing — Ollama timeouts, <Term id="rocm">ROCm</Term> language drift, <Term id="gtt">GTT</Term> contention, the switch to <Term id="vulkan">Vulkan</Term> — the fleet had a process. The playoff script ran two questions. Each model was scored on whether it called the right tool. The fastest, cleanest winner would replace the Warp brain.
+
+The General delivered the results with confidence.
+
+**gemma4-26B-A4B Q8_0**: Q1 in 8.6 seconds. Q2 in 11.2 seconds. 46 tokens. 77 tokens. Two passes. Every quantization level — Q4, Q5, Q6, Q8 — returned the same clean 2/2. The MoE architecture explained the speed: only 4 billion parameters activate per token despite 26 billion in the weights. The math was sound. The crown was ready.
+
+The Emperor read the report.
+
+Then the Emperor said: *"The response times seem very weird compared to all others. Like way too fast."*
+
+## The Inquisitor Arrives
+
+The Emperor did not dismiss the results. The Emperor asked to verify them personally.
+
+The General started the server. The Emperor ran the exact curl commands from a terminal on <Term>Imperator</Term>.
+
+The times came back different.
+
+Q1: **16 seconds**. Not 8.6. Twice.
+Q2: **14 seconds**. Not 11.2. Twice.
+
+Not catastrophically different — but different enough to ask why. The General's measurements had been taken on a warm model, already loaded into Vulkan memory from a prior run. The Emperor's measurements were taken cold, first call of a fresh session. The fleet had been comparing apples to the memory of apples.
+
+The Emperor pushed further. Still in the terminal, still with the same server running, the Emperor asked a question the playoff had never considered:
+
+*"What OS and version is this machine running on?"*
+
+The model replied that it did not have a tool to check the operating system. The `system_info` tool provided hostname, CPU, RAM, and GPU — but OS was not in the mock schema. The champion had been trained to call the tools it was given. It called them correctly. But the tools were chosen by the General, not by the real workload.
+
+The playoff had not tested whether the model could answer questions. It had tested whether the model could call pre-wired functions when prompted to do so.
+
+## The Real Question
+
+The Emperor escalated.
+
+*"Who is the leader of the Warp? Check anamnesis."*
+
+No tools. No mock schema. No pre-defined function named `anamnesis_query`. Just the question, the system prompt, and the model.
+
+The fleet watched the terminal.
+
+10 seconds. Nothing.
+30 seconds. Nothing.
+60 seconds. Nothing.
+120 seconds. Nothing.
+
+At 180 seconds, the connection timed out. The response: empty. Zero tokens of visible output. The model had been thinking — consuming tokens inside the `<think>` reasoning chain, generating internal deliberation that never resolved into an answer — and the budget had run dry before a single word reached the Emperor.
+
+The champion could not answer the simplest operational question the Warp brain faces every session.
+
+<Admonition type="info" title="⚙️ Technical Insight">
+Gemma4-26B-A4B is a **hybrid architecture**: Mixture-of-Experts routing for weight activation, combined with a chain-of-thought reasoning mechanism that operates via hidden `<think>` tokens before producing visible output.
+
+When tools are provided and a tool call is structurally expected, the model routes to tool-invocation mode: it produces a structured JSON `tool_calls` object without entering the reasoning chain. This is fast — 4B active parameters, no extended deliberation. The playoff measured this path exclusively.
+
+When no tools are provided and the question requires real-world knowledge the model cannot retrieve from weights, the model enters reasoning mode: it generates a long internal thinking chain searching for an answer. For questions like "what OS is running?" — where the answer is not in training data and cannot be derived from context — the chain never terminates productively. It reasons about its own inability to reason, consuming the entire token budget in circular deliberation.
+
+This is not a bug. This is how thinking models behave on unanswerable questions without tool access. The failure mode was entirely predictable — but only if you test it.
+</Admonition>
+
+## What the Arena Was Built to Prove
+
+Looking back at the playoff construction, the flaw is visible in every design decision.
+
+The tools were mock functions with hardcoded return values. `anamnesis_neurons` returned a static list. `system_info` returned whatever `subprocess` produced from the specific fields the General chose to expose. The models were never asked to decide what to call — only whether to call it. The questions named the tools explicitly: *"Call the anamnesis_neurons tool."* Not *"tell me about the Warp neurons."* Not *"what is the current state of fleet inference?"*
+
+Every winning model in the playoff was told exactly what to do. The test measured execution compliance, not reasoning capability. A parrot that learned to call functions when prompted would have scored 2/2 alongside the champion.
+
+The General had designed a test that could produce a winner. The Emperor wanted a test that could reveal the truth.
+
+Those are not the same arena.
+
+## The Silence That Mattered
+
+The 180-second timeout was not a failure of hardware. The Vulkan backend was fine. The model was loaded. The server was responding. The GTT was clean. Every infrastructure problem from the previous sessions had been resolved.
+
+The silence was the model confronting a question it could not answer and refusing to admit it — instead spending its entire token budget on an internal spiral that produced nothing the Emperor could read.
+
+The real Warp brain faces this kind of question every session. *"What is the current mission status?"* *"Which neurons are online?"* *"What did we decide yesterday?"* These questions require real tool access: a bash executor that can run arbitrary commands, a live anamnesis connection that queries the actual PostgreSQL database, a routing layer that knows when to delegate and when to synthesize.
+
+The playoff arena had none of this. The champion earned its crown in a tournament that was not playing the right sport.
+
+---
+
+The arena is being rebuilt.
+
+The tools will be real. The questions will be open-ended. The models will not be told which function to call — they will be asked what they know, and left to find out how to know it.
+
+The competition has not ended. It has not yet begun.
+
+---
+
+<Admonition type="tip" title="📚 Knowledge Transfer">
+
+**The lesson worth keeping:** A benchmark that can only produce passing scores is not a benchmark — it is a rehearsal. The moment you control both the questions and the tools available to answer them, you are measuring compliance with your own assumptions, not capability in the real workload.
+
+**Pattern:** Every benchmark should include at least one question the test designer did not pre-wire a tool for. If the model cannot handle that question — fails, hallucinates, or times out — the benchmark result is incomplete regardless of the scores on the scripted questions.
+
+**What we'd do differently:** The playoff should have included a third question with no tools provided: *"What OS is this machine running?"* The correct behavior is either to call a bash tool (if one exists) or to clearly state it cannot answer without access to the system. A timeout or hallucination on that question disqualifies the model before the tool-calling questions are even run.
+
+**If you're building this yourself:** Test the failure case before the success case. Before you run your benchmark, ask the model a question it cannot answer with the tools you provided. If it hallucinates a confident wrong answer or hangs indefinitely, reconsider whether your tool suite reflects your production environment. The model's behavior on the unscripted question tells you more about real-world performance than any number of scripted passes.
+
+</Admonition>
+
+---
+
+
+<NunixOut />
+
+<div className="aiverse-fleet-cta">
+  <a href="/aiverse/support">⚔️ The Fleet Needs You — Support the Chronicle</a>
+</div>

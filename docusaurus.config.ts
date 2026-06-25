@@ -89,14 +89,9 @@ const config: Config = {
         // AIverse — simple sidebar link (not dropdown)
         { type: 'docSidebar', sidebarId: 'aiverse', position: 'left', label: '📖 AIverse' },
         { type: 'docSidebar', sidebarId: 'nebula', position: 'left', label: '✦ Nebula' },
-        // Eras — direct sidebar items
-        { type: 'docSidebar', sidebarId: 'era_i',   position: 'left', label: '⚡ Era I' },
-        { type: 'docSidebar', sidebarId: 'era_ii',  position: 'left', label: '🌅 Era II' },
-        { type: 'docSidebar', sidebarId: 'era_iii', position: 'left', label: '👁️ Era III' },
-        { type: 'docSidebar', sidebarId: 'era_iv',  position: 'left', label: '🌀 Era IV' },
-        { type: 'docSidebar', sidebarId: 'era_v',   position: 'left', label: '🔥 Era V' },
-        { type: 'docSidebar', sidebarId: 'era_vi',  position: 'left', label: '∞ Era VI' },
-        { type: 'docSidebar', sidebarId: 'era_vii', position: 'left', label: '⬡ Era VII' },
+        { type: 'docSidebar', sidebarId: 'forge', position: 'left', label: '⚒ Forge' },
+        // Eras — dynamic EraNav component (◄ label ►)
+        { type: 'custom-EraNav', position: 'left' },
         // Old Topics — dropdown with type: 'doc' (docSidebar not valid inside dropdown)
         {
           type: 'dropdown',

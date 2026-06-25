@@ -278,7 +278,7 @@ export const AIVERSE_ERAS: AiverseEra[] = [
     color: '#38bdf8',
     glowColor: 'rgba(56, 189, 248, 0.4)',
     isWarp: false,
-    position: { x: 88, y: 58 },
+    position: { x: 90, y: 54 },
     radius: 10,
     postStartAngle: -Math.PI / 2,
     postOrbitDirection: -1,
@@ -311,6 +311,77 @@ export const AIVERSE_ERAS: AiverseEra[] = [
       },
     ],
   },
+  {
+    id: 'era-viii',
+    label: 'Era VIII — The Silicon Reckoning',
+    tagline: 'When assumptions meet hardware. The Cogitator speaks its truth.',
+    missions: 'M74',
+    color: '#d97706',
+    glowColor: 'rgba(217, 119, 6, 0.4)',
+    isWarp: false,
+    position: { x: 72, y: 80 },
+    radius: 10,
+    postStartAngle: -Math.PI / 2,
+    postOrbitDirection: 1,
+    // Processor / silicon chip icon
+    icon: 'M9 3H5a2 2 0 00-2 2v4m6-6h10a2 2 0 012 2v4M9 3v18m0 0h10a2 2 0 002-2V9M9 21H5a2 2 0 01-2-2V9m0 0h18',
+    posts: [
+      {
+        title: 'The Wrong Hammer',
+        subtitle: 'Ollama, ROCm, and the playoff that revealed the infrastructure',
+        path: '/aiverse/era-viii-silicon/the-wrong-hammer',
+        missions: 'M74',
+      },
+      {
+        title: 'What the GTT Teaches',
+        subtitle: 'The iGPU, unified memory, and 34GB the fleet did not know it had',
+        path: '/aiverse/era-viii-silicon/what-the-gtt-teaches',
+        missions: 'M74',
+      },
+      {
+        title: 'The Vulkan Verdict',
+        subtitle: 'Clean machines, right backends, and the comparison that settled it',
+        path: '/aiverse/era-viii-silicon/the-vulkan-verdict',
+        missions: 'M74',
+      },
+      {
+        title: 'The Rigged Arena',
+        subtitle: 'The champion timed out. The Emperor had asked a real question.',
+        path: '/aiverse/era-viii-silicon/the-rigged-arena',
+        missions: 'M74',
+      },
+      {
+        title: 'The True Champion',
+        subtitle: 'Real tools, real questions, real winner — the 12B model all along.',
+        path: '/aiverse/era-viii-silicon/the-true-champion',
+        missions: 'M74',
+      },
+      {
+        title: "The Tuner's Gift",
+        subtitle: '82 seconds to 3 seconds. One flag. Why paid models enable local ones.',
+        path: '/aiverse/era-viii-silicon/the-tuners-gift',
+        missions: 'M74',
+      },
+      {
+        title: 'The Final Reckoning',
+        subtitle: 'Q4 vs Q8. First tool choice decides. One finished. One crashed.',
+        path: '/aiverse/era-viii-silicon/the-final-reckoning',
+        missions: 'M74',
+      },
+      {
+        title: 'The Grand Brackets',
+        subtitle: '16 models, 5 brackets, 3 questions. Almost nothing passed all three.',
+        path: '/aiverse/era-viii-silicon/the-grand-brackets',
+        missions: 'M74',
+      },
+      {
+        title: 'The Engine and the Assistant',
+        subtitle: 'The champion answered correctly — then kept talking. OS? Hardware? Or something else?',
+        path: '/aiverse/era-viii-silicon/the-engine-and-the-assistant',
+        missions: 'M74',
+      },
+    ],
+  },
 ];
 
 export interface NebulaStar {
@@ -333,13 +404,33 @@ export interface AiverseNebula {
   stars: NebulaStar[];
 }
 
+export interface ForgeArtifact {
+  title: string;
+  subtitle: string;
+  path: string;
+  missions: string;
+  tags: string[];
+}
+
+export interface AiverseForge {
+  id: string;
+  label: string;
+  tagline: string;
+  color: string;
+  glowColor: string;
+  position: { x: number; y: number };
+  radius: number;
+  icon: string;
+  artifacts: ForgeArtifact[];
+}
+
 export const AIVERSE_NEBULA: AiverseNebula = {
   id: 'nebula',
   label: 'The Idea Nebula',
   tagline: 'Where stars are born before they own a galaxy.',
   color: '#26c6da',
   glowColor: 'rgba(38, 198, 218, 0.35)',
-  position: { x: 82, y: 78 },
+  position: { x: 84, y: 90 },
   radius: 9,
   // Nebula / scatter dots icon
   icon: 'M12 2a1 1 0 100 2 1 1 0 000-2zM6 6a1 1 0 100 2 1 1 0 000-2zM18 6a1 1 0 100 2 1 1 0 000-2zM4 12a1 1 0 100 2 1 1 0 000-2zM20 12a1 1 0 100 2 1 1 0 000-2zM6 18a1 1 0 100 2 1 1 0 000-2zM18 18a1 1 0 100 2 1 1 0 000-2zM12 20a1 1 0 100 2 1 1 0 000-2z',
@@ -350,6 +441,34 @@ export const AIVERSE_NEBULA: AiverseNebula = {
       path: '/aiverse/nebula/caveman-tokens',
       missions: 'M79',
       tags: ['tokens', 'prompt', 'caveman', 'efficiency'],
+    },
+  ],
+};
+
+export const AIVERSE_FORGE: AiverseForge = {
+  id: 'forge',
+  label: 'The Forge',
+  tagline: 'Where tools are hammered into power-TUIs before they become doctrine.',
+  color: '#f97316',
+  glowColor: 'rgba(249, 115, 22, 0.35)',
+  position: { x: 56, y: 90 },
+  radius: 9,
+  // Hammer / forge mark
+  icon: 'M14 4l6 6-2 2-2-2-3 3 2 2-8 8-3-3 8-8-2-2 3-3-2-2 2-2z',
+  artifacts: [
+    {
+      title: 'The First Hammerfall',
+      subtitle: 'DboxShim enters the Forge as a power-TUI',
+      path: '/aiverse/forge/the-first-hammerfall',
+      missions: 'M82',
+      tags: ['dboxshim', 'tui', 'distrobox', 'phase-1', 'phase-2'],
+    },
+    {
+      title: 'The Split Anvil',
+      subtitle: 'CLI stability, Dagger tests, and Distrobox next',
+      path: '/aiverse/forge/the-split-anvil',
+      missions: 'M84–M85',
+      tags: ['dagger', 'distrobox-next', 'go', 'testing'],
     },
   ],
 };

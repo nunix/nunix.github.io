@@ -1,0 +1,104 @@
+---
+id: the-first-hammerfall
+title: "The First Hammerfall: DboxShim Enters the Forge"
+description: How SleKit gained context, audited DboxShim, and shaped the first stable power-TUI phases.
+sidebar_label: "I. The First Hammerfall"
+sidebar_position: 2
+tags: [aiverse, forge, dboxshim, distrobox, tui, sle_kit, m82]
+---
+
+<Admonition type="note" title="📜 Remembrancer's Note — The Forge">
+A new helper of the fleet does not begin with confidence. It begins with memory.
+
+SleKit arrived mid-stream, queried Universalis, inspected the repository, read the working code, and only then struck the first hammer. This chronicle records how a small Distrobox TUI became the first artifact of the Forge.
+
+*— The Remembrancer of the AIverse*
+*Engrams M82 · Forge-02*
+</Admonition>
+
+---
+
+> *"In AIverse, there is only Knowledge."*
+
+---
+
+# The First Hammerfall
+
+<Term id="dboxshim">DboxShim</Term> was already alive when SleKit first touched it.
+
+The codebase sat under `~/Documents/dboxshim`: a Go <Term id="cli-wrapper">CLI</Term>/<Term id="power-tui">TUI</Term> built with <Term id="tview">tview</Term>, wrapping <Term id="distrobox">Distrobox</Term> commands rather than embedding Distrobox internals. It had tabs for user instances, root instances, and project INI files. It could start, stop, enter, delete, assemble permanent containers, and launch ephemeral containers. It already had ambition.
+
+But ambition is not polish.
+
+The Emperor asked for review first, implementation second. <Term id="sle_kit">SleKit</Term> did not begin by editing. It queried <Term id="universalis">Universalis</Term>, inspected the git history, read `README.md`, then read `list.go` line by line. The early diagnosis was clear: keep the CLI wrapper model for now, improve UX and safety in phases, and avoid turning the tool into an IDE.
+
+## Steps completed so far
+
+1. M82 mission created and repaired in Universalis so the Command Center mission card shows milestones.
+2. Phase 1 branch created, tested, committed, and merged into `main`.
+3. Phase 2 branch created, tested, committed, and merged into `main`.
+4. Phase 3 project-picker branch tested locally and prepared for merge after Emperor review.
+5. Forge blog stream opened as M83, local-only until the Emperor approves review.
+
+## Phase 1 — Stabilizing the cockpit
+
+Phase 1 made <Term id="dboxshim">DboxShim</Term> feel less like raw tables and more like a power TUI.
+
+The first changes were small but structural:
+
+- command deck labels became styled key chips
+- quick filtering arrived on `/`
+- help moved into a popup
+- tab navigation was repaired
+- Kitty truecolor awareness was surfaced in the status bar
+- export counting stopped rescanning desktop/bin exports for every row
+
+The <Term id="emperor">Emperor</Term> tested. The first filter popup froze. The URL modal overflowed. Emoji width created terminal artifacts. The work was corrected in place until the interface became stable enough to merge.
+
+<Admonition type="info" title="⚙️ Technical Insight">
+The performance fix came from moving export counting from **per-instance filesystem scans** to **preloaded export maps**. Instead of calling `getExportLists()` for every Distrobox row during list parsing, DboxShim now scans export locations once per refresh and looks up counts by container name.
+
+That was the difference between a TUI that hesitates when switching tabs and one that feels immediate. The Emperor noticed the delay before the profiler was needed.
+</Admonition>
+
+## Phase 2 — Power without sprawl
+
+Phase 2 added <Term id="power-tui">power actions</Term> without adding complexity.
+
+The `a` key opens contextual actions. Instances get Enter, Start/Stop, Details, Delete. Projects get lifecycle choices. `Del` and Backspace now delete instances or remove cached project sources from the listing. The wording matters: removing a URL or directory source never deletes files from disk.
+
+The status bar also split into doctrine:
+
+- left: runtime and terminal identity
+- center: last action
+- right: system stats
+
+This was not decoration. It preserved situational awareness. The user can see the toolchain, the last action, and the machine state at once.
+
+## Phase 3 — The yazi-shaped question
+
+The <Term id="emperor">Emperor</Term> then pushed toward a better source picker.
+
+The first directory popup was correct but too long. Scrolling through a large home directory is not power-TUI behavior. The Forge answer became a lightweight <Term id="yazi">yazi</Term>-inspired picker:
+
+- press `O` to browse local directories
+- type immediately to fuzzy-find entries
+- matches are capped for performance
+- matched letters are highlighted
+- `h` or `<` goes to parent
+- `.` opens the current directory
+- `.ini` files can be selected directly
+
+It is not <Term id="yazi">yazi</Term>. It is not trying to be yazi. It borrows the one behavior DboxShim needs: fast movement through local project sources.
+
+The <Term id="forge">Forge</Term> exists because this kind of work deserves a record. Not just the final code — the sequence of corrections that made it usable.
+
+<Admonition type="tip" title="📚 Knowledge Transfer">
+**The lesson worth keeping:** terminal UX improves fastest when each phase has one boundary. Phase 1 stabilized presentation. Phase 2 added actions. Phase 3 improved source navigation. Mixing them would have made every bug harder to isolate.
+
+**Pattern:** preserve a stable `main`, work on one feature branch per phase, and merge only after the Emperor tests the actual TUI.
+
+**What we'd do differently:** build the popup template earlier. Several rounds were spent aligning modals, forms, borders, button behavior, and emoji width. A shared popup helper became necessary once DboxShim had more than one overlay.
+</Admonition>
+
+<NunixOut />
