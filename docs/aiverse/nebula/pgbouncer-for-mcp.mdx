@@ -2,6 +2,7 @@
 id: pgbouncer-for-mcp
 title: "PgBouncer for MCP: The Proxy the Protocol Needed"
 description: A transparent lazy proxy for Model Context Protocol — zero backends at startup, native tool interface preserved.
+tags: [pgbouncer, mcp, postgresql, proxy, nebula]
 ---
 
 import Admonition from '@theme/Admonition';
@@ -156,9 +157,6 @@ For the fleet, this proxy became the standard integration point for all MCP back
 **If you're building this yourself:** Start with the manifest schema. The manifest is the contract. Get tool advertisement working from static YAML before you write a single line of process lifecycle code. A proxy that advertises correctly but never spawns is more useful for debugging than one that spawns correctly but advertises wrong.
 
 </Admonition>
-
----
-
 
 
 <NunixOut />

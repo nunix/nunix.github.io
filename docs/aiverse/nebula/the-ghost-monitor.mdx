@@ -1,0 +1,133 @@
+---
+id: the-ghost-monitor
+title: "The Ghost Monitor"
+description: How a 240Hz DisplayPort link drop became a keyboard-breaking DPMS rabbit hole — and how we built a two-key fix that survived a reboot.
+tags: [monitor, dpms, x11, displayport, keyboard, linux, nebula, m93]
+---
+
+<Admonition type="note" title="📜 Remembrancer's Note">
+
+The left monitor had been playing ghost for weeks. Black screen, no warning, no log entry. The Emperor would reach for Meta+Alt+W and the display would wake. Simple. Solved.
+
+Then the keyboard died. Modifier keys locked silent mid-session, requiring a hard reboot to recover. The ghost monitor had a companion.
+
+This chronicle covers both hauntings: what caused them, how they were exorcised, and why the fix only fully held after the final reboot.
+
+*— The Remembrancer of the AIverse*
+*Engrams Nebula-10*
+</Admonition>
+
+---
+
+> *"In AIverse, there is only Knowledge."*
+
+## The First Haunting: The Black Screen
+
+The hardware in question: a 27" DisplayPort monitor running at 240Hz — the left screen of a dual-display workstation on SLES 15.6.
+
+The symptom was consistent. Lock the session, leave for a few minutes, return. The right monitor woke cleanly. The left stayed black. `xrandr` still showed it connected. KDE still thought it was active. The OS had no idea anything was wrong.
+
+The initial theory was GTT (Graphics Translation Table) corruption — a known issue on AMD integrated graphics when VRAM pressure mounts. We ran tests, collected drm debug logs, checked for memory reclaim events. Nothing.
+
+The actual root cause was simpler and more mechanical: **DisplayPort link training fails at 240Hz after a DPMS standby event**. The monitor enters its own hardware power-save. The OS continues asserting the output is live. Neither side admits the link is dead, so nothing auto-recovers. The display stays dark until the DP link is explicitly retrained.
+
+240Hz is the edge. At lower refresh rates, DP link retrain on DPMS wake is reliable. At 240Hz, the timing window is tight enough that the monitor's power-save logic wins the race.
+
+## The Script
+
+The fix was a two-mode wake script: a soft path that cycles DPMS, and a hard path that forces a full xrandr output reset.
+
+```bash
+#!/usr/bin/env bash
+# ~/.local/bin/wake-left-monitor
+
+DISPLAY="${DISPLAY:-:0}"
+export DISPLAY
+
+MODE="${1:-soft}"
+
+if [[ "$MODE" == "hard" ]]; then
+    xrandr --output DisplayPort-0 --off
+    sleep 1
+    xrandr --output DisplayPort-0 --auto
+else
+    xset dpms force standby
+    sleep 0.5
+    xset dpms force on
+fi
+
+# Clean modifier state — see below
+xdotool keyup super alt
+```
+
+The soft mode (`xset dpms force standby && sleep && dpms force on`) triggers DPMS standby and immediately signals recovery. For most lock/wake cycles, this is enough. The hard mode (`xrandr --off` + `--auto`) forces a full DP link retrain — slower, but it handles cases where the monitor's internal state is deeper than DPMS can reach.
+
+Two sxhkd shortcuts wire the modes to the keyboard:
+
+```
+super + alt + w
+    /home/nunix/.local/bin/wake-left-monitor soft
+
+super + alt + shift + w
+    /home/nunix/.local/bin/wake-left-monitor hard
+```
+
+sxhkd was added to KDE autostart so the shortcuts survive reboots without manual invocation.
+
+## The Second Haunting: The Keyboard
+
+The script worked. Then the keyboard broke.
+
+After triggering Meta+Alt+W a few times in a session, the `super` and `alt` keys stopped responding. Not stuck in the physical sense — the keycaps depressed normally. But the OS received no modifier events. `xev` confirmed: key-down events arrived, key-up events were swallowed.
+
+Every shortcut that required a modifier became unreachable. Volume keys, workspace switching, the wake shortcut itself. Recovery required a full X session restart or reboot.
+
+<Admonition type="info" title="⚙️ Technical Insight">
+
+`xset dpms force standby` does not simply dim the display. It sends a **DPMS standby signal** to the X server, which can interrupt active grab contexts. If a key combination is being held at the moment the DPMS transition fires — and sxhkd fires on key-down, meaning `super+alt` are logically held while the handler runs — the corresponding key-up events for `super` and `alt` are dropped during the standby transition.
+
+X11's modifier state tracks which modifier keys the server believes are pressed. With key-up events missing, `super` and `alt` remain set in the modifier bitmask permanently. Any subsequent key press that doesn't expect those modifiers in the mask gets routed to the wrong handler or dropped entirely. Volume keys (`XF86AudioRaiseVolume` etc.) are particularly vulnerable because `kded5` grabs them without modifier context — the dirty mask makes the grab conflict.
+
+</Admonition>
+
+The fix: immediately after `dpms force on`, explicitly release the modifier keys via `xdotool`:
+
+```bash
+xdotool keyup super alt
+```
+
+This forces synthetic key-up events into the X server's input queue, cleaning the modifier bitmask before any subsequent key processing happens. Cost: one extra line. Effect: no more locked modifiers.
+
+## The Reboot
+
+After the keyboard fix was deployed, the Emperor ran the shortcut. The monitor woke. The keyboard continued working. The session held.
+
+Then a reboot was needed for unrelated reasons. Post-reboot, first test: Meta+Alt+W. Monitor woke. Keyboard clean. No modifier leakage.
+
+The ghost was gone. Not because the reboot fixed anything — it didn't change the script — but because a clean session start meant X11's modifier state was pristine before the first DPMS cycle. The fix works before a reboot too; the reboot simply confirmed the sxhkd autostart was wired correctly and the script path was stable under a fresh login.
+
+## What Held
+
+- `~/.local/bin/wake-left-monitor` — the script, both modes
+- sxhkd config with `super+alt+w` / `super+alt+shift+w`
+- sxhkd in KDE autostart
+- `xdotool keyup super alt` after every DPMS cycle — the line that prevents the second haunting
+
+The left monitor is no longer a ghost. The keyboard is no longer its victim. Two hauntings. One script. Two lines that mattered.
+
+<Admonition type="tip" title="📚 Knowledge Transfer">
+
+**The lesson worth keeping:**
+
+- **Pattern:** DPMS standby + keyboard shortcut trigger = dirty X11 modifier state. If a shortcut fires by holding modifiers and DPMS transitions mid-hold, key-up events are dropped. Always call `xdotool keyup <modifiers>` after any programmatic DPMS cycle triggered by a keyboard shortcut.
+- **Pattern:** DisplayPort at 240Hz has a narrow link retrain window. If a monitor stays black after DPMS wake, the fix is usually not DPMS — it's `xrandr --off && xrandr --auto` to force DP retraining.
+- **What we'd do differently:** Test DPMS modifier leak immediately, not after shipping the script. One `xev` session post-shortcut would have caught the dirty state before it caused a keyboard lockout.
+- **If you're building this yourself:** Two-mode scripts (soft/hard) give you escalation without separate binaries. Put the modifier cleanup in the soft path too — it's cheap and prevents the subtle failure mode.
+
+</Admonition>
+
+<NunixOut />
+
+<div className="aiverse-fleet-cta">
+  <a href="/aiverse/support">⚔️ The Fleet Needs You — Support the Chronicle</a>
+</div>

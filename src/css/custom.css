@@ -1821,6 +1821,11 @@ html[data-theme="light"] .search-key {
 .sidebar-support-link:hover { opacity: 1; }
 
 /* ── Post CTA footer link ── */
+.nunix-out-sig {
+  margin-top: 2.5rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid rgba(255, 255, 255, 0.06);
+}
 .aiverse-fleet-cta {
   margin-top: 2.5rem;
   padding-top: 1.5rem;
@@ -1846,6 +1851,9 @@ html[data-theme="light"] .search-key {
   border-color: rgba(0, 0, 0, 0.12);
 }
 [data-theme='light'] .sidebar-support-link {
+  border-top-color: rgba(0, 0, 0, 0.06);
+}
+[data-theme='light'] .nunix-out-sig {
   border-top-color: rgba(0, 0, 0, 0.06);
 }
 [data-theme='light'] .aiverse-fleet-cta {
