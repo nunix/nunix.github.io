@@ -126,6 +126,7 @@ const sidebars: SidebarsConfig = {
     { type: 'doc', id: 'aiverse/era-viii-silicon/the-final-reckoning',  label: 'VII. The Final Reckoning' },
     { type: 'doc', id: 'aiverse/era-viii-silicon/the-grand-brackets',        label: 'VIII. The Grand Brackets' },
     { type: 'doc', id: 'aiverse/era-viii-silicon/the-engine-and-the-assistant', label: 'IX. The Engine and the Assistant' },
+    { type: 'doc', id: 'aiverse/era-viii-silicon/the-containers-edge',          label: "X. The Container's Edge" },
   ],
 
   // ── NEBULA — standalone idea stars, not part of any Era arc ──

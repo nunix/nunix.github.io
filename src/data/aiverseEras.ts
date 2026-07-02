@@ -380,6 +380,12 @@ export const AIVERSE_ERAS: AiverseEra[] = [
         path: '/aiverse/era-viii-silicon/the-engine-and-the-assistant',
         missions: 'M74',
       },
+      {
+        title: "The Container's Edge",
+        subtitle: 'A newer RADV in a container — +31.6% prefill on identical hardware, without touching the pinned host.',
+        path: '/aiverse/era-viii-silicon/the-containers-edge',
+        missions: 'M96',
+      },
     ],
   },
 ];
