@@ -14,6 +14,15 @@ This is where new chapters are announced, writing choices are explained, and the
 
 ---
 
+## 2026.07.02 — Era VIII epilogue: The Sparsity Dividend
+
+The size sweep is done — **[The Sparsity Dividend](/aiverse/era-viii-silicon/the-sparsity-dividend)** (M96). Ten models across two families (Qwen3, Gemma 4, Mistral-Nemo) and two drivers. The expected smooth size-curve turned out to be a cliff: **dense models past ~12B collapse on decode** (gemma4-31B dense = 2.2 tok/s) while same-size **MoE stays conversational** (gemma4-26B-A4B = 13.6 tok/s) — a 6× gap from sparsity alone, because decode is memory-bandwidth-bound on an iGPU. Also: Mesa 26's prefill win is universal, but its decode help is split (aids MoE/tiny-dense, mildly hurts dense-12B+). Fleet action: big models must be MoE; Qwen3-30B swaps Q4 → Q6 (tied decode, better quality).
+
+What's next:
+- Apply the Q6 swap to the deployed Warp neuron; consider a clean single-family quant-isolation curve if deeper driver analysis is warranted.
+
+---
+
 ## 2026.07.02 — Era VIII epilogue: The Container's Edge
 
 A new chapter joins the Silicon Reckoning — **[The Container's Edge](/aiverse/era-viii-silicon/the-containers-edge)** (M96). The Reckoning settled *which* backend (Vulkan RADV over ROCm). This epilogue asks whether the driver's own *version* matters — and finds it does: Mesa 26.1.3 in an openSUSE Tumbleweed container beat the host's pinned Mesa 24.3.3 by **+31.6% prefill** on identical hardware, without touching the SLES host's display stack. RADV is userspace; the container drives the host kernel's real GPU through `/dev/dri`. Includes the SELinux + rootless-podman mount fix.

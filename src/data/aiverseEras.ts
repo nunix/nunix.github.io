@@ -386,6 +386,12 @@ export const AIVERSE_ERAS: AiverseEra[] = [
         path: '/aiverse/era-viii-silicon/the-containers-edge',
         missions: 'M96',
       },
+      {
+        title: 'The Sparsity Dividend',
+        subtitle: 'Ten models, two families: the size curve hid a cliff. Dense falls off it; MoE does not.',
+        path: '/aiverse/era-viii-silicon/the-sparsity-dividend',
+        missions: 'M96',
+      },
     ],
   },
 ];
