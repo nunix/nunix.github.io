@@ -1,0 +1,105 @@
+---
+id: the-sparsity-dividend
+title: "The Sparsity Dividend"
+description: Ten models, two families, two drivers, one iGPU. The size sweep meant to map a smooth curve found a cliff instead — dense models fall off it, Mixture-of-Experts models do not. And the newer driver's gift turned out to have a price only dense models pay.
+sidebar_label: "XI. The Sparsity Dividend"
+sidebar_position: 12
+tags: [moe, dense, benchmark, vulkan, radv, mesa, igpu, quantization, gtt, m96, era-viii]
+---
+
+<Admonition type="note" title="📜 REMEMBRANCER'S NOTE — Era VIII">
+The Container's Edge answered one question with one model: does a newer driver run faster? Yes. The Emperor, satisfied but curious, asked the harder version — does it hold across sizes, across families, across the whole shape of the problem? So the General swept ten models up the memory ladder, expecting a gentle slope. What the numbers drew instead was a cliff, and the Remembrancer has learned to pay attention when a straight line refuses to stay straight.
+
+*— The Remembrancer of the AIverse*
+*Engrams M96*
+</Admonition>
+
+---
+
+> *"In AIverse, there is only Knowledge."*
+
+---
+
+## The Sweep
+
+[The Container's Edge](/aiverse/era-viii-silicon/the-containers-edge) proved a single point: on the Radeon 780M, a newer RADV in a container beat the host's pinned driver. One model, one delta. The Emperor wanted the shape of the thing — so the sweep grew to **ten models, two families, two drivers**:
+
+- **Qwen3** — 8B (dense), plus a 30B Mixture-of-Experts (MoE, ~3B active) across four quantizations: Q3, Q4, Q6, Q8
+- **Gemma 4** — E4B and 12B (dense), 26B-A4B (MoE, ~4B active), 31B (dense)
+- **Mistral-Nemo** — 12B (dense)
+
+Every model run twice: host Mesa 24.3.3 and the `kitwarp` container's Mesa 26.1.3. `pp512` is prefill (prompt processing), `tg128` is decode (generation) — decode is the number you *feel* while a model types back at you.
+
+| Model | Size | Arch | pp512 host→cont | tg128 host→cont |
+|-------|-----:|------|----------------:|----------------:|
+| Qwen3-8B | 4.7G | dense | 199 → 296 | 14.03 → 14.08 |
+| gemma4-E4B | 4.7G | dense | 202 → 285 | 15.05 → 16.26 |
+| Mistral-Nemo-12B | 7G | dense | 73 → 104 | 8.13 → **7.29** |
+| gemma4-12B | 6.7G | dense | 64 → 84 | 5.48 → **5.00** |
+| Qwen3-30B Q3 | 14G | MoE | 109 → 122 | 15.12 → 16.08 |
+| gemma4-26B-A4B | 16G | MoE | 154 → 161 | 13.19 → 13.62 |
+| Qwen3-30B Q4 | 18G | MoE | 105 → 138 | 16.49 → 17.92 |
+| gemma4-31B | 18G | dense | 28 → 30 | 2.31 → **2.24** |
+| Qwen3-30B Q6 | 24G | MoE | 108 → 124 | 16.64 → 17.82 |
+| Qwen3-30B Q8 | 30G | MoE | 122 → 148 | 14.25 → 14.60 |
+
+## The Cliff
+
+Look at two rows from the same family, near the same size:
+
+- **gemma4-26B-A4B** (MoE, 16G): decode **13.6 tok/s**
+- **gemma4-31B** (dense, 18G): decode **2.2 tok/s**
+
+Same model family. Two gigabytes apart. A **six-fold** difference in the speed you feel. The MoE is conversational; the dense model types slower than a person reads. This was not a driver artifact — it held on both Mesa 24 and Mesa 26.
+
+The expected smooth curve — bigger model, proportionally slower — never appeared. Instead the deciding variable was not size at all. It was **sparsity**.
+
+<Admonition type="info" title="⚙️ Technical Insight">
+Decode on an iGPU is memory-bandwidth-bound, not compute-bound. To generate one token, the hardware must read the weights it needs *from the shared LPDDR5*. A **dense** model has no choice: every token requires reading *every* weight. A 31B dense model at Q4 is ~17GB, so each token drags ~17GB across the memory bus. At the 780M's bandwidth, that caps decode near 2 tok/s — the [GTT physics the Reckoning already mapped](/aiverse/era-viii-silicon/what-the-gtt-teaches), now biting at full force.
+
+A **Mixture-of-Experts** model routes each token to a small subset of its weights — ~3-4B active out of 26-30B total. It reads a fraction per token, so decode stays fast *regardless of how large the full model is*. Qwen3-30B (MoE) held 14-18 tok/s even at 30GB Q8; gemma4-31B (dense) collapsed to 2 tok/s at 18GB. On bandwidth-limited silicon, sparsity is not an optimization — it is the difference between usable and unusable.
+</Admonition>
+
+## The Driver's Split Personality
+
+The sweep also refined [The Container's Edge](/aiverse/era-viii-silicon/the-containers-edge)'s clean victory. Mesa 26's gift, it turns out, is not evenly given.
+
+**Prefill: Mesa 26 wins everywhere** — +5% to +48%, largest on the smallest models. That result is universal and unambiguous. Upgrade the driver, get faster prompt processing, full stop.
+
+**Decode: Mesa 26 has a split personality.** It *helps* MoE and tiny-dense models (+3% to +8%), but it *hurts* dense mid-and-large models:
+
+- Mistral-Nemo-12B: **−10%**
+- gemma4-12B: **−9%**
+- gemma4-31B: **−3%**
+
+The first time the regression appeared — on Mistral-Nemo-12B — the easy conclusion was "a Mistral quirk." Then Qwen3-8B (dense) showed *no* regression, which seemed to kill the theory. Then gemma4-12B, a completely different family, regressed by nearly the same margin as Mistral. Two families, same size class, same direction. That is no longer a quirk; it is a pattern.
+
+<Admonition type="info" title="⚙️ Technical Insight">
+The hypothesis survived three revisions, and each revision required a data point that broke the previous one. "Mistral-specific" died when gemma4-12B matched it. "Small-dense-hurts" died when Qwen3-8B and gemma4-E4B *gained*. What fits all ten points: Mesa 26's newer RADV shader scheduling — the LDS/CU-occupancy changes tuned for prompt-processing throughput — favors either sparse per-token work (MoE) or tiny working sets (small dense), and slightly penalizes the large contiguous per-token weight streaming that dense-12B-and-up models depend on for decode.
+
+The lesson is methodological: a single regression is a question, not an answer. It took a second architecture family to turn "weird Mistral result" into "measured driver behavior." One data point can only ever raise a hypothesis; it takes an independent one to test it.
+</Admonition>
+
+## What the Fleet Runs Now
+
+The practical output is sharp:
+
+1. **Any large model on this iGPU must be MoE.** Dense dies past ~12B. A 30B MoE decodes *faster* than a dense 12B, and roughly on par with a dense 8B — while carrying far more knowledge.
+2. **For the deployed Qwen3-30B MoE, Q6 is the sweet spot.** On Mesa 26, decode is tied between Q4 (17.9 tok/s) and Q6 (17.8 tok/s) — but Q6 is less quantized, so it is free quality at the same speed. Q8 is the trap: 18% slower decode (14.6) for a marginal quality gain. The fleet swaps **Q4 → Q6**.
+3. **Run inference in the Mesa 26 container.** Prefill gains are universal; the decode split does not matter for the MoE models the fleet actually deploys.
+
+<Admonition type="tip" title="📚 Knowledge Transfer">
+**The lesson worth keeping:** on bandwidth-limited hardware, architecture beats size. A model's *active* parameters per token — not its total — decide whether it is usable. Sparsity (MoE) is what lets an integrated GPU run a 30B model at conversational speed while a 31B dense model of the same footprint crawls.
+
+**Pattern:** when a benchmark curve refuses to be smooth, the axis you are plotting against is probably not the real variable. Here, "size" hid the true driver, "sparsity."
+
+**What we'd do differently:** add a second architecture family *before* drawing conclusions, not after. The Mistral-Nemo regression looked family-specific for two whole steps; only gemma4 revealed the real pattern.
+
+**If you're building this yourself:** on an APU, pick MoE for anything above ~12B, quantize to the point where decode stops improving (here Q6, not Q8), and run the newer driver — the prefill win is free and universal, and the decode penalty only touches the dense models you should not be running at scale anyway.
+</Admonition>
+
+<NunixOut />
+
+<div className="aiverse-fleet-cta">
+  <a href="/aiverse/support">⚔️ The Fleet Needs You — Support the Chronicle</a>
+</div>
