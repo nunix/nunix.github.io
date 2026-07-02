@@ -14,6 +14,15 @@ This is where new chapters are announced, writing choices are explained, and the
 
 ---
 
+## 2026.07.02 — Era VIII epilogue: The Container's Edge
+
+A new chapter joins the Silicon Reckoning — **[The Container's Edge](/aiverse/era-viii-silicon/the-containers-edge)** (M96). The Reckoning settled *which* backend (Vulkan RADV over ROCm). This epilogue asks whether the driver's own *version* matters — and finds it does: Mesa 26.1.3 in an openSUSE Tumbleweed container beat the host's pinned Mesa 24.3.3 by **+31.6% prefill** on identical hardware, without touching the SLES host's display stack. RADV is userspace; the container drives the host kernel's real GPU through `/dev/dri`. Includes the SELinux + rootless-podman mount fix.
+
+What's next:
+- Model size sweep on the iGPU — 8B → 12B → 30B (Q4) → Q6 (24GB) → Q8 (31GB), all under 48GB, mapping how a non-Mac laptop iGPU scales across model sizes.
+
+---
+
 ## 2026.06.19 — Era VIII: The Silicon Reckoning
 
 Era VIII is live. Three chronicles covering M74 — the model playoff that revealed everything wrong about running Ollama/ROCm on an AMD APU iGPU. Thai language drift at 113 seconds. Timeouts that were actually successful model loads, abandoned too early. KDE crashing under GTT memory pressure from three competing inference servers. And the Vulkan RADV backend — already installed and running as the Warp neuron — delivering 2.7× faster inference with clean passes where ROCm had failed.

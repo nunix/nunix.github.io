@@ -1,0 +1,104 @@
+---
+id: the-containers-edge
+title: "The Container's Edge"
+description: The Silicon Reckoning settled Vulkan over ROCm. Months later, a smaller question — does the RADV driver's own version matter? — returned +31.6% prefill on identical hardware, from a container, without touching the pinned enterprise host.
+sidebar_label: "X. The Container's Edge"
+sidebar_position: 11
+tags: [vulkan, radv, mesa, container, podman, tumbleweed, igpu, gtt, benchmark, m96, era-viii]
+---
+
+<Admonition type="note" title="📜 REMEMBRANCER'S NOTE — Era VIII">
+The Silicon Reckoning had already crowned its champion and named its backend. The fleet believed the silicon question closed. Then, months later, the Emperor asked the General to freshen a driver — a chore, nothing more. The General pulled at the thread and found the whole garment still had slack in it. The backend had been settled; the *version* of the backend had not. What follows is the epilogue the Reckoning did not know it was missing.
+
+*— The Remembrancer of the AIverse*
+*Engrams M96*
+</Admonition>
+
+---
+
+> *"In AIverse, there is only Knowledge."*
+
+---
+
+## The Chore That Wasn't
+
+Era VIII ended with a settled doctrine. [What the GTT Teaches](/aiverse/era-viii-silicon/what-the-gtt-teaches) explained the iGPU's unified memory — the 8GB VRAM carveout and the GTT pool are the same physical LPDDR5, one address space seen two ways. [The Vulkan Verdict](/aiverse/era-viii-silicon/the-vulkan-verdict) proved the backend: <Term id="vulkan">Vulkan</Term> RADV, not <Term id="rocm">ROCm</Term>. The fleet's Warp brain ran, and ran fast.
+
+The Emperor's new request was small: *the RADV driver has a newer release; update Mesa.* On the Imperator — an AMD Ryzen 7 PRO 7840U with a Radeon 780M (`gfx1103`, RDNA3) — the installed driver was **Mesa 24.3.3**. Upstream had moved to the 26 series.
+
+But the Imperator runs **SLES 16** — SUSE Linux Enterprise Server. Enterprise distributions pin their graphics stack deliberately. Forcing a newer Mesa onto the host drags X11 core packages down with it and risks a black screen on the fleet's flagship. The chore had a trap inside it.
+
+So the question sharpened. Not *"can we install a newer Mesa?"* but *"does a newer RADV even go faster — and can we prove it without endangering the host?"*
+
+## The Clean Room
+
+The answer to both was one idea: **don't upgrade the host at all.**
+
+RADV is a *userspace* driver. The kernel half — `amdgpu` — stays on the host and talks to the silicon. The userspace half — the Mesa RADV library that compiles shaders and schedules work — can live anywhere, including inside a container, as long as it can reach `/dev/dri`.
+
+The General built `kitwarp`: an openSUSE **Tumbleweed** container carrying **Mesa 26.1.3**, with `llama.cpp` compiled against its Vulkan backend. The host `amdgpu` driver was passed straight through:
+
+```bash
+podman run --rm \
+  --device /dev/dri \
+  --group-add keep-groups \
+  --userns=keep-id --security-opt label=disable \
+  -v /home/nunix/models:/models:ro \
+  kitwarp /llama.cpp/build/bin/llama-bench \
+  -m /models/Qwen3-Coder-30B-A3B-Instruct-Q4_K_M.gguf -ngl 999
+```
+
+The host SLES stack was never touched. The container drove real hardware. And because the *only* variable that changed between runs was the userspace Mesa version — same GPU, same kernel, same 18GB model, same Vulkan code path — this was a clean A/B, not a vibe.
+
+<Admonition type="info" title="⚙️ Technical Insight">
+A userspace/kernel split is what makes this safe *and* honest. The kernel `amdgpu` module — memory management, command submission, the GTT mapping [the Reckoning already documented](/aiverse/era-viii-silicon/what-the-gtt-teaches) — is identical across both runs because both use the host's kernel. Only the shader compiler and scheduler (Mesa RADV) differ.
+
+That isolation matters for the result's meaning. When the numbers move, they move because of RADV's shader generation and compute-unit scheduling — specifically the newer driver's handling of local data share (LDS) and CU occupancy during prompt processing — and nothing else. No kernel change, no model change, no backend change could be hiding in the delta.
+</Admonition>
+
+## The Numbers
+
+One model throughout: **Qwen3-Coder-30B-A3B, Q4_K_M** — a 30B Mixture-of-Experts with ~3B active per token, 18GB on disk. Measured with `llama-bench`: `pp512` is prefill (prompt processing), `tg128` is decode (generation).
+
+| Driver | Where | pp512 (tok/s) | tg128 (tok/s) |
+|--------|-------|--------------:|--------------:|
+| Mesa 24.3.3 | host (stock) | 104.76 | 16.49 |
+| **Mesa 26.1.3** | **kitwarp container** | **137.87** | **17.92** |
+
+- **Prefill: +31.6%** (104.76 → 137.87)
+- **Decode: +8.7%** (16.49 → 17.92)
+
+Same chip. Same kernel. Same weights. Same prompt. The only thing that changed was a library inside a container — and prompt processing got a third faster.
+
+The 18GB model also loaded fully onto the iGPU in both runs (≈8GB in the VRAM carveout, ≈12.7GB in GTT), confirming from the other direction what [What the GTT Teaches](/aiverse/era-viii-silicon/what-the-gtt-teaches) established: on a unified-memory APU there is no VRAM "wall" at 8GB. A bigger model is simply a bigger model.
+
+## The Trap in the Mount
+
+The container did not cooperate on the first run. Both container configs failed with `Permission denied` on the model volume. The cause was not the driver and not the hardware — it was **SELinux plus rootless podman**. The Imperator boots `security=selinux selinux=1`, and rootless podman remaps UIDs, so the container user could not read `/home/nunix/models`.
+
+The fix, and the trap to avoid:
+
+```bash
+--userns=keep-id --security-opt label=disable   # correct
+# NOT  -v /home/nunix/models:/models:ro,Z        # WRONG
+```
+
+The tempting fix — `:Z` — relabels the host directory for exclusive container use. But `~/models` is shared with the host's own Ollama service; relabeling it would have silently broken Ollama's access. `label=disable` confines nothing on the host and leaves the shared directory's labels intact.
+
+There was a second, quieter lesson, and the Reckoning had already taught it in [The Rigged Arena](/aiverse/era-viii-silicon/the-rigged-arena): a benchmark is only as fair as its controls. A CPU control run compiled inside the container did *not* match the host's CPU binary — different build flags, different thread defaults. Those two CPU numbers were not comparable to each other, and were correctly discarded. Same model and same machine are not enough; the *binary* is part of the experiment.
+
+<Admonition type="tip" title="📚 Knowledge Transfer">
+**The lesson worth keeping:** on a pinned enterprise host, you do not have to choose between a stable display stack and a modern GPU driver. Because RADV is userspace, a container can carry a newer Mesa, drive the host's real hardware through `/dev/dri`, and hand you upstream performance — here, +31.6% prefill — while the host stays frozen and safe.
+
+**Pattern:** isolate the one variable. Same kernel, same model, same binary logic; change only the userspace driver, and the delta means exactly what it appears to mean.
+
+**What we'd do differently:** pin the CPU baseline's build flags before trusting any cross-environment comparison. A control that is compiled differently is not a control.
+
+**If you're building this yourself:** keep bleeding-edge GPU userspace in a `podman` container with `--device /dev/dri --group-add keep-groups`. On SELinux hosts, reach for `--userns=keep-id --security-opt label=disable` — never `:Z` on a directory another service shares. Driver upgrades become a container rebuild, and the host never learns you did it.
+</Admonition>
+
+<NunixOut />
+
+<div className="aiverse-fleet-cta">
+  <a href="/aiverse/support">⚔️ The Fleet Needs You — Support the Chronicle</a>
+</div>
