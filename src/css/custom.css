@@ -824,7 +824,8 @@ html[data-theme="light"] article .markdown p:has(img)::after {
   transition: box-shadow 0.2s ease, transform 0.2s ease;
 }
 .aiverse-diagram:hover {
-  box-shadow: 0 16px 48px rgba(0, 0, 0, 0.55), 0 0 0 1px rgba(45, 212, 191, 0.35);
+  border-color: var(--neon-blue) !important;
+  box-shadow: 0 0 25px rgba(0, 127, 255, 0.6);
 }
 /* Hover footer badge — same "[ OPTIC_ZOOM :: ANALYZE ]" as archive images */
 .aiverse-diagram::after {
