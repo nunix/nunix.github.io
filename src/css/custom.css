@@ -863,6 +863,8 @@ html[data-theme="light"] article .markdown p:has(img)::after {
   height: auto;
   display: block;
   border-radius: 16px;
+  border: 1px solid var(--neon-blue);
+  box-shadow: 0 0 50px rgba(0, 127, 255, 0.35);
   cursor: zoom-in;
   transform: scale(0.98);
   transition: transform 0.3s ease;
