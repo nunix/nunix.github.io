@@ -810,11 +810,70 @@ html[data-theme="light"] article .markdown p:has(img)::after {
   background: transparent !important;
   margin: 0 !important;
 }
+.img-zoom-overlay img.zoomable-content {
+  cursor: zoom-in;
+}
+.img-zoom-overlay img.zoomable-content.is-magnified {
+  cursor: zoom-out;
+}
 .zoomable-content.is-magnified {
   cursor: zoom-out;
   max-width: none !important;
   max-height: none !important;
   transform: scale(1.5) !important;
+}
+
+/* --- Inline SVG diagram zoom (reuses .img-zoom-overlay) --- */
+.aiverse-diagram {
+  cursor: zoom-in;
+  position: relative;
+  transition: box-shadow 0.2s ease, transform 0.2s ease;
+}
+.aiverse-diagram:hover {
+  border-color: var(--neon-blue) !important;
+  box-shadow: 0 0 25px rgba(0, 127, 255, 0.6) !important;
+}
+/* Hover footer badge — same "[ OPTIC_ZOOM :: ANALYZE ]" as archive images */
+.aiverse-diagram::after {
+  content: "[ OPTIC_ZOOM :: ANALYZE ]";
+  position: absolute;
+  left: 50%;
+  bottom: 0;
+  transform: translateX(-50%) translateY(50%) scale(0.9);
+  z-index: 11;
+  font-family: var(--vintage-mono);
+  font-size: 0.6rem;
+  font-weight: bold;
+  letter-spacing: 1px;
+  color: var(--neon-blue);
+  background: #0a0d10;
+  padding: 3px 10px;
+  border: 1px solid var(--neon-blue);
+  border-radius: 2px;
+  opacity: 0;
+  transition: all 0.2s ease;
+  pointer-events: none;
+}
+.aiverse-diagram:hover::after {
+  opacity: 1;
+}
+.img-zoom-overlay svg.zoomable-svg {
+  width: min(1280px, 95vw);
+  max-height: 95vh;
+  height: auto;
+  display: block;
+  border-radius: 16px;
+  border: 1px solid var(--neon-blue);
+  box-shadow: 0 0 50px rgba(0, 127, 255, 0.35);
+  cursor: zoom-in;
+  transform: scale(0.98);
+  transition: transform 0.3s ease;
+}
+.img-zoom-overlay svg.zoomable-svg.is-magnified {
+  max-width: none;
+  max-height: none;
+  transform: scale(1.6);
+  cursor: zoom-out;
 }
 .zoom-hud-exit {
   position: fixed;
