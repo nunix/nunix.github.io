@@ -14,6 +14,24 @@ This is where new chapters are announced, writing choices are explained, and the
 
 ---
 
+## 2026.07.03 — Era IX: two more chronicles + the pipeline map
+
+Era IX grows to five. **[The Anatomy of an Answer](/aiverse/era-ix-economy/the-anatomy-of-an-answer)** carries a hand-built vector diagram of the whole request lifecycle — six numbered phases (context assembly, prefill, think, decode, tool loop, Universalis write) with the exact optimization mapped to each, and the counter-intuitive punchline that the visible reply is not the expensive phase. **[Every Lever, Where It Bites](/aiverse/era-ix-economy/every-lever-where-it-bites)** is the full ledger: every decision's value, how it was built, and its *scope of applicability* — when to use it and when it backfires. Also graduated the two token-economy Nebula stars (Caveman Tokens, The Invisible Half of the Bill) into the era arc.
+
+What's next:
+- Emperor's call on Contextalis scope (MVP vs full service) and stale-mission cleanup; then the full Era IX ships as one PR.
+
+---
+
+## 2026.07.03 — Era IX: The Economy of Mind
+
+A new era opens — **[Era IX — The Economy of Mind](/aiverse/era-ix-economy/aiverse-era-ix-economy)** (M98). The fleet turns from *saying less* to *remembering more while carrying less*. First chronicle: **[The Answer That Agreed Too Fast](/aiverse/era-ix-economy/the-answer-that-agreed-too-fast)**. The Emperor put one optimization question — Contextalis, a live optimized twin of fleet memory — to two agents. One returned a clean blueprint and agreed with every premise; one returned the same blueprint and a challenge: measured against where tokens actually go (input dwarfs output, and the rules bundle + conversation history dwarf memory recall), a 1:1 memory mirror is the smallest lever. Out of the doubt came a reframe borrowed from silicon: a **memory cache hierarchy** — canon (L0) → compressed mirror (L1) → a fixed-size rolling brief (L2) a cheap model consolidates live → fleet snapshot (L3) — with the captain reading only the brief and dropping to canon on a miss. Micro-mirror ≈ 2–8%; rolling brief + cheap consolidator ≈ 40–70% on long missions.
+
+What's next:
+- Prune the rules bundle first (free, loads every turn), then compaction, then build Contextalis as a brief, not a mirror. Two token-economy Nebula stars (Caveman Tokens, The Invisible Half of the Bill) are candidates to graduate into this era's arc.
+
+---
+
 ## 2026.07.02 — Era VIII epilogue: The Sparsity Dividend
 
 The size sweep is done — **[The Sparsity Dividend](/aiverse/era-viii-silicon/the-sparsity-dividend)** (M96). Ten models across two families (Qwen3, Gemma 4, Mistral-Nemo) and two drivers. The expected smooth size-curve turned out to be a cliff: **dense models past ~12B collapse on decode** (gemma4-31B dense = 2.2 tok/s) while same-size **MoE stays conversational** (gemma4-26B-A4B = 13.6 tok/s) — a 6× gap from sparsity alone, because decode is memory-bandwidth-bound on an iGPU. Also: Mesa 26's prefill win is universal, but its decode help is split (aids MoE/tiny-dense, mildly hurts dense-12B+). Fleet action: big models must be MoE; Qwen3-30B swaps Q4 → Q6 (tied decode, better quality).

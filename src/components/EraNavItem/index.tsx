@@ -14,6 +14,7 @@ const ERAS = [
   { id: 'era-vi-chronicle', label: '∞ Era VI',   icon: '∞',  full: 'Era VI — The Living Chronicle',    overviewPath: '/aiverse/era-vi-chronicle/aiverse-era-vi-chronicle' },
   { id: 'era-vii-kit',      label: '⬡ Era VII',  icon: '⬡',  full: 'Era VII — The Kit Awakens',        overviewPath: '/aiverse/era-vii-kit/aiverse-era-vii-kit' },
   { id: 'era-viii-silicon', label: '⚙ Era VIII', icon: '⚙', full: 'Era VIII — The Silicon Reckoning', overviewPath: '/aiverse/era-viii-silicon/aiverse-era-viii-silicon' },
+  { id: 'era-ix-economy',   label: '▤ Era IX',   icon: '▤', full: 'Era IX — The Economy of Mind',       overviewPath: '/aiverse/era-ix-economy/aiverse-era-ix-economy' },
 ];
 
 const ERA_DOCS = [
@@ -25,6 +26,7 @@ const ERA_DOCS = [
   { docId: '/aiverse/era-vi-chronicle/aiverse-era-vi-chronicle',   label: '∞ Era VI — The Living Chronicle' },
   { docId: '/aiverse/era-vii-kit/aiverse-era-vii-kit',             label: '⬡ Era VII — The Kit Awakens' },
   { docId: '/aiverse/era-viii-silicon/aiverse-era-viii-silicon',   label: '⚙ Era VIII — The Silicon Reckoning' },
+  { docId: '/aiverse/era-ix-economy/aiverse-era-ix-economy',       label: '▤ Era IX — The Economy of Mind' },
 ];
 
 export default function EraNavItem(): JSX.Element {

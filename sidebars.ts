@@ -130,6 +130,21 @@ const sidebars: SidebarsConfig = {
     { type: 'doc', id: 'aiverse/era-viii-silicon/the-sparsity-dividend',        label: 'XI. The Sparsity Dividend' },
   ],
 
+  // ── ERA IX — The Economy of Mind ──
+  era_ix: [
+    {
+      type: 'html',
+      value: '<div class="sidebar-era-header"><span class="sidebar-era-header-icon">▤</span>Era IX — The Economy of Mind<span class="sidebar-era-header-range">M79–M98</span></div>',
+      defaultStyle: true,
+    },
+    { type: 'doc', id: 'aiverse/era-ix-economy/aiverse-era-ix-economy',            label: 'Era IX Overview' },
+    { type: 'doc', id: 'aiverse/era-ix-economy/caveman-tokens',                    label: 'I. Caveman Tokens' },
+    { type: 'doc', id: 'aiverse/era-ix-economy/the-invisible-half-of-the-bill',    label: 'II. The Invisible Half of the Bill' },
+    { type: 'doc', id: 'aiverse/era-ix-economy/the-answer-that-agreed-too-fast',   label: 'III. The Answer That Agreed Too Fast' },
+    { type: 'doc', id: 'aiverse/era-ix-economy/the-anatomy-of-an-answer',          label: 'IV. The Anatomy of an Answer' },
+    { type: 'doc', id: 'aiverse/era-ix-economy/every-lever-where-it-bites',        label: 'V. Every Lever, Where It Bites' },
+  ],
+
   // ── NEBULA — standalone idea stars, not part of any Era arc ──
   nebula: [
     {
@@ -142,7 +157,6 @@ const sidebars: SidebarsConfig = {
     { type: 'doc', id: 'aiverse/nebula/when-gemma-talks-too-much', label: '✦ When Gemma Talks Too Much' },
     { type: 'doc', id: 'aiverse/nebula/three-agents-one-terminal', label: '✦ Three Agents, One Terminal' },
     { type: 'doc', id: 'aiverse/nebula/the-silicon-hierarchy',     label: '✦ The Silicon Hierarchy' },
-    { type: 'doc', id: 'aiverse/nebula/caveman-tokens',            label: '✦ Caveman Tokens' },
     { type: 'doc', id: 'aiverse/nebula/the-ghost-monitor',         label: '✦ The Ghost Monitor' },
   ],
 
