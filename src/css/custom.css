@@ -810,6 +810,9 @@ html[data-theme="light"] article .markdown p:has(img)::after {
   background: transparent !important;
   margin: 0 !important;
 }
+.img-zoom-overlay img.zoomable-content {
+  cursor: zoom-in;
+}
 .zoomable-content.is-magnified {
   cursor: zoom-out;
   max-width: none !important;
