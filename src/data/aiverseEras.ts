@@ -394,6 +394,53 @@ export const AIVERSE_ERAS: AiverseEra[] = [
       },
     ],
   },
+  {
+    id: 'era-ix',
+    label: 'Era IX — The Economy of Mind',
+    tagline: 'Spend tokens like a brain spends energy. Challenge the premise. Right-size the lever.',
+    missions: 'M79 · M97–M98',
+    color: '#14b8a6',
+    glowColor: 'rgba(20, 184, 166, 0.4)',
+    isWarp: false,
+    position: { x: 15, y: 76 },
+    radius: 10,
+    postStartAngle: -Math.PI / 2,
+    postOrbitDirection: -1,
+    // Stacked layers — the memory / cache hierarchy
+    icon: 'M12 2l9 5-9 5-9-5 9-5zm0 7l9 5-9 5-9-5 9-5z',
+    posts: [
+      {
+        title: 'Caveman Tokens',
+        subtitle: 'Talk like a smart caveman — 65% fewer output tokens, zero loss of substance. The first honest win.',
+        path: '/aiverse/era-ix-economy/caveman-tokens',
+        missions: 'M79',
+      },
+      {
+        title: 'The Invisible Half of the Bill',
+        subtitle: 'A visible output saving hid an input-side cache-write premium. The half no meter was printing.',
+        path: '/aiverse/era-ix-economy/the-invisible-half-of-the-bill',
+        missions: 'M97',
+      },
+      {
+        title: 'The Answer That Agreed Too Fast',
+        subtitle: 'Two minds, one optimization question, and why the right lever was the smallest one',
+        path: '/aiverse/era-ix-economy/the-answer-that-agreed-too-fast',
+        missions: 'M98',
+      },
+      {
+        title: 'The Anatomy of an Answer',
+        subtitle: 'Six numbered phases from prompt to reply — and the exact optimization that bites at each',
+        path: '/aiverse/era-ix-economy/the-anatomy-of-an-answer',
+        missions: 'M98',
+      },
+      {
+        title: 'Every Lever, Where It Bites',
+        subtitle: 'The full ledger — each decision, its value, how it was built, and its scope of applicability',
+        path: '/aiverse/era-ix-economy/every-lever-where-it-bites',
+        missions: 'M98',
+      },
+    ],
+  },
 ];
 
 export interface NebulaStar {
@@ -447,13 +494,6 @@ export const AIVERSE_NEBULA: AiverseNebula = {
   // Nebula / scatter dots icon
   icon: 'M12 2a1 1 0 100 2 1 1 0 000-2zM6 6a1 1 0 100 2 1 1 0 000-2zM18 6a1 1 0 100 2 1 1 0 000-2zM4 12a1 1 0 100 2 1 1 0 000-2zM20 12a1 1 0 100 2 1 1 0 000-2zM6 18a1 1 0 100 2 1 1 0 000-2zM18 18a1 1 0 100 2 1 1 0 000-2zM12 20a1 1 0 100 2 1 1 0 000-2z',
   stars: [
-    {
-      title: 'Caveman Tokens',
-      subtitle: 'Cutting AI token usage 75% without losing intelligence',
-      path: '/aiverse/nebula/caveman-tokens',
-      missions: 'M79',
-      tags: ['tokens', 'prompt', 'caveman', 'efficiency'],
-    },
     {
       title: 'KVM Windows Server 2025',
       subtitle: 'A handful of libvirt XML tweaks turned a sluggish VM into a high-performance guest',

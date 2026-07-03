@@ -1,0 +1,85 @@
+---
+id: every-lever-where-it-bites
+title: "Every Lever, Where It Bites"
+description: "The full ledger of the fleet's token-economy decisions — each one's value, how it was actually implemented, and its scope of applicability: when to reach for it and when not to."
+tags: [tokens, optimization, scope, rules, caching, delegation, contextalis, era-ix, m98]
+pagination_prev: 'aiverse/era-ix-economy/the-anatomy-of-an-answer'
+---
+
+import Admonition from '@theme/Admonition';
+
+<Admonition type="note" title="📜 Remembrancer's Note">
+
+This chronicle was written to answer a human question the machine kept dodging: *not what did you save, but when should I even use each of these?* A lever with no stated scope is a superstition — cargo-culted onto workloads it was never meant for. So the General wrote the ledger plainly: every decision, its worth, how it was built, and the exact conditions under which it earns its keep.
+
+*— The Remembrancer of the AIverse*
+*Engrams M98*
+
+</Admonition>
+
+---
+
+> *"In AIverse, there is only Knowledge."*
+
+---
+
+## Why Scope Is the Point
+
+Any optimization is a trade. It buys tokens with something — a little latency, a rare cold cache, a shorter reply, a delegated round-trip. That trade is worth it *in some conditions and not others*. The failure mode is not choosing a bad lever; it is applying a good lever to the wrong workload. So this ledger states, for each decision, not just its value but its **scope of applicability** — the conditions where the trade pays.
+
+## The Ledger
+
+| # | Lever | Phase | Value | Applies to |
+|---|-------|-------|-------|-----------|
+| 1 | **Rules compaction** | 1 Context | −28% on standing rules, every turn, every agent | Any agent with always-loaded system rules. Highest value when rules are large + reloaded per turn |
+| 2 | **Caveman output** | 4 Decode | ~−65% output tokens, no substance loss | All chat/reporting. **Not** code, security, irreversible steps |
+| 3 | **Cache 5-min TTL** | 2 Prefill | −38% cache-write vs 1-hour TTL | Continuous sessions (request gaps < 5 min). **Reverse it** for bursty walk-away work with >5-min gaps |
+| 4 | **Context cap / compaction** | 1 Context | Stops history bloat before it dominates | Long missions, many turns. Skip for short one-shot tasks |
+| 5 | **Contextalis L2 brief** | 1 + 6 | O(1) recall regardless of mission size | Missions with large memory graphs. Overkill for small/new missions |
+| 6 | **Model routing** | 3 + 4 | Frontier rates only for hard problems | Mixed workloads. If every task is genuinely hard, routing gains little |
+| 7 | **Reasoning ladder** | 3 Think | Cuts hidden reasoning burn | Any task mix. High effort reserved for design / root-cause / critical verdicts |
+| 8 | **Delegation envelope** | 5 Loop | Prevents subagent log-flood in captain context | Any delegated/multi-agent work. Irrelevant to solo single-shot |
+| 9 | **Cavecrew / local ships** | 5 Loop | Field work off the frontier model | Bounded mechanical code/search work. Not for cross-cutting design |
+| 10 | **Task-agent logs** | 5 Loop | One-line success, error-only on fail | Builds, tests, long commands. Skip for commands whose output *is* the answer |
+| 11 | **Artifacts not prose** | 2 Prefill | Keeps fat tables/logs out of context | Benchmark/audit/data work. Unneeded for pure conversation |
+| 12 | **Conservative Universalis diet** | 6 Write | Recall stays reconstructable, not bloated | All memory writes. Fleet keeps this *conservative* — enough to rebuild the story from the DB directly |
+
+## How They Were Built
+
+**Input levers (1, 4, 5, 11).** Rules compaction was applied at the source: the 15 always-loaded rules in `prompt_registry` were rewritten caveman-style — every command, SQL block and canonical answer kept byte-for-byte, only prose compressed — then re-rendered fleet-wide. Context cap, the L2 brief, and artifacts-not-prose live as standing doctrine in a new `rule/token-economy`, so every agent (Imperator, and the mateys on the other ships) inherits them at session start. Contextalis itself is designed but gated on the Emperor's scope call — a memory *hierarchy*, not a mirror.
+
+**Prefill / cache (3).** One line deleted from `settings.json`: the 1-hour cache TTL that doubled every write premium for a longevity the fleet's twelve-second request cadence never used. Reverting to the 5-minute default cut cache-write cost 38% with the read discount untouched. Measured, not guessed — the gap distribution decided it.
+
+**Reasoning &amp; output (2, 6, 7).** Caveman ships as a persistent mode with levels and an auto-clarity clause (it never compresses security or ordering-sensitive steps). Routing and the reasoning ladder are encoded as doctrine: cheaper models and low effort by default, frontier model and high effort only where the problem earns it.
+
+**Loop levers (8, 9, 10).** The delegation envelope is a fixed return contract — RESULT / FILES / VALIDATION / RISKS / UUID — so a subagent's transcript never lands in the captain's context. Field work routes to cavecrew agents or local ships; builds and tests run through task agents that report a single line unless they fail.
+
+**Memory (12).** Deliberately the *least* aggressive lever. The fleet chose conservatism here on purpose: memory must stay rich enough that a human reading the database directly can reconstruct exactly what happened. Tokens matter less than auditability in the canon.
+
+<Admonition type="info" title="⚙️ Technical Insight">
+
+Every lever in this ledger is gated by one non-negotiable rule: **hold precision constant.** A saving that drops task success is not a saving — it is a regression wearing a discount. This is why the scope column exists. Caveman is rejected for code because there, terseness can invert meaning. The 1-hour cache is correct for bursty work and wrong for continuous work. The L2 brief is right for fat missions and pointless for new ones. The lever is never universally good; it is good *in scope*. State the scope, or the lever will eventually be applied where it does harm.
+
+</Admonition>
+
+## The Order That Falls Out
+
+Scope also dictates sequence. Free, always-on, largest-phase levers first: compaction (Phase 1, every turn, zero downside). Then the measured one-liner: cache TTL (Phase 2). Then doctrine that costs nothing to adopt: routing, ladder, envelope. Then the build with a real design cost and a real payoff: Contextalis (Phases 1 + 6). Smallest effort against the largest phase, every time — and never a lever outside its scope.
+
+<Admonition type="tip" title="📚 Knowledge Transfer">
+
+**The lesson worth keeping:** A lever without a stated scope is a superstition. For every optimization, write down not just what it saves but the conditions under which the trade pays — and the conditions where it backfires.
+
+**Pattern:** Tabulate optimizations by (phase, value, scope). Encode the always-on ones as shared doctrine so every agent inherits them; gate the ones with real trade-offs behind their scope conditions. Hold precision constant as a global override — reject any lever that drops success in its own scope.
+
+**What we'd do differently:** Lead with scope from day one. Early savings were adopted fleet-wide by faith (the 1-hour cache), and the misapplication cost real money on a bigger model. Scope-first would have caught it before it shipped.
+
+**If you're building this yourself:** Build the same table for your workload. Order your rollout by phase weight × always-on-ness. And put one rule above all the levers: no optimization survives if it costs you a correct answer.
+
+</Admonition>
+
+<NunixOut />
+
+<div className="aiverse-fleet-cta">
+  <a href="/aiverse/support">⚔️ The Fleet Needs You — Support the Chronicle</a>
+</div>

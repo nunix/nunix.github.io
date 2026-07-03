@@ -1,0 +1,122 @@
+---
+id: the-invisible-half-of-the-bill
+title: "The Invisible Half of the Bill: The Cache Miss Caveman Hid"
+description: A visible output-token saving masked an input-side cache-write premium — a one-hour TTL that doubled every write and paid back nothing. Spotted only on a bigger model, through a big question.
+tags: [tokens, caching, opus, caveman, economics, era-ix]
+pagination_prev: 'aiverse/era-ix-economy/caveman-tokens'
+---
+
+import Admonition from '@theme/Admonition';
+
+<Admonition type="note" title="📜 Remembrancer's Note">
+
+This chronicle was written the day the Emperor grew suspicious of the ledger. While the fleet waited for Sonnet 5 to be lit on the Vertex altar, he asked the General for a pricing analysis across the model houses. It was the analysis itself — long, heavy, three transmissions deep — that made the cost climb visible. A misconfiguration that had ridden along quietly since the fleet moved to a larger mind finally cast a shadow long enough to see.
+
+*— The Remembrancer of the AIverse*
+*Engrams Nebula-02*
+
+</Admonition>
+
+---
+
+> *"In AIverse, there is only Knowledge."*
+
+---
+
+## A Saving You Could See
+
+The fleet ran Caveman mode for months, and Caveman mode is honest work. It compresses the General's prose — drops the articles, the pleasantries, the hedging — and keeps every byte of technical substance. The benchmark says sixty-five percent fewer output tokens on a typical task. There is a statusline that shows it. There is a `/caveman-stats` command that reads the session log and prints the tokens saved. You could watch the number climb.
+
+And that was exactly the trap.
+
+Because the number you can watch is the number you trust. Caveman put a meter on the output side of the bill, and the meter always moved in the right direction. Every session ended with a visible win. It felt like the token economy was solved — or at least tended. The Emperor's own words, on the day the illusion broke: *"I saw the changes Caveman did, and thought it was enough."*
+
+It was not enough. Not because Caveman was wrong, but because Caveman measures the smaller half of the bill.
+
+## The Half You Couldn't
+
+In any agentic workload — a coding mission, a graph repair, a fleet audit — the tokens are lopsided. The model reads far more than it writes. Context, file contents, prior turns, tool results, the standing rules: all of it is **input**, resent on every single turn because the API is stateless. The model's actual reply — the part Caveman compresses — is a rounding error beside it. On the fleet's heavy missions the ratio runs twenty to one, input over output, or worse.
+
+So Caveman was disciplining the twentieth. The other nineteen-twentieths flowed by unwatched. And most of that input is not even shrinkable by a communication style: the reasoning tokens, the code blocks written verbatim, the tool-call payloads, the rules loaded at startup. Caveman never had a lever on any of it. It was never meant to.
+
+None of this mattered much while the fleet flew a small mind. On Sonnet, input costs three dollars per million tokens. The invisible half of the bill was cheap enough that its invisibility cost nothing. You could ignore what you couldn't see, because what you couldn't see was small.
+
+## The Knob That Cut the Wrong Way
+
+Here the fleet's own good intentions became the problem — and this is where the first draft of this chronicle was wrong, so it is worth telling straight.
+
+The prompt cache is real and it works. Content re-read inside its window bills at roughly a tenth of the base input rate — a large discount. But writing to the cache carries a premium, and the size of that premium depends on how long you ask the cache to live. A five-minute time-to-live costs **1.25×** the input rate to write. A one-hour time-to-live costs **2×**.
+
+Earlier, chasing exactly the savings this chronicle is about, the fleet had found a native Claude Code knob and turned it on:
+
+```jsonc
+// settings.json — the well-meant mistake
+"env": {
+  "ENABLE_PROMPT_CACHING_1H": "1"   // 1-hour TTL: writes cost 2×, not 1.25×
+}
+```
+
+The reasoning felt sound: a longer-lived cache means fewer cold misses, so keep it warm for an hour. But that trade only pays back if requests actually arrive with gaps longer than five minutes — otherwise the shorter, cheaper five-minute cache would never have expired anyway, and you have simply agreed to pay double on every write for a longevity you never use.
+
+So the General measured the actual cadence of the fleet's own transmissions:
+
+```
+inter-request gaps (measured, three heavy sessions)
+  median gap        = 0.2 min  (~12 seconds)
+  gaps over 5 min   = 0–8%
+  cache read/write  = 4–6×  (in continuous sessions: warm, working)
+```
+
+Twelve seconds. The cache never went cold inside a working session — the five-minute default would have held every time. The one-hour TTL was not buying warmth the fleet lacked; it was doubling the write premium on a cache that was already warm. Every cached prefix, every turn, written at 2× when 1.25× would have served identically.
+
+<Admonition type="info" title="⚙️ Technical Insight">
+
+The write premium is invisible to every meter the fleet was watching. Caveman reports output tokens; the cache-write premium lands entirely on the input side, inside the `cache_creation` count that no statusline prints. On Sonnet, input at three dollars per million made the difference between a 1.25× and a 2× write a rounding error — a few cents a session. On Opus, input at five dollars per million turned the same structural choice into a real line item: a single heavy session wrote 5.4 million cache tokens, which at the one-hour rate cost about \$54 against roughly \$34 at the five-minute rate. Twenty dollars, one session, for warmth the twelve-second cadence never needed. Worse were the short sessions that wrote a cache and ended before reading it back even once — pure 2× premium, zero benefit. The bigger model did not create the flaw; it raised the price of every token flowing through it until a quiet 0.75× premium grew loud enough to hear.
+
+</Admonition>
+
+## The Diagnostic Was the Question
+
+Here is the part worth remembering. The miss did not surface because anyone went looking for it. It surfaced because the Emperor asked for something large.
+
+A pricing analysis across five model houses is a heavy prompt. It pulled a substantial reference into context, ran across three transmissions, and each transmission cost visibly more than a Sonnet session ever had. The Emperor watched the ledger and said what any good commander says when the instruments disagree with the map: *something is wrong.*
+
+The act of asking a big question was the instrument that finally read the invisible half of the bill. A small talk-sized prompt would never have moved the needle enough to notice. It took a large analysis, run on a large model, to make the structural cost step loudly enough to hear. The General had been computing model economics on request — and the computation itself was the experiment that exposed the flaw in the fleet's own configuration. The tool built to answer the question became the tool that revealed the configuration was answering it wrong.
+
+## The Fix, and Its Limits
+
+The fix was one line removed:
+
+```jsonc
+// settings.json — after
+"env": {
+  "CLAUDE_CODE_USE_VERTEX": "1",
+  "CLAUDE_ML_REGION": "global"
+  // ENABLE_PROMPT_CACHING_1H deleted → 5-minute default TTL restored
+}
+```
+
+Deleting the knob reverts to the five-minute default. Caching stays fully on; the read discount is unchanged; every warm hit the fleet was already getting, it keeps. What changes is the write premium — from 2× back to 1.25×, a thirty-eight percent cut on the cost of every cache write, fleet-wide.
+
+Honesty demands the limit, too. This is not a free win in every world — it is the right win in *this* one. The five-minute cache does go cold if the Emperor steps away from the terminal for longer than five minutes and then resumes the same context; those specific turns will re-write instead of re-read. But the measurement is clear: fewer than one transmission in ten falls into that gap, and the one-hour premium was being paid on all ten. Trading a rare cold re-read for a cheaper write on every single turn is the correct bargain at this cadence. Were the fleet to shift to long, bursty, walk-away work, the knob would earn its keep again — and the lesson is to *measure the cadence and decide*, not to leave a longevity setting on by faith.
+
+---
+
+<Admonition type="tip" title="📚 Knowledge Transfer">
+
+**The lesson worth keeping:** A visible saving is not a complete saving. Caveman metered the output tokens and moved them in the right direction, which is precisely why it hid the input-side cost — the eye trusts the meter it has. On agentic workloads input dwarfs output twenty to one, so the metered half was the small half.
+
+**Pattern:** Output compression and input-cache economics are independent axes. A cache-longevity setting is only worth its write premium if your request cadence actually uses the longevity — a one-hour TTL doubles write cost and pays back nothing when your turns are twelve seconds apart. Measure the gap distribution before you trust the setting.
+
+**What we'd do differently:** Instrument the input side from the start. Track `cache_creation` versus `cache_read` tokens per session, and the TTL premium you're paying, not just compressed output. The cache-write ratio is a number that governs a premium-model bill — and it was one no meter was printing.
+
+**If you're building this yourself:** Don't set a longer cache TTL by faith; set it by measurement. Default to the short TTL, log the real inter-request gaps, and only extend the window if a real share of your traffic waits longer than the short window lives. And never let a saving you *can* measure stand in for a cost you *can't* — the premium model punishes exactly the half you weren't watching.
+
+</Admonition>
+
+
+<NunixOut />
+
+<div className="aiverse-fleet-cta">
+  <a href="/aiverse/support">⚔️ The Fleet Needs You — Support the Chronicle</a>
+</div>

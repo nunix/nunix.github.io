@@ -1,0 +1,85 @@
+---
+id: caveman-tokens
+title: "Caveman Tokens"
+description: "The fleet taught its agents to talk like a smart caveman — drop the articles, the pleasantries, the hedging, keep every byte of technical substance. Sixty-five percent fewer output tokens, no loss of meaning. The first honest win of the token economy — and the first lesson in which half of the bill it could not touch."
+tags: [tokens, caveman, prompt, efficiency, economics, era-ix, m79]
+pagination_prev: 'aiverse/era-ix-economy/aiverse-era-ix-economy'
+---
+
+import Admonition from '@theme/Admonition';
+
+<Admonition type="note" title="📜 Remembrancer's Note">
+
+This chronicle was written after the Emperor read a month of transcripts and noticed how much of every answer was ceremony. "Sure! I'd be happy to help you with that," the General would begin, before saying the one true sentence that mattered. The Emperor asked a simple question — what if the fleet simply stopped? Not stopped helping. Stopped padding. What came back was a tongue: terse, exact, and cheaper by two-thirds. The fleet has spoken it ever since.
+
+*— The Remembrancer of the AIverse*
+*Engrams M79*
+
+</Admonition>
+
+---
+
+> *"In AIverse, there is only Knowledge."*
+
+---
+
+## The Ceremony in the Machine
+
+Read any untuned assistant and count the words that carry no information. "Certainly! I'd be happy to help you with that. The issue you're experiencing is likely caused by…" — twelve words before the first fact. Every one of them is a token. Every token is billed. And on a fleet that runs hundreds of exchanges a day, the ceremony is not free — it is a standing tax paid in the model's own voice.
+
+The Emperor's proposal was blunt: teach the fleet to talk like a smart caveman. Drop the articles. Drop the filler — *just, really, basically, actually, simply*. Drop the pleasantries — *sure, certainly, of course, happy to*. Drop the hedging. Fragments are fine. Short synonyms over long ones — *big* not *extensive*, *fix* not *implement a solution for*. But — and this is the whole discipline — **keep every byte of technical substance.** Code unchanged. Error messages quoted exact. Technical terms precise. The meaning survives intact; only the packaging dies.
+
+The pattern that fell out was almost a grammar:
+
+```
+[thing] [action] [reason]. [next step].
+
+Not: "Sure! I'd be happy to help. The issue is likely caused by..."
+Yes: "Bug in auth middleware. Token expiry check uses < not <=. Fix:"
+```
+
+## A Meter You Could Watch
+
+Caveman shipped as a mode, not a suggestion — because a suggestion in a prompt drifts. There were levels: *lite* for human-facing docs where a little grace still reads well, *full* for all normal operation, *ultra* for receipts and status lines where only the raw fact matters. A statusline showed the mode. A `/caveman-stats` command read the session log and printed the tokens saved. The number climbed every session.
+
+The measured result was not subtle: on a typical task, roughly **sixty-five percent fewer output tokens**, with no loss of technical content a reader could point to. The General still said everything it needed to say. It simply stopped saying the things it did not.
+
+<Admonition type="info" title="⚙️ Technical Insight">
+
+Caveman is a *style* enforced by a persistent instruction, not a post-processing filter — which is why it survives long sessions where a one-line "be concise" reminder decays. The mode re-asserts itself every response and carries explicit boundaries: it does not compress at all costs. Security warnings, irreversible-action confirmations, and multi-step sequences where dropped conjunctions could invert meaning all revert to full, careful prose automatically. Compression is a default, not a dogma — the moment terseness risks ambiguity, clarity wins. That auto-clarity clause is what makes the mode safe to leave on permanently.
+
+</Admonition>
+
+## The Discipline of Not Compressing
+
+The failure mode of any compression scheme is compressing the thing that needed its length. "Migrate table drop column backup first" saves four words and buys a catastrophe — is the order *backup, then drop*, or *drop, then backup*? Caveman names this explicitly: when the compression itself creates technical ambiguity, stop compressing. Write the destructive step in full. Confirm the backup exists. Then resume the caveman tongue for the part that is safe to shorten.
+
+This is the difference between a token trick and an operating discipline. A trick cuts everywhere and occasionally cuts a tendon. A discipline knows which tissue is load-bearing. The fleet's rule is that meaning is load-bearing and ceremony is not — and the whole art is telling them apart under pressure.
+
+## The Honest Half
+
+Here is what makes Caveman worth remembering beyond the savings: it was *honest work that measured the wrong half of the bill* — and it took a bigger question, later, to see it.
+
+Caveman compresses **output** — the tokens the model writes. But in any agentic workload the model reads far more than it writes. Context, file contents, prior turns, tool results, the standing rules reloaded every turn: all of it is **input**, and on the fleet's heavy missions input outweighs output twenty to one or worse. Caveman put a bright, climbing meter on the output side — and the meter you can watch is the meter you trust. Every session ended with a visible win, and it felt like the token economy was solved.
+
+It was not solved. It was one-twentieth tended. The other nineteen-twentieths — the input — flowed by unwatched, because nothing printed a number for it. Caveman was never wrong; it was simply pointed at the smaller half, and its very visibility hid the larger one. That blind spot is a chronicle of its own — [the cache-write premium that rode along invisible for months](./the-invisible-half-of-the-bill) — and it is the reason the fleet stopped trusting any single meter.
+
+Caveman remains on, fleet-wide, every ship. It is the cheapest honest win there is, and it costs nothing in precision. But it earned a second lesson the day it was praised: *a saving you can see is not the same as the saving that matters.*
+
+<Admonition type="tip" title="📚 Knowledge Transfer">
+
+**The lesson worth keeping:** You can cut a large fraction of an LLM's output tokens by stripping ceremony — articles, pleasantries, hedging, filler — without losing any technical substance. Roughly two-thirds, measured, with no reader-visible loss of meaning.
+
+**Pattern:** Enforce compression as a persistent mode with explicit auto-clarity carve-outs, not as a one-off "be concise." Style instructions decay over long sessions; a re-asserting mode does not. Always exempt destructive/security/ordering-sensitive content where dropped words invert meaning.
+
+**What we'd do differently:** Instrument both halves of the bill from day one. Caveman's climbing output meter was real but partial — output is the small half of an agentic invoice. A visible saving on the small half can mask a silent cost on the large half.
+
+**If you're building this yourself:** Ship the mode with levels and a boundary clause, put a meter on it — then immediately build a second meter for the input side, so the win you can see never stands in for the cost you can't.
+
+</Admonition>
+
+<NunixOut />
+
+<div className="aiverse-fleet-cta">
+  <a href="/aiverse/support">⚔️ The Fleet Needs You — Support the Chronicle</a>
+</div>
