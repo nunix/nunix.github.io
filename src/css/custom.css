@@ -816,6 +816,33 @@ html[data-theme="light"] article .markdown p:has(img)::after {
   max-height: none !important;
   transform: scale(1.5) !important;
 }
+
+/* --- Inline SVG diagram zoom (reuses .img-zoom-overlay) --- */
+.aiverse-diagram {
+  cursor: zoom-in;
+  transition: box-shadow 0.2s ease, transform 0.2s ease;
+}
+.aiverse-diagram:hover {
+  box-shadow: 0 16px 48px rgba(0, 0, 0, 0.55), 0 0 0 1px rgba(45, 212, 191, 0.35);
+}
+.img-zoom-overlay .zoom-svg-holder {
+  width: min(1280px, 94vw);
+  max-height: 90vh;
+  overflow: auto;
+  cursor: zoom-in;
+}
+.img-zoom-overlay svg.zoomable-svg {
+  width: 100%;
+  height: auto;
+  display: block;
+  border-radius: 16px;
+  transform: scale(0.98);
+  transition: transform 0.3s ease;
+}
+.img-zoom-overlay svg.zoomable-svg.is-magnified {
+  transform: scale(1.6);
+  cursor: zoom-out;
+}
 .zoom-hud-exit {
   position: fixed;
   top: 2rem; right: 2rem;

@@ -190,6 +190,37 @@ export default function Root({ children }: { children: React.ReactNode }) {
         return;
       }
 
+      const diagram = target.closest(".aiverse-diagram") as HTMLElement | null;
+      if (diagram) {
+        const svg = diagram.querySelector("svg");
+        if (svg) {
+          const overlay = document.createElement("div");
+          overlay.className = "img-zoom-overlay";
+          const holder = document.createElement("div");
+          holder.className = "zoom-svg-holder";
+          const clone = svg.cloneNode(true) as SVGElement;
+          clone.classList.add("zoomable-svg");
+          holder.appendChild(clone);
+          const hud = document.createElement("div");
+          hud.className = "zoom-hud-exit";
+          hud.innerText = "ESC: EXIT | CLICK: ZOOM";
+          overlay.appendChild(hud);
+          overlay.appendChild(holder);
+          document.body.appendChild(overlay);
+          setTimeout(() => overlay.classList.add("active"), 10);
+          overlay.onclick = (event: MouseEvent) => {
+            const t = event.target as HTMLElement;
+            if (t.closest(".zoomable-svg")) {
+              event.stopPropagation();
+              clone.classList.toggle("is-magnified");
+            } else {
+              closeZoom();
+            }
+          };
+          return;
+        }
+      }
+
       if (target.tagName === "IMG" && target.closest(".markdown")) {
         const imgTarget = target as HTMLImageElement;
         const overlay = document.createElement("div");
