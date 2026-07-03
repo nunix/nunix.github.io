@@ -196,16 +196,13 @@ export default function Root({ children }: { children: React.ReactNode }) {
         if (svg) {
           const overlay = document.createElement("div");
           overlay.className = "img-zoom-overlay";
-          const holder = document.createElement("div");
-          holder.className = "zoom-svg-holder";
           const clone = svg.cloneNode(true) as SVGElement;
           clone.classList.add("zoomable-svg");
-          holder.appendChild(clone);
           const hud = document.createElement("div");
           hud.className = "zoom-hud-exit";
           hud.innerText = "ESC: EXIT | CLICK: ZOOM";
           overlay.appendChild(hud);
-          overlay.appendChild(holder);
+          overlay.appendChild(clone);
           document.body.appendChild(overlay);
           setTimeout(() => overlay.classList.add("active"), 10);
           overlay.onclick = (event: MouseEvent) => {

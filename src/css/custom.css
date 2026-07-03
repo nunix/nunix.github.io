@@ -851,21 +851,19 @@ html[data-theme="light"] article .markdown p:has(img)::after {
 .aiverse-diagram:hover::after {
   opacity: 1;
 }
-.img-zoom-overlay .zoom-svg-holder {
-  width: min(1280px, 94vw);
-  max-height: 90vh;
-  overflow: auto;
-  cursor: zoom-in;
-}
 .img-zoom-overlay svg.zoomable-svg {
-  width: 100%;
+  width: min(1280px, 95vw);
+  max-height: 95vh;
   height: auto;
   display: block;
   border-radius: 16px;
+  cursor: zoom-in;
   transform: scale(0.98);
   transition: transform 0.3s ease;
 }
 .img-zoom-overlay svg.zoomable-svg.is-magnified {
+  max-width: none;
+  max-height: none;
   transform: scale(1.6);
   cursor: zoom-out;
 }
