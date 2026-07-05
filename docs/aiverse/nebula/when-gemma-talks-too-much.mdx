@@ -14,9 +14,9 @@ This chronicle emerged from a simple question: could gemma4, released the mornin
 
 ## The Discovery
 
-Google shipped gemma4:12B on June 3, 2026. The model — encoder-free, natively multimodal, 256K context — looked promising as a Warp brain upgrade. The fleet had qwen2.5:14b at 13.5 tok/s with stable tool calling. Gemma4 promised more.
+Google shipped gemma4:12B on June 3, 2026. The model — encoder-free, natively multimodal, 256K context — looked promising as a <Term id="warp">Warp</Term> brain upgrade. The fleet had qwen2.5:14b at 13.5 tok/s with stable tool calling. Gemma4 promised more.
 
-The first obstacle: Ollama 0.24.0 didn't know gemma4 existed. Upgrade to 0.30.4.
+The first obstacle: <Term id="ollama">Ollama</Term> 0.24.0 didn't know gemma4 existed. Upgrade to 0.30.4.
 
 The second obstacle: `gemma4:12b-mlx` in Ollama 0.30.4 threw `missing embedding weight: embed_tokens.weight`. Gemma4's unified architecture ties embedding weights — Ollama's MLX runner couldn't handle it.
 

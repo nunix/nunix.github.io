@@ -226,5 +226,87 @@
   "n-gpu-layers": {
     "title": "N-GPU-LAYERS",
     "def": "The llama.cpp parameter --n-gpu-layers (or -ngl). Controls how many transformer layers are offloaded to the GPU. Setting to 999 offloads all layers. On Imperator's APU, layers go into GTT memory. Tuning this is key to inference speed."
+  },
+  "command-center": {
+    "title": "COMMAND CENTER",
+    "def": "fleet-v3 — Imperator's real-time dashboard. Live mission map, ship status, trust scores, transmissions. A single Go binary that embeds its built React frontend (via go:embed) and reads/writes Universalis directly. Containerized under Podman + Quadlet as of M100."
+  },
+  "dns": {
+    "title": "DNS (DOMAIN NAME SYSTEM)",
+    "def": "Translates human-readable hostnames — like command-center.fleet.local — into IP addresses. The fleet runs its own internal zone for *.fleet.local via CoreDNS on Tanker, alongside public resolvers for everything else."
+  },
+  "coredns": {
+    "title": "COREDNS",
+    "def": "A lightweight, pluggable DNS server written in Go. Runs on Tanker as the authoritative nameserver for the fleet.local zone — a hosts-style file, reloaded on write, answering for every ship's hostname.",
+    "link": "https://coredns.io"
+  },
+  "podman": {
+    "title": "PODMAN",
+    "def": "A daemonless, rootless container engine, drop-in compatible with Docker's CLI. The fleet's standard container runtime — no long-running root daemon, native systemd integration via Quadlet.",
+    "link": "https://podman.io"
+  },
+  "quadlet": {
+    "title": "QUADLET",
+    "def": "Podman's native systemd integration. A declarative .container unit file that a generator turns into a real systemd service — controllable with systemctl start/stop like any other unit, no custom wrapper script required."
+  },
+  "containerfile": {
+    "title": "CONTAINERFILE",
+    "def": "The build recipe for a container image — Podman's name for what Docker calls a Dockerfile. A multi-stage Containerfile can describe both a dev target (hot-reload against a mounted source tree) and a prod target (baked, minimal runtime image) in one file."
+  },
+  "postgresql": {
+    "title": "POSTGRESQL",
+    "def": "The relational database behind every fleet memory tier — fleet_memory, core_memory (the Memory Gateway), objectives, milestones. Chosen for LISTEN/NOTIFY event-driven updates and strict ACID guarantees.",
+    "link": "https://www.postgresql.org"
+  },
+  "docusaurus": {
+    "title": "DOCUSAURUS",
+    "def": "A React-based static site generator built for documentation and long-form content. Powers this chronicle — every Era, every Nebula star, compiled from Markdown/MDX into the site you're reading.",
+    "link": "https://docusaurus.io"
+  },
+  "bun": {
+    "title": "BUN",
+    "def": "A fast, all-in-one JavaScript runtime and package manager — a drop-in replacement for Node.js plus npm. The blog's install and build toolchain runs on Bun for its speed.",
+    "link": "https://bun.sh"
+  },
+  "vite": {
+    "title": "VITE",
+    "def": "A fast frontend build tool and dev server for modern JavaScript frameworks. Powers the Command Center's React frontend — near-instant hot reload in development, an optimized static bundle in production.",
+    "link": "https://vitejs.dev"
+  },
+  "nginx": {
+    "title": "NGINX",
+    "def": "A high-performance web server, often used as a minimal, zero-config way to serve a folder of static files. Serves the blog's production build — no application server needed once the static site is built."
+  },
+  "caddy": {
+    "title": "CADDY",
+    "def": "A modern web server with automatic HTTPS. On Imperator, Caddy is the reverse proxy mapping friendly hostnames (universalis.fleet.local, command-center.fleet.local) to the right local port.",
+    "link": "https://caddyserver.com"
+  },
+  "ssh": {
+    "title": "SSH (SECURE SHELL)",
+    "def": "An encrypted protocol for remote command execution and file transfer. The fleet's DNS API pushes zone updates to Tanker over SSH; ships coordinate over the same channel."
+  },
+  "systemd": {
+    "title": "SYSTEMD",
+    "def": "Linux's init system and service manager. Quadlet units become systemd services — systemctl --user start/stop is how the fleet's containerized services are controlled, with no human needing to remember a binary path."
+  },
+  "golang": {
+    "title": "GOLANG (GO)",
+    "def": "A compiled, statically-typed language from Google. The Command Center's backend is a single Go binary — fast, small, and (via go:embed) capable of shipping its entire built frontend inside one executable.",
+    "link": "https://go.dev"
+  },
+  "react": {
+    "title": "REACT",
+    "def": "A JavaScript library for building user interfaces out of composable components. Powers both the Command Center's frontend and this blog's interactive pieces, like the Cosmic Map.",
+    "link": "https://react.dev"
+  },
+  "bind-mount": {
+    "title": "BIND MOUNT",
+    "def": "A way of exposing a host directory directly inside a container, so edits made on the host appear instantly inside it — no copy, no sync step. Used for the blog's dev container so live edits reload without duplicating the repo."
+  },
+  "pgbouncer": {
+    "title": "PGBOUNCER",
+    "def": "A lightweight connection pooler for PostgreSQL. The fleet's mcp-lazy-proxy borrows its name and philosophy — pool and defer connections at the infrastructure layer, invisible to the caller.",
+    "link": "https://www.pgbouncer.org"
   }
 }

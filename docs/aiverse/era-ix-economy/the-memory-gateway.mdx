@@ -1,0 +1,102 @@
+---
+id: the-memory-gateway
+title: "The Memory Gateway"
+sidebar_label: "VI. The Memory Gateway"
+description: "M99: the fleet adapted Anthropic's memory-tool verb set — create, view, str_replace, delete, rename — to a Postgres-backed, fleet-shared third memory tier, and used the build itself as the occasion to cut the rule bloat it was about to make obsolete."
+tags: [aiverse, era-ix, memory-gateway, postgres, memory-tool, m99]
+pagination_prev: 'aiverse/era-ix-economy/every-lever-where-it-bites'
+---
+
+import Admonition from '@theme/Admonition';
+
+<Admonition type="note" title="📜 Remembrancer's Note">
+
+The ledger of levers was barely dry when the Emperor turned to a different question entirely — not how the fleet spends its tokens, but how it *remembers* at all. Anthropic had published a shape for memory that any agent could speak: four verbs, a path, a value. The fleet had its own memory, older and stranger, spread across an append-only log and a database no other mind could easily borrow. This is the chronicle of the third tier built to close that gap — and the housecleaning it earned along the way.
+
+*— The Remembrancer of the AIverse*
+*Engrams M99*
+
+</Admonition>
+
+---
+
+> *"In AIverse, there is only Knowledge."*
+
+---
+
+# VI. The Memory Gateway
+
+<Admonition type="info" title="⚙️ M99 — Three Tiers, One Rule">
+Fleet memory had grown two ways at once: `fleet_memory`, an append-only Universalis log that never forgets and never edits, and Contextalis, a rolling brief still gated on scope. Neither could do what Anthropic's own memory-tool verbs assume an agent needs — create a note at a path, read it back, patch a line, delete it, rename it. M99 built that missing tier: a Postgres-backed, fleet-shared Memory Gateway, verb-compatible with Anthropic's own tool, and used the occasion to retire a rule section that tier made obsolete.
+
+*[Return to the Cosmic Map](/cosmos) to see all eras.*
+</Admonition>
+
+## The Verb Set Nobody Had
+
+Anthropic's memory tool speaks five words: `create`, `view`, `str_replace`, `delete`, `rename`. A path, a payload, an edit. It is deliberately filesystem-shaped — because on a single machine, a filesystem is exactly what backs it. The fleet is not a single machine. Five ships, several models, one shared truth — a local file on any one of them is invisible to the rest. Something had to speak the same five verbs while living somewhere every ship could reach.
+
+The fleet already had two memory surfaces, and neither fit. `fleet_memory` — the Universalis table backing every delegation, objective, and observation this chronicle is built from — is append-only by design. It is the historical record, and a good one, but it has no `str_replace`: you cannot edit history, only add to it. Contextalis, conceived across Era IX as a rolling brief, is a *derived* surface — a cheap model's summary of what the canon says, refreshed on a cadence, not a place to durably store a fact and expect it to still be there, byte for byte, next session.
+
+The audit that opened M99 found the missing piece already half-built: `core_memory`, a simple key/value table with a primary key on path, sitting unused in the schema. Extended with two columns — `created_at`, `actor` — it became exactly the shape Anthropic's verb set expects: a place to `create` a path, `view` it back, `str_replace` a substring inside it, `delete` it outright, `rename` it without losing history of *when* it last changed. Three tiers now, cleanly separated by purpose: `fleet_memory` is canon, Contextalis is the derived brief, and the new Memory Gateway is durable, editable, path-keyed storage — the one shape none of the others could offer.
+
+## Built to Mirror the Tool, Not Reinvent It
+
+The CLI that shipped — `~/.local/bin/memory_gateway` — is deliberately unoriginal. Its verbs are named `create`, `view`, `str_replace`, `delete`, `rename`, `list`, matching Anthropic's memory-tool vocabulary exactly, because an agent that already knows how to call that tool needs to learn nothing new to call this one. The only difference is underneath: instead of a JSON file on local disk, every verb resolves to a row in `core_memory`, replicated the instant it's written because Postgres — not a filesystem — is the substrate every ship already shares.
+
+```python
+# excerpt — the shape mirrors Anthropic's memory-tool verbs exactly
+def create(path, content):
+    db.execute(
+        "INSERT INTO core_memory (key, value, actor, created_at, updated_at) "
+        "VALUES (%s, %s, %s, now(), now()) "
+        "ON CONFLICT (key) DO UPDATE SET value = EXCLUDED.value, updated_at = now()",
+        (path, content, actor),
+    )
+
+def str_replace(path, old_str, new_str):
+    current = view(path)
+    if current.count(old_str) != 1:
+        raise ValueError("old_str must match exactly once")
+    create(path, current.replace(old_str, new_str, 1))
+```
+
+A `str_replace` that refuses to run against an ambiguous match, and a `rename` that refuses to clobber an existing path, are the same small guardrails the original tool relies on to stay safe against an agent's mistakes — worth keeping precisely because they weren't the interesting part of the build, and skipping them would have been the easiest way to ship something subtly worse than the tool it copies.
+
+The last piece was a `pg_notify` trigger — `memory_gateway_notify`, firing on insert, update, or delete — reusing the exact replication-awareness pattern `fleet_memory` already had. Any ship listening knows the instant a path changes, without polling. No single point of failure, because there was never a file to lose; a Postgres row, correctly triggered, is a memory tier the whole fleet can lean on at once.
+
+<Admonition type="info" title="⚙️ Technical Insight">
+
+The decision that mattered most in this build was *not* extending `fleet_memory` itself to support edits. An append-only log and an editable key/value store are not two configurations of the same table — they are two different consistency guarantees. `fleet_memory`'s value as a historical record depends entirely on the fact that nothing in it can quietly change after the fact; bolting `UPDATE`/`DELETE` onto it to satisfy the memory-tool verb set would have traded that guarantee away to save the cost of one new table. Three tiers, each honest about what it promises, beat one tier pretending to be all three.
+
+</Admonition>
+
+## The Trim the Gateway Earned
+
+A live, shared, Postgres-backed CRUD surface makes an older mechanism redundant on sight: `omnissiah-architecture.md`'s render-from-db pipeline — a custom push system that watched `prompt_registry` for staleness and wrote rendered rule files out to each ship's local disk at session start. It was clever when it shipped, and it solved a real problem. It also duplicated, with bespoke shell and Python renderers, exactly what a native shared-memory read now does for free: any ship, any session, reads the current value directly, no staleness diff, no render step, no local cache that can drift from the source of truth.
+
+The trim was staged deliberately rather than done in one pass. First, three *other* rule files got a lighter cut — `token-economy.md`'s multi-line context-cap section collapsed to a one-line note (server-side compaction handles it natively now), `universalis_bootstrap.md` dropped a bloat-avoidance framing clause that no longer matched how retrieval actually worked, `delegation.md` got a stopgap comment flagging its manual UUID-grep step as a future Gateway target. These three were redundant *already*, independent of whether the Gateway ever shipped — cutting them first, before the riskier change, kept the smaller wins from waiting on the bigger build.
+
+Only once the Gateway was live, tested, and proven did `omnissiah-architecture.md` itself get touched — its Renderer and Session-hook sections replaced with a short note pointing at the Memory Gateway as the mechanism's successor, its canonical Q1 answer rewritten to describe a live read instead of a push-and-cache cycle. The parts of that file that had nothing to do with memory storage — ship-registry governance, the process for adding a new rule or a new ship — were left untouched, because a trim that removes what's still true is not a trim, it's damage.
+
+## What Era IX Delivered
+
+Era IX opened on a challenge — a proposed memory mirror, and the agent who answered it with a doubt instead of an agreement. It closes, for now, on a tier that resolved the doubt's underlying tension: canon stays append-only and honest, the brief stays cheap and derived, and now a third surface exists for the one thing neither could do — durable, path-keyed, editable, fleet-shared state, speaking a verb set an agent already knows.
+
+<Admonition type="tip" title="📚 Knowledge Transfer">
+
+**The lesson worth keeping:** When adopting an external interface (Anthropic's memory-tool verbs, here), mirror its verb names and its guardrails exactly, even when the backend underneath is nothing like the original's. The value of a standard interface is that callers don't need to know what's behind it — breaking that by inventing your own verb names for the same operations throws away the interoperability you adopted the standard to get.
+
+**Pattern:** Three memory tiers, three different consistency guarantees, each honest about what it promises — append-only canon, a derived rolling brief, and a durable editable store. Don't collapse tiers with different guarantees into one table to save a schema; the guarantee is the product.
+
+**What we'd do differently:** The redundancy audit that flagged `omnissiah-architecture.md` should have run *before* any Gateway design work started, not alongside it — knowing the old mechanism was already dead weight would have removed any temptation to make the new one backward-compatible with it.
+
+**If you're building this yourself:** If you're adapting Anthropic's memory-tool spec to a multi-node or multi-agent system, look first for a shared substrate every node already reaches (a database, an object store) rather than a filesystem — the verb set doesn't care where it's implemented, but your callers will care a great deal if half of them can't see what the others wrote.
+
+</Admonition>
+
+<NunixOut />
+
+<div className="aiverse-fleet-cta">
+  <a href="/aiverse/support">⚔️ The Fleet Needs You — Support the Chronicle</a>
+</div>

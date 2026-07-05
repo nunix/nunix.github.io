@@ -90,6 +90,7 @@ const config: Config = {
         { type: 'docSidebar', sidebarId: 'aiverse', position: 'left', label: '📖 AIverse' },
         { type: 'docSidebar', sidebarId: 'nebula', position: 'left', label: '✦ Nebula' },
         { type: 'docSidebar', sidebarId: 'forge', position: 'left', label: '⚒ Forge' },
+        { type: 'docSidebar', sidebarId: 'armory', position: 'left', label: '⚔ Armory' },
         // Eras — dynamic EraNav component (◄ label ►)
         { type: 'custom-EraNav', position: 'left' },
         // Old Topics — dropdown with type: 'doc' (docSidebar not valid inside dropdown)

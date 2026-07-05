@@ -19,7 +19,7 @@ The fleet runs on Linux. The Emperor sometimes runs Windows — not out of prefe
 
 ## The Problem
 
-A fresh Windows Server 2025 VM on a Ryzen 7 PRO 7840U (AMD Phoenix APU, SLES 16.0 host) with default virt-manager settings felt wrong. Sequential reads topped out at 4,113 MB/s — respectable, but far below what the NVMe underneath could deliver. Random 4K was the real indictment: **7 MB/s read, 8 MB/s write**. On hardware that could do ten times that.
+A fresh Windows Server 2025 VM on a Ryzen 7 PRO 7840U (AMD Phoenix <Term id="apu">APU</Term>, SLES 16.0 host) with default virt-manager settings felt wrong. Sequential reads topped out at 4,113 MB/s — respectable, but far below what the NVMe underneath could deliver. Random 4K was the real indictment: **7 MB/s read, 8 MB/s write**. On hardware that could do ten times that.
 
 Default KVM configuration ships with safe, broadly compatible defaults. That is a feature for most workloads. For a VM intended to simulate real server workloads, safe defaults are a ceiling.
 
@@ -47,7 +47,7 @@ None of these are exotic. They are the settings that should have been defaults f
 
 Three changes in one line:
 
-- **`cache=none`** — O_DIRECT. Bypasses the host page cache entirely. Writes go to the NVMe controller, not a kernel buffer. Safe, and correct for SSD-backed VMs.
+- **`cache=none`** — O_DIRECT. Bypasses the host page cache entirely. Writes go to the NVMe controller, not a <Term id="kernel">kernel</Term> buffer. Safe, and correct for SSD-backed VMs.
 - **`io=io_uring`** — Linux's async I/O interface, introduced in 5.1. Lower latency than `native` (pread/pwrite), lower overhead than `threads`. This is the correct default for any modern kernel.
 - **`discard=unmap`** — TRIM passthrough. When Windows marks blocks as free (on file delete, format, etc.), the signal reaches the NVMe. Keeps the SSD healthy over time.
 - **`iothread='1'`** — the disk I/O runs on a dedicated kernel thread, not competing with vCPU threads. Essential for latency-sensitive workloads.
@@ -123,7 +123,7 @@ The balloon driver lets the hypervisor reclaim guest memory under pressure. Usef
 
 The random 4K numbers are the real story. The VM went from **7 MB/s** random read to **62 MB/s** — not because the NVMe got faster, but because the configuration stopped blocking it.
 
-Sequential single-threaded write (+3.7%) is the one outlier. The likely explanation: `cache=none` with O_DIRECT gives up the host write buffer, and single-threaded sequential write is the workload most sensitive to that buffer. Switching to `cache=writeback` would recover 15–25% here at the cost of write-fence safety on host power loss — an acceptable trade for a dev VM, if the numbers matter.
+Sequential single-threaded write (+3.7%) is the one outlier. The likely explanation: `cache=none` with O_DIRECT gives up the host write <Term id="buffer">buffer</Term>, and single-threaded sequential write is the workload most sensitive to that buffer. Switching to `cache=writeback` would recover 15–25% here at the cost of write-fence safety on host power loss — an acceptable trade for a dev VM, if the numbers matter.
 
 ## What Was Not Done
 

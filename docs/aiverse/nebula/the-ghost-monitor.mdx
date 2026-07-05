@@ -27,7 +27,7 @@ The hardware in question: a 27" DisplayPort monitor running at 240Hz — the lef
 
 The symptom was consistent. Lock the session, leave for a few minutes, return. The right monitor woke cleanly. The left stayed black. `xrandr` still showed it connected. KDE still thought it was active. The OS had no idea anything was wrong.
 
-The initial theory was GTT (Graphics Translation Table) corruption — a known issue on AMD integrated graphics when VRAM pressure mounts. We ran tests, collected drm debug logs, checked for memory reclaim events. Nothing.
+The initial theory was <Term id="gtt">GTT</Term> (Graphics Translation Table) corruption — a known issue on AMD integrated graphics when VRAM pressure mounts. We ran tests, collected drm debug logs, checked for memory reclaim events. Nothing.
 
 The actual root cause was simpler and more mechanical: **DisplayPort link training fails at 240Hz after a DPMS standby event**. The monitor enters its own hardware power-save. The OS continues asserting the output is live. Neither side admits the link is dead, so nothing auto-recovers. The display stays dark until the DP link is explicitly retrained.
 
@@ -100,7 +100,7 @@ This forces synthetic key-up events into the X server's input queue, cleaning th
 
 ## The Reboot
 
-After the keyboard fix was deployed, the Emperor ran the shortcut. The monitor woke. The keyboard continued working. The session held.
+After the keyboard fix was deployed, the <Term id="emperor">Emperor</Term> ran the shortcut. The monitor woke. The keyboard continued working. The session held.
 
 Then a reboot was needed for unrelated reasons. Post-reboot, first test: Meta+Alt+W. Monitor woke. Keyboard clean. No modifier leakage.
 

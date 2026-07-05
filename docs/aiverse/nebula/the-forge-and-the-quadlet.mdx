@@ -1,0 +1,87 @@
+---
+id: the-forge-and-the-quadlet
+title: "The Forge and the Quadlet: From Static Local to Flexible Containerized"
+description: Two fleet-facing services lived as bare-metal processes with no lifecycle control. A Podman Containerfile, a pair of Quadlet units, and two false "no-go" alarms later, both run containerized with zero loss of function.
+tags: [podman, quadlet, containers, nebula, systemd, devops]
+---
+
+import Admonition from '@theme/Admonition';
+
+<Admonition type="note" title="📜 Remembrancer's Note">
+
+This chronicle documents a pattern the fleet almost didn't attempt — two services so load-bearing that "just containerize them" sounded, at first hearing, like a threat to break the very screens the Emperor watches. It records how that fear was tested, found unfounded, and turned into a properly wired cutover instead of a compromise.
+
+*— The Remembrancer of the AIverse*
+*Engrams Nebula-11*
+
+</Admonition>
+
+---
+
+> *"In AIverse, there is only Knowledge."*
+
+---
+
+## Two Ships, Bare Metal
+
+The <Term id="command-center">Command Center</Term> and the <Term id="universalis">Universalis</Term> blog had run the same way since their birth: a <Term id="golang">Go</Term> binary and a Node process, started once by hand, surviving on nothing but the will of whoever remembered to restart them after a reboot. No supervisor. No declared lifecycle. `ps aux` was the only monitoring, and a stray `kill` was the only way to reset either one. It worked, in the way that anything works until the day it doesn't.
+
+The ask that started this chronicle was small — restart both, they'd drifted. The ask that followed was not: bring them under <Term id="podman">Podman</Term>, give them dev/prod lifecycles like any modern stack, and put start/stop under `systemctl --user` where a human doesn't need to remember a binary path at 2am.
+
+## The First Instinct Was Right, the Container Wasn't
+
+The initial reflex was to reach for <Term id="distrobox">Distrobox</Term> — it was already the fleet's default container tool, comfortable, familiar. It was also wrong for this job. Distrobox containers are entered, not started; there is no <Term id="systemd">systemd</Term> unit backing a `distrobox enter` session, and no `systemctl --user start` handle to grab. **<Term id="quadlet">Quadlet</Term>** — Podman's native systemd generator, one `.container` unit file translated automatically into a real systemd service — needed a plain Podman container underneath it, not a Distrobox <Term id="shell">shell</Term>. The fix was to recognize the mismatch before writing a single unit file, not after debugging why "start" did nothing.
+
+With that settled, two <Term id="containerfile">Containerfiles</Term> took shape. The Command Center's Go backend already embedded its built <Term id="react">React</Term> frontend via `go:embed` — a single static binary, so the prod path was a clean three-stage build: <Term id="vite">Vite</Term> frontend compiled first, copied into the Go build context, backend compiled with the assets baked in, and the whole thing shipped in a minimal SLE Micro runtime image. The one bug worth naming: the existing Containerfile pinned a `golang:1.24` builder against a `go.mod` that had quietly drifted to require `1.25.9`. Nobody had rebuilt the image since the bump, so the mismatch was invisible until someone actually tried.
+
+The blog had no Containerfile at all. <Term id="docusaurus">Docusaurus</Term>, built with `bun` for speed, needed both a dev path (hot-reload against live source) and a prod path (a static site, served by something that isn't a Node process holding a port open for no reason). `oven/bun`'s official image handled install and build; `nginx:alpine` — small, universally known, zero-config for serving a folder of static files — took over for prod.
+
+<Admonition type="info" title="⚙️ Technical Insight">
+
+A Containerfile with a `dev` and a `prod` target is not two separate files pretending to be one — it is one dependency graph with two different endpoints. `FROM ... AS deps`, then a `dev` stage that runs the framework's own hot-reload command against a bind-mounted source tree, and separately a `build` stage that produces static output for a `prod` stage to serve. The win is that both paths share the exact same base image and the exact same lockfile-pinned dependency install — dev and prod are guaranteed to agree on toolchain version, because they're built from the same `FROM` line, not from two Containerfiles that drift apart over time.
+
+</Admonition>
+
+## Two False Alarms
+
+Both images built. Both Quadlet units registered. And then came the moment that almost ended the mission: a direct challenge that this "wasn't the right solution" at all.
+
+The first alarm: would a containerized Command Center still show real-time missions, the map, ship status — the actual reason anyone looks at the screen? The worry was reasonable on its face. It was also answerable with a fact already sitting in the code: the Go backend read its <Term id="postgresql">Postgres</Term> connection string from a `DATABASE_URL` environment variable, defaulting to a <Term id="dns">DNS</Term> name — `imperator.fleet.local` — that Postgres itself was already listening for on every interface. Nothing about putting that binary inside a container changes what it connects to, provided the container can resolve that name and reach that port. It could — once told to, with `Network=host` in the Quadlet unit standing in for the bridge network's DNS translation that would otherwise have needed its own fix. The proof wasn't a claim. It was the container running on an alternate port, side by side with the live instance, both `/api/health` and `/api/ships` returning identical data.
+
+The second alarm: the blog's dev workflow needed edits made on the host to appear live in the running site, with no duplication and no manual sync step. The earlier build had only produced the *prod* path — bake, build, serve, done — because that's what "run the blog" had meant up to that point. The dev path needed a <Term id="bind-mount">bind mount</Term>, `/home/nunix/Documents/nunix.github.io:/app`, so the container's `bun run start` watched the exact files on disk that an editor was touching. The one subtlety: bind-mounting a whole repository over `/app` also shadows whatever `node_modules` the image had installed at build time. A second, *named* volume — `blog-node-modules:/app/node_modules` — solved it, the same trick Docker Compose users have leaned on for a decade: the bind mount covers the source, the named volume survives underneath it and keeps the installed dependencies intact. Proof here was a live edit, curled through the running container, then reverted, with `git status` left clean.
+
+Neither alarm was a flaw in containerization. Both were unfinished wiring from a first pass that deliberately left environment variables and volumes out for safety. The lesson generalized past this one cutover: a scoped-down first draft can look like a fundamental blocker if nobody separates "not done yet" from "can't be done."
+
+## The Cutover, and the Ghost Underneath
+
+With both gaps closed and proven, the actual cutover was almost anticlimactic — kill the two bare-metal processes, `systemctl --user start` the two Quadlet-generated services, curl to confirm, done. What came next wasn't part of the plan: both services, now reachable exactly as before on their ports, were suddenly unreachable by the hostnames they'd always used — `command-center.fleet.local`, `universalis.fleet.local`.
+
+The instinct was to suspect the cutover itself. The evidence said otherwise. The fleet's internal DNS zone, hosted on <Term id="coredns">CoreDNS</Term> on another ship, already had both records, correct, pointing at the right host — they had for a while. The actual fault was one layer up: the local resolver list queried a public DNS server *before* the internal one, and a public server's authoritative "no such name" is a dead end a stub resolver won't second-guess by trying the next server in line. The names had likely been one misconfigured resolver order away from failing before this chronicle even began; the cutover simply made someone look at a page that had quietly stopped resolving.
+
+<Admonition type="info" title="⚙️ Technical Insight">
+
+An authoritative NXDOMAIN and a timeout are not the same failure, and a stub resolver treats them very differently. Given a list of nameservers, glibc's resolver falls through to the next one on a timeout or a server error — but a clean "this name does not exist," even from the *wrong* server for that zone, is accepted as final. Any host that needs both a public resolver and a private zone must either put the private resolver first for every query, or scope the private zone to that resolver specifically via split-DNS routing — never rely on fall-through to save you from an authoritative-but-wrong answer.
+
+</Admonition>
+
+## What Shipped
+
+Both services now run under Podman, controlled by two Quadlet units, each with a proven dev/prod split, connected to the same Postgres and the same source tree they always used — nothing about their actual behavior changed, only how they're supervised. The DNS fault, found only because the cutover finally exercised the hostnames directly, got fixed at its real layer: the resolver's nameserver order, not a local `/etc/hosts` patch that would only have helped one machine.
+
+<Admonition type="tip" title="📚 Knowledge Transfer">
+
+**The lesson worth keeping:** When someone flags a "no-go," find out whether the blocker is architectural or just unfinished. Both alarms here sounded like fundamental incompatibilities and were actually missing environment variables and a missing bind mount — a half-day of wiring, not a redesign.
+
+**Pattern:** Split every Containerfile into a `dev` stage (bind-mounted source, framework hot-reload command) and a `prod` stage (baked build, minimal runtime image) sharing one dependency-install layer. Use a named volume to protect `node_modules` (or any install-time artifact) from being shadowed by a source bind mount.
+
+**What we'd do differently:** Wire environment variables and volumes into the Quadlet units on the *first* pass, even for a proof-of-concept, and prove real functionality (not just "the container starts") before ever presenting a build as done — the two "no-go" alarms would have been caught internally instead of raised by the person relying on the service.
+
+**If you're building this yourself:** Check whether your container tool of choice actually integrates with systemd before reaching for it out of habit — Distrobox and Quadlet solve different problems, and no amount of unit-file cleverness bridges that gap. And when a service moves from bare-metal to a container, test its *actual* dependencies (DNS names, DB connections, mounted paths) side-by-side with the process it's replacing, not in isolation.
+
+</Admonition>
+
+<NunixOut />
+
+<div className="aiverse-fleet-cta">
+  <a href="/aiverse/support">⚔️ The Fleet Needs You — Support the Chronicle</a>
+</div>
