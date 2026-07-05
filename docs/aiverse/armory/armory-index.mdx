@@ -1,197 +1,43 @@
 ---
 id: armory-index
 title: "The Armory"
-description: Reference configs and scripts for standing up your own Imperium-style fleet — Containerfiles, Quadlet units, and other artifacts referenced across the chronicles.
+description: Reference configs for standing up your own Imperium-style fleet — Containerfiles, Quadlet units, and other artifacts referenced across the chronicles.
+slug: /aiverse/armory
 tags: [armory, reference, podman, quadlet]
+---
+
+<Admonition type="note" title="📜 Remembrancer's Note — The Armory">
+
+Every chronicle in this Universe eventually points at something real — a config, a unit file, a script someone actually ran. For a while those artifacts lived only inside the prose that described them: quoted in a code block, explained once, then buried in an Era or a Nebula star as the narrative moved on. Useful for reading. Useless for reaching back and *taking* it.
+
+The Armory exists to fix that. Not a chronicle — a vault. Every reference artifact the fleet has built, kept current, anonymized, and copyable, independent of whichever story first introduced it.
+
+*— The Remembrancer of the AIverse*
+*Engrams Armory-01*
+
+</Admonition>
+
+---
+
+> *"In AIverse, there is only Knowledge."*
+
 ---
 
 # ⚔ The Armory
 
-Not every chronicle needs a story wrapped around it. Some artifacts just need to exist somewhere stable, copyable, and current — the actual configs referenced across [Nebula](/aiverse/nebula/nebula-index) and [Forge](/aiverse/forge) posts, kept here so you don't have to reconstruct them from prose.
+The **[Nebula](/aiverse/nebula/nebula-index)** holds ideas before they own a galaxy. The **[Forge](/aiverse/forge)** holds implementations while they're still hot. The **Armory** holds neither — it holds the finished artifacts those places produced, stripped of narrative, ready to be copied into your own fleet.
 
-Every artifact below is anonymized — hostnames, credentials, and local paths are replaced with `[PLACEHOLDER_VALUES]`. Swap them for your own before use. Each one lives as a public [gist](https://gist.github.com/nunix) for easy forking; the copy below is kept in sync by hand.
+Every artifact here is anonymized: hostnames, credentials, and local paths are replaced with `[PLACEHOLDER_VALUES]`. Swap them for your own before use. Each one also lives as a public gist on [gist.github.com/nunix](https://gist.github.com/nunix) for easy forking, and a canonical mirror sits in [nunix/config](https://github.com/nunix/config) under `armory/imperium-setup/`.
 
-## Containers
+## What's racked
 
-### Command Center Containerfile
+- **[Containers](/aiverse/armory/containers)** — multi-stage Containerfiles for the Command Center and the Universalis blog, each with a `dev` target (hot reload) and a `prod` target (baked, minimal runtime).
+- **[Quadlets](/aiverse/armory/quadlets)** — Podman Quadlet systemd units for the same two services, dev and prod, controllable with `systemctl --user start/stop`.
 
-Multi-stage build for a Go + Vite service — `dev` targets for hot-reload against bind-mounted source, `prod` for a minimal embedded-frontend binary. Referenced in [The Forge and the Quadlet](/aiverse/nebula/the-forge-and-the-quadlet).
+New artifacts join this list as they're built — the Armory grows with the fleet, not with the calendar.
 
-**Gist:** https://gist.github.com/nunix/b62a4f3863135313349640bd096c3e72
+<NunixOut />
 
-```dockerfile
-# =========================================================================
-# fleet-v3 command center — multi-stage Containerfile
-# Targets: frontend-dev (frontend hot reload), backend-dev (go run hot reload),
-#          prod (default — embeds built frontend into Go binary via go:embed)
-# =========================================================================
-
-# --- Frontend deps (shared by dev + build) ---------------------------------
-FROM registry.suse.com/bci/nodejs:20 AS frontend-base
-WORKDIR /app
-COPY frontend/package*.json ./
-# --legacy-peer-deps: repo has an eslint-plugin-import@2.32 vs eslint@10.4
-# peer-dep mismatch (devDependencies only, pre-existing in package.json,
-# not introduced here). Standard npm flag, not a workaround script.
-RUN npm install --legacy-peer-deps
-
-# --- Frontend DEV target: hot reload against bind-mounted source -----------
-# Run with source bind-mounted at /app (do NOT bake source into image).
-# Example: podman run -v ./frontend:/app:Z -p 5174:5174 --target frontend-dev
-FROM frontend-base AS frontend-dev
-EXPOSE 5174
-CMD ["npm", "run", "dev", "--", "--host", "0.0.0.0", "--port", "5174"]
-
-# --- Frontend BUILD stage (prod path) ---------------------------------------
-FROM frontend-base AS frontend-build
-COPY frontend/ ./
-RUN npm run build
-# vite.config.js build.outDir = '../backend/dist' -> resolves to /backend/dist
-# in this stage's filesystem (WORKDIR is /app, sibling to /backend). This is
-# intentional, verified working — do not "fix" this path.
-
-# --- Backend DEV target: go run against bind-mounted source, no image bake --
-# go.mod requires go 1.25.9 -> golang:1.25 satisfies it (verified pullable
-# from registry.suse.com).
-FROM registry.suse.com/bci/golang:1.25 AS backend-dev
-WORKDIR /app
-EXPOSE 5173
-CMD ["go", "run", "."]
-
-# --- Backend BUILD stage (prod path) ----------------------------------------
-FROM registry.suse.com/bci/golang:1.25 AS backend-build
-WORKDIR /app
-COPY backend/go.mod backend/go.sum ./
-RUN go mod download
-COPY backend/ ./
-COPY --from=frontend-build /app/../backend/dist ./dist
-RUN go build -o fleet-v3 .
-
-# --- PROD runtime — SLE Micro minimal (default final target) ---------------
-FROM registry.suse.com/bci/bci-micro:latest AS prod
-WORKDIR /app
-COPY --from=backend-build /app/fleet-v3 .
-EXPOSE 5173
-CMD ["./fleet-v3"]
-```
-
-### Docusaurus Blog Containerfile
-
-Bun-based multi-stage build — `dev` for hot reload against a bind-mounted repo, `prod` serving a static build via nginx. Also referenced in [The Forge and the Quadlet](/aiverse/nebula/the-forge-and-the-quadlet).
-
-**Gist:** https://gist.github.com/nunix/66eaae5ca0f8114d40deb90b36b58ad5
-
-```dockerfile
-# =========================================================================
-# nunix-blog (Docusaurus 3.9.2 + React 19) — multi-stage Containerfile
-# Targets: dev (hot reload against bind-mounted source), build, prod (default)
-# =========================================================================
-
-# --- deps: bun install (repo has bun.lock, package-lock.json also present
-# but bun install reads package.json directly regardless) -------------------
-FROM docker.io/oven/bun:1 AS deps
-WORKDIR /app
-COPY package.json bun.lock* ./
-RUN bun install --frozen-lockfile
-
-# --- DEV target: hot reload against bind-mounted source ---------------------
-# Run with source bind-mounted at /app (do NOT bake source into image).
-# Example: podman run -v .:/app:Z -p 3000:3000 --target dev
-FROM deps AS dev
-WORKDIR /app
-EXPOSE 3000
-CMD ["bun", "run", "start"]
-
-# --- BUILD stage -------------------------------------------------------------
-FROM deps AS build
-WORKDIR /app
-COPY . .
-RUN bun run build
-
-# --- PROD runtime — nginx:alpine (tiny, universally known, zero config
-# needed beyond static file serving + SPA-style fallback for Docusaurus
-# client routing; chosen over Caddy since Docusaurus build output is plain
-# static HTML/JS with no need for Caddy's auto-TLS/reverse-proxy features) --
-FROM docker.io/library/nginx:alpine AS prod
-COPY --from=build /app/build /usr/share/nginx/html
-RUN sed -i 's/listen\s*80;/listen 3000;/' /etc/nginx/conf.d/default.conf \
- && sed -i 's/listen\s*\[::\]:80;/listen [::]:3000;/' /etc/nginx/conf.d/default.conf || true
-EXPOSE 3000
-CMD ["nginx", "-g", "daemon off;"]
-```
-
-## Quadlet Units
-
-[Quadlet](/aiverse/nebula/the-forge-and-the-quadlet) turns a declarative `.container` file into a real systemd service — `systemctl --user start/stop <name>.service`, no wrapper script needed. Drop these into `~/.config/containers/systemd/`.
-
-### Command Center (prod)
-
-**Gist:** https://gist.github.com/nunix/beb4abbade5d2cf45d2dcf6dcc655cce
-
-```ini
-[Unit]
-Description=fleet-v3 command center (prod)
-
-[Container]
-Image=localhost/fleet-v3:prod
-ContainerName=fleet-v3
-AutoUpdate=registry
-Environment=DATABASE_URL=postgresql://[DB_USER]:[DB_PASSWORD]@[DB_HOST]/[DB_NAME]?sslmode=disable
-# Network=host: container shares host network namespace so loopback-mapped hostname
-# imperator.fleet.local (→127.0.0.1 in /etc/hosts) correctly resolves to host's Postgres.
-# Bridge networks have their own loopback; 127.0.0.1 would point at container itself, not host.
-Network=host
-
-[Service]
-Restart=always
-
-[Install]
-WantedBy=default.target
-```
-
-### Blog — dev (hot reload)
-
-**Gist:** https://gist.github.com/nunix/2c9903a9afddc6db2dd1d401dfc615f9
-
-```ini
-[Unit]
-Description=nunix-blog Docusaurus site (dev, hot reload from host source)
-
-[Container]
-Image=localhost/nunix-blog:dev
-ContainerName=nunix-blog-dev
-Volume=[YOUR_BLOG_REPO_PATH]:/app:Z
-Volume=blog-node-modules:/app/node_modules
-PublishPort=3000:3000
-
-[Service]
-Restart=always
-
-[Install]
-WantedBy=default.target
-```
-
-### Blog — prod
-
-**Gist:** https://gist.github.com/nunix/e3ddac57ea27974d7cbfd838f289ffe8
-
-```ini
-[Unit]
-Description=nunix-blog Docusaurus site (prod)
-
-[Container]
-Image=localhost/nunix-blog:prod
-ContainerName=nunix-blog
-PublishPort=3000:3000
-AutoUpdate=registry
-
-[Service]
-Restart=always
-
-[Install]
-WantedBy=default.target
-```
-
----
-
-*Canonical copies also live in [nunix/config](https://github.com/nunix/config) under `armory/imperium-setup/`.*
+<div className="aiverse-fleet-cta">
+  <a href="/aiverse/support">⚔️ The Fleet Needs You — Support the Chronicle</a>
+</div>

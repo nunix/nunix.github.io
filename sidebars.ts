@@ -174,9 +174,16 @@ const sidebars: SidebarsConfig = {
     { type: 'doc', id: 'aiverse/forge/the-split-anvil', label: 'II. The Split Anvil' },
   ],
 
-  // ── ARMORY — reference configs, single-page section ──
+  // ── ARMORY — reference configs and scripts ──
   armory: [
-    { type: 'doc', id: 'aiverse/armory/armory-index', label: '⚔ The Armory' },
+    {
+      type: 'html',
+      value: '<div class="sidebar-era-header"><span class="sidebar-era-header-icon">⚔</span>The Armory<span class="sidebar-era-header-range">reference</span></div>',
+      defaultStyle: true,
+    },
+    { type: 'doc', id: 'aiverse/armory/armory-index', label: '⚔ What is the Armory?' },
+    { type: 'doc', id: 'aiverse/armory/containers',   label: '⚔ Containers' },
+    { type: 'doc', id: 'aiverse/armory/quadlets',     label: '⚔ Quadlets' },
   ],
 
   // ── OLD TOPICS (preserved content) ──
