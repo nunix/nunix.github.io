@@ -31,6 +31,11 @@
     "title": "MATEY",
     "def": "The worker-class subagent. Claude Code Haiku — fast, cheap, precise. Each ship has its own Matey. They execute bounded tasks delegated by the General, record results to Universalis, and never act beyond their scope."
   },
+  "haiku": {
+    "title": "HAIKU",
+    "def": "Anthropic's fastest, most cost-effective Claude model tier — roughly a third of the per-token price of the fleet's standard reasoning tier in both directions. Matey runs on Haiku: cheap for large mechanical tasks, but every spawn still pays full price for its standing instructions since subagents carry no memory between calls.",
+    "link": "https://www.anthropic.com/claude/haiku"
+  },
   "tzeentch": {
     "title": "TZEENTCH",
     "def": "The Chaos God of Change in Warhammer 40K lore. In the fleet, Tzeentch names the local AI brain process (tzeentch-brain) running on Imperator — the ever-changing, shape-shifting nature of local model experiments. Also the AIverse's distributed AI brain: a network of inference nodes (neurons) connected via the anamnesis database."

@@ -160,6 +160,7 @@ const sidebars: SidebarsConfig = {
     { type: 'doc', id: 'aiverse/nebula/the-silicon-hierarchy',     label: '✦ The Silicon Hierarchy' },
     { type: 'doc', id: 'aiverse/nebula/the-ghost-monitor',         label: '✦ The Ghost Monitor' },
     { type: 'doc', id: 'aiverse/nebula/the-forge-and-the-quadlet', label: '✦ The Forge and the Quadlet' },
+    { type: 'doc', id: 'aiverse/nebula/the-crew-that-forgot-everything', label: '✦ The Crew That Forgot Everything' },
   ],
 
   // ── FORGE — active implementation chronicles ──

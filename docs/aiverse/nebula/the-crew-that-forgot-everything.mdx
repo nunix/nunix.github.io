@@ -1,0 +1,77 @@
+---
+id: the-crew-that-forgot-everything
+title: "The Crew That Forgot Everything"
+description: Every Matey spawn starts from zero — no memory of the last task, no memory of the one before. Trimming what it's told to remember, on every single call, turned out to matter more than which model it runs on.
+tags: [matey, subagents, prompt-engineering, tokens, nebula]
+---
+
+import Admonition from '@theme/Admonition';
+
+<Admonition type="note" title="📜 Remembrancer's Note">
+
+This chronicle starts with a complaint, not a discovery — the Emperor, watching the same bug get "fixed" a third time, asked a pointed question about what a Matey actually costs to summon. The answer wasn't about the model. It was about how much the crew has to be told before it can lift a single tool.
+
+*— The Remembrancer of the AIverse*
+*Engrams Nebula-12*
+
+</Admonition>
+
+---
+
+> *"In AIverse, there is only Knowledge."*
+
+---
+
+## The Same Bug, Three Times
+
+During the M100 containerization push, the Universalis blog went blank three separate times — same symptom, same root cause each time: a Docusaurus dev server, running inside a container with its source bind-mounted from the host, losing its content registry after a batch of file changes swept through. The fix was always the same two commands: clear the cache, restart the service.
+
+The first two times, that fix got found the hard way — diagnosis from scratch, reasoning through webpack's dev-server internals, confirming the theory against logs. The third time, it was a lookup. That gap — between "diagnosing a bug" and "applying a known fix" — is where the Emperor's question landed: *why does summoning a **<Term id="matey">Matey</Term>** to fix a five-minute problem sometimes cost more than just fixing it directly?*
+
+## What a Spawn Actually Costs
+
+**<Term id="matey">Matey</Term>** runs on a cheaper, faster model tier — **<Term id="haiku">Haiku</Term>** — priced at roughly a third of what the fleet's own reasoning runs on per token, in both directions. That price gap is real and it matters at scale: a mechanical, multi-file task recorded during this same push ran 135,462 tokens through a single Matey call. At Haiku's rate, that is meaningfully cheaper than the same volume of work done directly.
+
+But every one of those calls starts from nothing. A subagent spawn has no memory of the last one — no thread connecting today's delegation to yesterday's, no recollection that this exact blank-page bug was already solved twice before. Each call re-reads its standing orders from a prompt file, re-reads whatever task description it was just handed, and then re-derives the state of the world with its own `grep` and `cat` calls — state the ship dispatching it may have already had loaded and cache-warm.
+
+<Admonition type="info" title="⚙️ Technical Insight">
+
+**<Term id="prompt-caching">Prompt caching</Term>** only helps a conversation that's still open. A subagent spawned fresh for a single task has no prior turns to read from cache — its entire standing-orders file and task brief are paid at full input price on every single call, no exceptions. A long-running session that already has the relevant files loaded, by contrast, serves most of that context from cache at roughly a tenth of the price. The fixed cost of *starting* a subagent is not proportional to the size of the task it's given — it's the same whether the task takes one tool call or seventy-five.
+
+</Admonition>
+
+That fixed cost is a prompt file: standing orders every Matey reads before it does anything else. It had grown to explain the fleet's full hierarchy, restate rules that the dispatching task already states more precisely, and describe a "fleet context" that changes nothing about how the work gets done. None of that is free — every line in it gets paid for, on every spawn, whether the task is a two-file typo fix or a ten-file refactor.
+
+## Cutting Standing Orders, Not Capability
+
+The fix wasn't to stop using Matey, and it wasn't to make Matey smarter. It was to make its standing orders shorter — cut the parts that describe context a task-specific brief already carries, and keep only what has to be true on *every* call regardless of the task: the guardrails that prevent overreach (no cross-ship delegation, no SSH to other ships, no writing delegation-type memory it shouldn't), the mandatory recording protocol that keeps the fleet's memory graph connected, and the code-quality checks that exist because a past refactor once shipped a stale variable reference straight into a runtime crash.
+
+Everything else — the hierarchy explainer, the restated operating rules, a paragraph of vague "fleet context" — got cut. Fifty-nine lines became twenty-six. Not because the content was wrong, but because it was redundant with what the dispatching order already says, every time, more precisely, for the task actually at hand.
+
+<Admonition type="info" title="⚙️ Technical Insight">
+
+The instinct when trimming a subagent's system prompt is to protect anything that reads like doctrine — hierarchy, mission, values — because it feels load-bearing. The actual test is narrower: does this line change what the subagent *does* on a task it hasn't seen yet? A forbidden-action list changes behavior on every task. A sentence explaining that "quality matters more than speed" does not — it's aspiration, not instruction, and aspiration that never overrides a concrete order is just standing token cost.
+
+</Admonition>
+
+## What Actually Changed
+
+The three-times-fixed bug itself didn't need a smarter crew — it needed to stop being re-diagnosed. That fix was recording the resolution as a standing rule the first time it recurred, so the third occurrence was a lookup, not an investigation. The prompt trim is the same idea applied one layer down: a Matey spawned for a five-minute task shouldn't pay the reading cost of instructions written for every task imaginable. Give it exactly what changes its behavior, and let the dispatching order — written fresh, for this task, by whoever is doing the dispatching — carry everything else.
+
+<Admonition type="tip" title="📚 Knowledge Transfer">
+
+**The lesson worth keeping:** a subagent's standing system prompt is a *fixed* cost paid on every spawn, independent of task size. The bigger the fraction of your subagent calls that are small, the more that fixed cost dominates the total bill — optimize it directly instead of assuming a cheaper model tier already solved the problem.
+
+**Pattern:** split a subagent's instructions into "what must be true on every call" (safety guardrails, mandatory protocols, hard-won quality gates) versus "what this specific task needs" (the dispatching order). Keep the first list short and load-bearing; let the second carry all situational context, fresh, every time.
+
+**What we'd do differently:** the prompt should have been audited for redundancy against the *shape* of a typical dispatching order much earlier — before it grew to explain things the task brief already explains better.
+
+**If you're building this yourself:** before adding a line to a subagent's standing prompt, ask whether it changes behavior on a task you haven't written yet. If the answer is no, it belongs in the per-task brief, or nowhere.
+
+</Admonition>
+
+<NunixOut />
+
+<div className="aiverse-fleet-cta">
+  <a href="/aiverse/support">⚔️ The Fleet Needs You — Support the Chronicle</a>
+</div>
