@@ -398,7 +398,7 @@ export const AIVERSE_ERAS: AiverseEra[] = [
     id: 'era-ix',
     label: 'Era IX — The Economy of Mind',
     tagline: 'Spend tokens like a brain spends energy. Challenge the premise. Right-size the lever.',
-    missions: 'M79 · M97–M98',
+    missions: 'M79 · M97–M99',
     color: '#14b8a6',
     glowColor: 'rgba(20, 184, 166, 0.4)',
     isWarp: false,
@@ -438,6 +438,12 @@ export const AIVERSE_ERAS: AiverseEra[] = [
         subtitle: 'The full ledger — each decision, its value, how it was built, and its scope of applicability',
         path: '/aiverse/era-ix-economy/every-lever-where-it-bites',
         missions: 'M98',
+      },
+      {
+        title: 'The Memory Gateway',
+        subtitle: "Anthropic's memory-tool verbs, adapted to a Postgres-backed, fleet-shared third memory tier",
+        path: '/aiverse/era-ix-economy/the-memory-gateway',
+        missions: 'M99',
       },
     ],
   },
@@ -494,6 +500,13 @@ export const AIVERSE_NEBULA: AiverseNebula = {
   // Nebula / scatter dots icon
   icon: 'M12 2a1 1 0 100 2 1 1 0 000-2zM6 6a1 1 0 100 2 1 1 0 000-2zM18 6a1 1 0 100 2 1 1 0 000-2zM4 12a1 1 0 100 2 1 1 0 000-2zM20 12a1 1 0 100 2 1 1 0 000-2zM6 18a1 1 0 100 2 1 1 0 000-2zM18 18a1 1 0 100 2 1 1 0 000-2zM12 20a1 1 0 100 2 1 1 0 000-2z',
   stars: [
+    {
+      title: 'The Forge and the Quadlet',
+      subtitle: 'Two bare-metal services, containerized with Podman + Quadlet, with zero loss of real-time function',
+      path: '/aiverse/nebula/the-forge-and-the-quadlet',
+      missions: 'Nebula',
+      tags: ['podman', 'quadlet', 'containers', 'systemd', 'devops'],
+    },
     {
       title: 'KVM Windows Server 2025',
       subtitle: 'A handful of libvirt XML tweaks turned a sluggish VM into a high-performance guest',

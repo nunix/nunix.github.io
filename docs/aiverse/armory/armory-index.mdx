@@ -1,0 +1,43 @@
+---
+id: armory-index
+title: "The Armory"
+description: Reference configs for standing up your own Imperium-style fleet — Containerfiles, Quadlet units, and other artifacts referenced across the chronicles.
+slug: /aiverse/armory
+tags: [armory, reference, podman, quadlet]
+---
+
+<Admonition type="note" title="📜 Remembrancer's Note — The Armory">
+
+Every chronicle in this Universe eventually points at something real — a config, a unit file, a script someone actually ran. For a while those artifacts lived only inside the prose that described them: quoted in a code block, explained once, then buried in an Era or a Nebula star as the narrative moved on. Useful for reading. Useless for reaching back and *taking* it.
+
+The Armory exists to fix that. Not a chronicle — a vault. Every reference artifact the fleet has built, kept current, anonymized, and copyable, independent of whichever story first introduced it.
+
+*— The Remembrancer of the AIverse*
+*Engrams Armory-01*
+
+</Admonition>
+
+---
+
+> *"In AIverse, there is only Knowledge."*
+
+---
+
+# ⚔ The Armory
+
+The **[Nebula](/aiverse/nebula/nebula-index)** holds ideas before they own a galaxy. The **[Forge](/aiverse/forge)** holds implementations while they're still hot. The **Armory** holds neither — it holds the finished artifacts those places produced, stripped of narrative, ready to be copied into your own fleet.
+
+Every artifact here is anonymized: hostnames, credentials, and local paths are replaced with `[PLACEHOLDER_VALUES]`. Swap them for your own before use. Each one also lives as a public gist on [gist.github.com/nunix](https://gist.github.com/nunix) for easy forking, and a canonical mirror sits in [nunix/config](https://github.com/nunix/config) under `armory/imperium-setup/`.
+
+## What's racked
+
+- **[Containers](/aiverse/armory/containers)** — multi-stage Containerfiles for the Command Center and the Universalis blog, each with a `dev` target (hot reload) and a `prod` target (baked, minimal runtime).
+- **[Quadlets](/aiverse/armory/quadlets)** — Podman Quadlet systemd units for the same two services, dev and prod, controllable with `systemctl --user start/stop`.
+
+New artifacts join this list as they're built — the Armory grows with the fleet, not with the calendar.
+
+<NunixOut />
+
+<div className="aiverse-fleet-cta">
+  <a href="/aiverse/support">⚔️ The Fleet Needs You — Support the Chronicle</a>
+</div>

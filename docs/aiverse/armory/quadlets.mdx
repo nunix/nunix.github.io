@@ -1,0 +1,88 @@
+---
+id: quadlets
+title: "Armory — Quadlets"
+description: Podman Quadlet systemd units for the Command Center and the Universalis blog (dev + prod), anonymized for reuse.
+tags: [armory, quadlet, systemd, podman]
+---
+
+# Quadlets
+
+[Quadlet](/aiverse/nebula/the-forge-and-the-quadlet) turns a declarative `.container` file into a real systemd service — `systemctl --user start/stop <name>.service`, no wrapper script needed. Drop these into `~/.config/containers/systemd/`.
+
+### Command Center (prod)
+
+**Gist:** https://gist.github.com/nunix/beb4abbade5d2cf45d2dcf6dcc655cce
+
+```ini
+[Unit]
+Description=fleet-v3 command center (prod)
+
+[Container]
+Image=localhost/fleet-v3:prod
+ContainerName=fleet-v3
+AutoUpdate=registry
+Environment=DATABASE_URL=postgresql://[DB_USER]:[DB_PASSWORD]@[DB_HOST]/[DB_NAME]?sslmode=disable
+# Network=host: container shares host network namespace so loopback-mapped hostname
+# imperator.fleet.local (→127.0.0.1 in /etc/hosts) correctly resolves to host's Postgres.
+# Bridge networks have their own loopback; 127.0.0.1 would point at container itself, not host.
+Network=host
+
+[Service]
+Restart=always
+
+[Install]
+WantedBy=default.target
+```
+
+### Blog — dev (hot reload)
+
+**Gist:** https://gist.github.com/nunix/2c9903a9afddc6db2dd1d401dfc615f9
+
+```ini
+[Unit]
+Description=nunix-blog Docusaurus site (dev, hot reload from host source)
+
+[Container]
+Image=localhost/nunix-blog:dev
+ContainerName=nunix-blog-dev
+Volume=[YOUR_BLOG_REPO_PATH]:/app:Z
+Volume=blog-node-modules:/app/node_modules
+PublishPort=3000:3000
+
+[Service]
+Restart=always
+
+[Install]
+WantedBy=default.target
+```
+
+### Blog — prod
+
+**Gist:** https://gist.github.com/nunix/e3ddac57ea27974d7cbfd838f289ffe8
+
+```ini
+[Unit]
+Description=nunix-blog Docusaurus site (prod)
+
+[Container]
+Image=localhost/nunix-blog:prod
+ContainerName=nunix-blog
+PublishPort=3000:3000
+AutoUpdate=registry
+
+[Service]
+Restart=always
+
+[Install]
+WantedBy=default.target
+```
+
+---
+
+*Canonical copies also live in [nunix/config](https://github.com/nunix/config) under `armory/imperium-setup/`.*
+
+<NunixOut />
+
+<div className="aiverse-fleet-cta">
+  <a href="/aiverse/support">⚔️ The Fleet Needs You — Support the Chronicle</a>
+</div>

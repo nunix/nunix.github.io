@@ -134,7 +134,7 @@ const sidebars: SidebarsConfig = {
   era_ix: [
     {
       type: 'html',
-      value: '<div class="sidebar-era-header"><span class="sidebar-era-header-icon">▤</span>Era IX — The Economy of Mind<span class="sidebar-era-header-range">M79–M98</span></div>',
+      value: '<div class="sidebar-era-header"><span class="sidebar-era-header-icon">▤</span>Era IX — The Economy of Mind<span class="sidebar-era-header-range">M79–M99</span></div>',
       defaultStyle: true,
     },
     { type: 'doc', id: 'aiverse/era-ix-economy/aiverse-era-ix-economy',            label: 'Era IX Overview' },
@@ -143,6 +143,7 @@ const sidebars: SidebarsConfig = {
     { type: 'doc', id: 'aiverse/era-ix-economy/the-answer-that-agreed-too-fast',   label: 'III. The Answer That Agreed Too Fast' },
     { type: 'doc', id: 'aiverse/era-ix-economy/the-anatomy-of-an-answer',          label: 'IV. The Anatomy of an Answer' },
     { type: 'doc', id: 'aiverse/era-ix-economy/every-lever-where-it-bites',        label: 'V. Every Lever, Where It Bites' },
+    { type: 'doc', id: 'aiverse/era-ix-economy/the-memory-gateway',                label: 'VI. The Memory Gateway' },
   ],
 
   // ── NEBULA — standalone idea stars, not part of any Era arc ──
@@ -158,6 +159,7 @@ const sidebars: SidebarsConfig = {
     { type: 'doc', id: 'aiverse/nebula/three-agents-one-terminal', label: '✦ Three Agents, One Terminal' },
     { type: 'doc', id: 'aiverse/nebula/the-silicon-hierarchy',     label: '✦ The Silicon Hierarchy' },
     { type: 'doc', id: 'aiverse/nebula/the-ghost-monitor',         label: '✦ The Ghost Monitor' },
+    { type: 'doc', id: 'aiverse/nebula/the-forge-and-the-quadlet', label: '✦ The Forge and the Quadlet' },
   ],
 
   // ── FORGE — active implementation chronicles ──
@@ -170,6 +172,18 @@ const sidebars: SidebarsConfig = {
     { type: 'doc', id: 'aiverse/forge/forge-index', label: '⚒ What is the Forge?' },
     { type: 'doc', id: 'aiverse/forge/the-first-hammerfall', label: 'I. The First Hammerfall' },
     { type: 'doc', id: 'aiverse/forge/the-split-anvil', label: 'II. The Split Anvil' },
+  ],
+
+  // ── ARMORY — reference configs and scripts ──
+  armory: [
+    {
+      type: 'html',
+      value: '<div class="sidebar-era-header"><span class="sidebar-era-header-icon">⚔</span>The Armory<span class="sidebar-era-header-range">reference</span></div>',
+      defaultStyle: true,
+    },
+    { type: 'doc', id: 'aiverse/armory/armory-index', label: '⚔ What is the Armory?' },
+    { type: 'doc', id: 'aiverse/armory/containers',   label: '⚔ Containers' },
+    { type: 'doc', id: 'aiverse/armory/quadlets',     label: '⚔ Quadlets' },
   ],
 
   // ── OLD TOPICS (preserved content) ──
