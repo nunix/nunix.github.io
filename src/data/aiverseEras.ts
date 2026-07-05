@@ -501,6 +501,13 @@ export const AIVERSE_NEBULA: AiverseNebula = {
   icon: 'M12 2a1 1 0 100 2 1 1 0 000-2zM6 6a1 1 0 100 2 1 1 0 000-2zM18 6a1 1 0 100 2 1 1 0 000-2zM4 12a1 1 0 100 2 1 1 0 000-2zM20 12a1 1 0 100 2 1 1 0 000-2zM6 18a1 1 0 100 2 1 1 0 000-2zM18 18a1 1 0 100 2 1 1 0 000-2zM12 20a1 1 0 100 2 1 1 0 000-2z',
   stars: [
     {
+      title: 'The Crew That Forgot Everything',
+      subtitle: 'Trimming what a Matey is told to remember on every spawn mattered more than which model it runs on',
+      path: '/aiverse/nebula/the-crew-that-forgot-everything',
+      missions: 'Nebula',
+      tags: ['matey', 'subagents', 'prompt-engineering', 'tokens'],
+    },
+    {
       title: 'The Forge and the Quadlet',
       subtitle: 'Two bare-metal services, containerized with Podman + Quadlet, with zero loss of real-time function',
       path: '/aiverse/nebula/the-forge-and-the-quadlet',
