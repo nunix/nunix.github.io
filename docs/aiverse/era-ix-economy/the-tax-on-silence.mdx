@@ -203,6 +203,20 @@ The diagram below lays out where all of this sits inside a single request's bill
 </svg>
 </div>
 
+## The Clock That Isn't a Clock
+
+There was a second misconception buried under the first, and it took longer to shake because it sounded reasonable: picturing the five-minute TTL as one shared countdown, ticking down in the background, that a keep-alive ping merely "resets" back to five before it starts draining again. Under that model, a ping and a real prompt would be two different kinds of event feeding the same clock — which is close enough to true to be dangerous.
+
+The mechanic underneath is simpler and stranger: there is no clock. Every touch — a real prompt/answer round trip, or a bare `[[KEEPALIVE]]` ping — independently opens its own fresh five-minute window starting at that instant. Nothing ticks down in the background between touches; each new touch just asks one question of the last one: *was there any contact, real or synthetic, within the last five minutes?* The scheduler doesn't reset anything — it simply lands inside a window that was already open, or it doesn't.
+
+| | Assumed model | Actual mechanic |
+|---|---|---|
+| Request → response round trip | Two separate touches to track | One touch — the whole exchange counts once |
+| Keep-alive cadence | Relative — "4 minutes since whatever last happened" | Absolute — a metronome firing every 4 minutes regardless of other activity |
+| Waiting on a delegated subagent | Looks like activity, should protect the cache | Silent from the cache's view — the parent session touches nothing while it waits |
+
+That last row is the one worth carrying forward. The moment work is handed to a subagent, the parent session's turn ends and goes idle — it is, from the cache's point of view, indistinguishable from a Captain who walked away. A subagent works in its own separate context; nothing it does, however long it takes, reaches back to touch the parent's cache. If that wait outlasts five minutes with no metronome running underneath it, the parent cache goes cold in complete silence, and the next real message pays full rebuild price as if from nowhere. Delegation, the very pattern built to keep the parent context small, is exactly the pattern most likely to manufacture this blind spot — because a busy subagent *looks* like activity without ever being a touch. A four-minute metronome running independently of what the parent is waiting on is what closes that gap; no countdown bookkeeping required, just a beat faster than the window.
+
 ## The Broader Habit
 
 Nothing about this failure was exotic. It was two hook scripts doing exactly what they were told, for every prompt, because nobody had told them a silent ping wasn't a prompt worth reminding anyone about. The keep-alive mechanism itself worked precisely as designed from the first fire to the tenth. The leak lived entirely in the assumption, baked into two unrelated scripts written for a different purpose, that every `UserPromptSubmit` event deserved the same treatment. A cost-saving mechanism is only as cheap as every layer it passes through — and it takes exactly one silent layer, doing its normal job at the wrong moment, to tax the whole thing back into mediocrity.
