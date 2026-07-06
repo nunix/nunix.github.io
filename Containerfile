@@ -12,11 +12,16 @@ RUN bun install --frozen-lockfile
 
 # --- DEV target: hot reload against bind-mounted source ---------------------
 # Run with source bind-mounted at /app (do NOT bake source into image).
+# Watches docs/, sidebars.ts, docusaurus.config.ts, src/data/, src/pages/ for changes
+# and auto-restarts dev server on any modification. See dev-watch.sh for watcher logic.
 # Example: podman run -v .:/app:Z -p 3000:3000 --target dev
 FROM deps AS dev
+RUN apt-get update && apt-get install -y inotify-tools && rm -rf /var/lib/apt/lists/*
 WORKDIR /app
+COPY dev-watch.sh .
+RUN chmod +x dev-watch.sh
 EXPOSE 3000
-CMD ["bun", "run", "start"]
+CMD ["/bin/bash", "./dev-watch.sh"]
 
 # --- BUILD stage -------------------------------------------------------------
 FROM deps AS build
