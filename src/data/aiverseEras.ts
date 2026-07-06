@@ -398,7 +398,7 @@ export const AIVERSE_ERAS: AiverseEra[] = [
     id: 'era-ix',
     label: 'Era IX — The Economy of Mind',
     tagline: 'Spend tokens like a brain spends energy. Challenge the premise. Right-size the lever.',
-    missions: 'M79 · M97–M99',
+    missions: 'M74 · M79 · M97–M99',
     color: '#14b8a6',
     glowColor: 'rgba(20, 184, 166, 0.4)',
     isWarp: false,
@@ -438,6 +438,12 @@ export const AIVERSE_ERAS: AiverseEra[] = [
         subtitle: 'The full ledger — each decision, its value, how it was built, and its scope of applicability',
         path: '/aiverse/era-ix-economy/every-lever-where-it-bites',
         missions: 'M98',
+      },
+      {
+        title: 'The Tax on Silence',
+        subtitle: 'A keep-alive ping built to cost almost nothing — until two hooks taxed every silent fire with a full reminder block',
+        path: '/aiverse/era-ix-economy/the-tax-on-silence',
+        missions: 'M74',
       },
       {
         title: 'The Memory Gateway',

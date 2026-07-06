@@ -134,7 +134,7 @@ const sidebars: SidebarsConfig = {
   era_ix: [
     {
       type: 'html',
-      value: '<div class="sidebar-era-header"><span class="sidebar-era-header-icon">▤</span>Era IX — The Economy of Mind<span class="sidebar-era-header-range">M79–M99</span></div>',
+      value: '<div class="sidebar-era-header"><span class="sidebar-era-header-icon">▤</span>Era IX — The Economy of Mind<span class="sidebar-era-header-range">M74–M99</span></div>',
       defaultStyle: true,
     },
     { type: 'doc', id: 'aiverse/era-ix-economy/aiverse-era-ix-economy',            label: 'Era IX Overview' },
@@ -143,7 +143,8 @@ const sidebars: SidebarsConfig = {
     { type: 'doc', id: 'aiverse/era-ix-economy/the-answer-that-agreed-too-fast',   label: 'III. The Answer That Agreed Too Fast' },
     { type: 'doc', id: 'aiverse/era-ix-economy/the-anatomy-of-an-answer',          label: 'IV. The Anatomy of an Answer' },
     { type: 'doc', id: 'aiverse/era-ix-economy/every-lever-where-it-bites',        label: 'V. Every Lever, Where It Bites' },
-    { type: 'doc', id: 'aiverse/era-ix-economy/the-memory-gateway',                label: 'VI. The Memory Gateway' },
+    { type: 'doc', id: 'aiverse/era-ix-economy/the-tax-on-silence',                label: 'VI. The Tax on Silence' },
+    { type: 'doc', id: 'aiverse/era-ix-economy/the-memory-gateway',                label: 'VII. The Memory Gateway' },
   ],
 
   // ── NEBULA — standalone idea stars, not part of any Era arc ──
