@@ -14,6 +14,15 @@ This is where new chapters are announced, writing choices are explained, and the
 
 ---
 
+## 2026.07.06 — Era IX: The Tax on Silence
+
+Era IX grows to seven, with a chronicle slotted in early on the timeline — **[The Tax on Silence](/aiverse/era-ix-economy/the-tax-on-silence)** (M74). A keep-alive ping was armed to protect the five-minute prompt cache for the price of a cache read instead of a full rebuild, with its safety cap derived from the real hit/miss cost ratio (~12x) rather than a round number. The twist: two `UserPromptSubmit` hooks were quietly taxing every silent ping with a full reminder block, fattening the very context the ping existed to protect. One guard clause per hook fixed it; the safety cap then fired for real on schedule, proving the mechanism held under its own math. New diagram: the cache gate sitting in front of prefill, with the ping riding the cheap path on purpose.
+
+What's next:
+- Continue the Era IX arc toward a full-era PR; watch for the next mission worth a chronicle.
+
+---
+
 ## 2026.07.05 — A Nebula star on Matey's prompt cost
 
 New in the Nebula: **[The Crew That Forgot Everything](/aiverse/nebula/the-crew-that-forgot-everything)**. Every Matey spawn starts from zero, so its standing orders are a fixed cost paid in full on every call — trimming that prompt from fifty-nine lines to twenty-six mattered more to the bill than the cheap model tier it already runs on.
