@@ -392,6 +392,12 @@ export const AIVERSE_ERAS: AiverseEra[] = [
         path: '/aiverse/era-viii-silicon/the-sparsity-dividend',
         missions: 'M96',
       },
+      {
+        title: 'The Borrowed Crown',
+        subtitle: "A stranger's S-tier crown didn't exist. The ones that did stumbled on the Fleet's own questions.",
+        path: '/aiverse/era-viii-silicon/the-borrowed-crown',
+        missions: 'M111',
+      },
     ],
   },
   {

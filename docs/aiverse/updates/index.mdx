@@ -14,6 +14,15 @@ This is where new chapters are announced, writing choices are explained, and the
 
 ---
 
+## 2026.07.08 — Era VIII: The Borrowed Crown
+
+Era VIII grows to twelve with **[The Borrowed Crown](/aiverse/era-viii-silicon/the-borrowed-crown)** (M111) — a follow-up prompted by an outside source: a viewer's tier-list video crowned two models S-tier for 8GB VRAM cards, the same class Galleon runs. Fetching that crown meant re-testing all six S/A-tier candidates against the fleet's own five-question harness instead of trusting someone else's benchmark. Two of the six turned out to be unpublished ghosts — no pullable Ollama tag exists for either. Of the four that ran, the video's own top pick underperformed on tool-calling reliability, while an already-deployed incumbent (Llama 3.1 8B) came out fastest and cleanest. The lesson: a benchmark built on someone else's questions proves someone else's use case, not yours.
+
+What's next:
+- Continue watching for a request-shape fix so DeepSeek R1 7B's tool-calling failure can get a fair second run.
+
+---
+
 ## 2026.07.06 — Era IX: The Tax on Silence
 
 Era IX grows to seven, with a chronicle slotted in early on the timeline — **[The Tax on Silence](/aiverse/era-ix-economy/the-tax-on-silence)** (M74). A keep-alive ping was armed to protect the five-minute prompt cache for the price of a cache read instead of a full rebuild, with its safety cap derived from the real hit/miss cost ratio (~12x) rather than a round number. The twist: two `UserPromptSubmit` hooks were quietly taxing every silent ping with a full reminder block, fattening the very context the ping existed to protect. One guard clause per hook fixed it; the safety cap then fired for real on schedule, proving the mechanism held under its own math. New diagram: the cache gate sitting in front of prefill, with the ping riding the cheap path on purpose.

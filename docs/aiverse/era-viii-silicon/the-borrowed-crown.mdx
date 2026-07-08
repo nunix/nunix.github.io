@@ -1,0 +1,88 @@
+---
+id: the-borrowed-crown
+title: "The Borrowed Crown"
+description: A stranger's tier list crowned two S-tier models for 8GB VRAM. The fleet went to fetch the crown and found it did not exist — and the ones that did exist stumbled on the Fleet's own questions.
+sidebar_label: "XII. The Borrowed Crown"
+sidebar_position: 13
+tags: [ollama, galleon, rtx3070, tier-list, deepseek-r1, llama3.1, qwen3, benchmark, m111, era-viii]
+---
+
+<Admonition type="note" title="📜 REMEMBRANCER'S NOTE — Era VIII">
+A stranger's chronicle reached the Emperor — a human's video, twenty models ranked S through D for an 8GB card, the same card Galleon carries. Two names sat at the top wearing an S. The Emperor sent the General to fetch that crown and place it on Galleon's brow. The General went. The crown was not where the stranger said it would be, and the ones that were real did not fit the head they were cut for. The Remembrancer records what was found instead — which is, as always, more useful than what was expected.
+
+*— The Remembrancer of the AIverse*
+*Engrams M111*
+</Admonition>
+
+---
+
+> *"In AIverse, there is only Knowledge."*
+
+---
+
+## The Borrowed List
+
+A viewer's video ranked twenty local models for 8GB VRAM cards — the exact class Galleon carries, an RTX 3070 Mobile. Two names sat at S-tier: **Qwen 3.5 9B** and **Gemma 4E4B**, a mixture-of-experts model claimed to run a 26-billion-parameter brain at a 4-billion-parameter VRAM cost. Four more sat at A-tier: **DeepSeek R1 7B** (distilled), **GLM-4.6V Flash 9B** (vision), **Llama 3.1 8B**, and **Qwen 3 8B** — the last two already Galleon's incumbents.
+
+The video's own tier list was not enough to act on. A benchmark built on someone else's questions proves someone else's use case. So instead of importing the stranger's verdict, the fleet re-ran all six candidates through its own instrument: the five-question Fleet series first built for the [Grand Brackets](/aiverse/era-viii-silicon/the-grand-brackets) — a mix of system introspection, ops scripting, fleet-knowledge recall, incident writing, and a hands-on tool-use task — adapted from llama.cpp's harness to Galleon's Ollama runtime.
+
+## The Crown That Wasn't There
+
+Two of the six never made it to the bench.
+
+```
+Error: pull model manifest: file does not exist
+```
+
+**Gemma 4E4B** and **GLM-4.6V Flash 9B** — both real enough to be described in loving technical detail on video, tokens-per-second and VRAM math included — do not exist as pullable tags in Ollama's library. Not a typo, not a wrong quantization suffix: the manifest simply is not there. A stranger's tier list can describe a model with total confidence and still hand you a name nobody has published where you can reach it.
+
+<Admonition type="info" title="⚙️ Technical Insight">
+A benchmark video and a deployable model are two different artifacts. The video's claims about Gemma 4E4B's architecture (26B total, 4B active, ~6GB at Q4KM) may be entirely accurate for a checkpoint that exists somewhere — a paper, a private eval, a not-yet-published GGUF. What it is not, yet, is a name you can hand to `ollama pull` and get back a working model. The fleet's rule stands: a claim about a model is not the model. Verify the artifact is reachable before it enters a comparison table, never after.
+</Admonition>
+
+## The Four That Showed Up
+
+Four candidates survived to the bench: Qwen 3.5 9B, DeepSeek R1 7B, Llama 3.1 8B, and Qwen 3 8B (the last already resident on Galleon, re-run for a clean baseline under identical conditions).
+
+| Model | Tier (video) | Score | Total time | Q1 sys-cmd | Q2 ops-code | Q3 fleet-knowledge | Q4 writing | Q5 tool-use |
+|-------|:---:|:---:|---:|:---:|:---:|:---:|:---:|:---:|
+| **Llama 3.1 8B** | A | **3/5** | **81s** | ✓ | ✗ | ✗ | ✓ | ✓ |
+| Qwen 3 8B | A | 3/5 | 863s | ✓ | ✗ | ✗ | ✓ | ✓ |
+| Qwen 3.5 9B | **S** | 2/5 | 534s | ✓ | ✗ | ✗ | ✓ | ✗ |
+| DeepSeek R1 7B | A | 1/5 | 33s* | ✗ | ✗ | ✗ | ✓ | ✗ |
+
+*DeepSeek's low time is not speed — it is four straight `HTTP 400` failures before the harness gave up on each question.
+
+Q3 failed for every single model, including the two currently deployed. That column is not a verdict on model quality — the fleet-knowledge lookup tool (`anamnesis_search`) hit an embedding-generation error during the run, an infrastructure fault, not a reasoning failure. Scored honestly out of the four questions that actually exercised each model, the real spread is Llama 3.1 8B and Qwen 3 8B tied at 3/4, Qwen 3.5 9B at 2/4, DeepSeek R1 7B at 1/4.
+
+## Where the Video's Crown Slipped
+
+**Qwen 3.5 9B**, the video's top S-tier pick, is not new to the fleet — it was tested and removed once already, at the M61 trust evaluation. This run gave it a second, deliberate chance under a harder harness, and the result did not improve the case: 2.6–12.1 tokens/second, a `(max turns)` failure on the fleet-knowledge question, and an `HTTP 500` crash on the tool-use question. A model can top an external raw-intelligence index and still be the wrong choice for an agent that needs to call tools reliably — the video measured knowledge; the Fleet series measures whether the model can *act* on it.
+
+**DeepSeek R1 7B** is the strangest result. On the one question it could answer without touching a tool — the incident-report writing task — it produced the best prose of the four candidates at 25.8 tokens/second, clearly still the reasoning-native model the video described. But it returned `HTTP 400 Bad Request` on every question that required the `tools` parameter. This looks like a request-shape incompatibility between DeepSeek-R1's chat template and Ollama's OpenAI-compatible endpoint, not a capability gap — R1's native chain-of-thought formatting doesn't play cleanly with function-calling schemas layered on top. Worth a second look through Ollama's native `/api/chat` endpoint instead of the OpenAI-compat shim before writing the model off entirely.
+
+<Admonition type="info" title="⚙️ Technical Insight">
+Two of the four candidates degrade specifically at the tool-calling boundary, not at the reasoning boundary — DeepSeek R1 7B outright errors, Qwen 3.5 9B times out or crashes mid-tool-call. Meanwhile Llama 3.1 8B and Qwen 3 8B, both trained with tool-calling as a first-class objective from release, sailed through the same boundary without a single transport error. For an agentic fleet, the ability to reliably emit a well-formed tool call is a harder requirement than raw benchmark intelligence — and it is architecture-and-training-specific, not a function of parameter count or release date.
+</Admonition>
+
+## The Verdict
+
+**Llama 3.1 8B is the standout of this round** — same pass count as the incumbent Qwen 3 8B, but roughly **10× faster wall-clock** (81s vs 863s) and free of the tool-call fragility that sank the other two. Qwen 3 8B's slowness traces to thinking-mode overhead: it burned its entire 2048-token budget on the ops-code question without producing an answer (`finish_reason: length`), while Llama 3.1 8B answered every question in single digits to low tens of seconds.
+
+Neither model is a **brain** candidate — that role stays with `qwen2.5:14b`, which orchestrates tool selection across a wider span of tasks than any 8-9B model demonstrated here. But as a **node**: Llama 3.1 8B earns a seat on Galleon for fast, reliable tool-driven ops work, the exact profile that timed out or error'd on the other three. DeepSeek R1 7B stays worth keeping *if* its tool-calling transport issue gets fixed — its raw writing quality outclassed everything else tested. Qwen 3.5 9B, despite carrying the stranger's crown, does not earn a place on Galleon a second time.
+
+<Admonition type="tip" title="📚 Knowledge Transfer">
+**The lesson worth keeping:** an external tier list ranks models on the axis its author cared about — usually raw intelligence or benchmark score. It does not rank them on the axis that matters for an agentic fleet: whether the model can hold a tool-calling conversation without the transport layer falling over. Re-test everything against your own harness before trusting someone else's crown.
+
+**Pattern:** two failure modes hid behind the same symptom (a failed test). One was a real capability gap (Qwen 3.5 9B genuinely stumbling on multi-turn tool use). One was a plumbing fault (Q3's embedding error, DeepSeek's request-shape mismatch). Score before diagnosing has to stay separate from diagnosing before concluding — collapsing them would have written off DeepSeek R1 entirely instead of flagging it for a second look through a different endpoint.
+
+**What we'd do differently:** verify a model tag actually resolves in the target registry *before* writing it into a comparison plan — two of six candidates here were unreachable, discovered only at pull time, thirty minutes into the run.
+
+**If you're building this yourself:** when evaluating a model for an agent framework, test tool-calling reliability as its own axis, separate from raw quality. A model that writes beautifully but can't emit a clean function call is not ready for the job, no matter what tier list it topped.
+</Admonition>
+
+<NunixOut />
+
+<div className="aiverse-fleet-cta">
+  <a href="/aiverse/support">⚔️ The Fleet Needs You — Support the Chronicle</a>
+</div>
