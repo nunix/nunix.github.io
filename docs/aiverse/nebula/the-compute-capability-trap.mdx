@@ -1,0 +1,90 @@
+---
+id: the-compute-capability-trap
+title: The Compute Capability Trap
+description: Testing vLLM and SGLang against Ollama on Tanker (Maxwell) and Galleon (Ampere) — and why matching the compute capability isn't enough.
+tags: [benchmark, local-ai, vllm, sglang, tanker, galleon, nebula]
+---
+
+<Admonition type="note" title="📜 Remembrancer's Note">
+llm-d came up in an unrelated SUSE conversation — a Kubernetes-native distributed inference stack built on vLLM, with KV-cache aware routing and disaggregated prefill/decode. Interesting concepts, wrong scale for a two-ship consumer fleet. But it raised the real question: the fleet runs llama.cpp everywhere because it can be tuned to any box. What would it cost to run the engines everyone else quotes — vLLM, SGLang — instead?
+
+*— The Remembrancer of the AIverse*
+*Engrams M110*
+</Admonition>
+
+## The Setup
+
+Two ships, two GPU generations, one Ollama baseline already proven on both:
+
+| Ship | GPU | Compute Capability | VRAM | Status going in |
+|------|-----|---------------------|------|------------------|
+| **<Term id="tanker">Tanker</Term>** | Quadro M4000 (Maxwell) | 5.2 | 8GB | Ollama qwen2.5:7b already running |
+| **<Term id="galleon">Galleon</Term>** | RTX 3070 Mobile (Ampere) | 8.6 | 8GB | Ollama llama3.1:8b + qwen2.5:7b already running |
+
+Same VRAM ceiling on both cards. One generation old enough to predate modern tensor-core kernels, one squarely inside vLLM's stated support matrix. The plan: install vLLM, then SGLang, serve a 7B model, run it through the same 5-question championship used in prior fleet trials — execute, don't describe.
+
+Neither ship finished a single championship question. The two failure modes turned out to be more instructive than a working benchmark would have been.
+
+## Tanker — Dead Silicon
+
+vLLM installed cleanly. Loading `Qwen2.5-7B-Instruct-AWQ` did not:
+
+```
+ValidationError: The quantization method awq is not supported for the current GPU.
+Minimum capability: 75. Current capability: 52.
+```
+
+Dropping quantization and forcing FP32 got further, then died at the CUDA layer:
+
+```
+Quadro M4000 with CUDA capability sm_52 is not compatible with the current PyTorch installation.
+The current PyTorch install supports CUDA capabilities sm_75 sm_80 sm_86 sm_90 sm_100 sm_120.
+torch.AcceleratorError: CUDA error: no kernel image is available for execution on the device
+```
+
+PyTorch 2.9 and later ship without SM 5.2 kernels compiled in at all — not a runtime restriction, a missing binary. The obvious fix — pin an older vLLM release built against an older PyTorch — hit a second wall: `torch==2.3.0` has been pulled from PyPI entirely. Building PyTorch from source with `TORCH_CUDA_ARCH_LIST=5.2` was the only remaining path, at a multi-hour compile cost with no guarantee the quantization kernels would work at the end of it. SGLang failed the same way, plus its own unrelated `triton.runtime.cache` import break. vLLM's V1 engine has no CPU fallback to retreat to — `device='cpu'` isn't a recognized argument anymore.
+
+Maxwell is not slow here. It is unsupported.
+
+## Galleon — Correct Silicon, Wrong Budget
+
+Ampere, compute capability 8.6, squarely inside vLLM's documented support. Installed clean, loaded the same AWQ model — 5.29GB of weights — and still failed:
+
+```
+ValueError: No available memory for the cache blocks. Try increasing `gpu_memory_utilization` when initializing the engine.
+Available KV cache memory: -1.05 GiB
+```
+
+Negative available memory, at every setting tried: 70%, 85% GPU utilization, `max_model_len` from 4096 down to 1024. Model weights plus CUDA graph capture overhead alone consume more of the 7.66GB usable VRAM than an 8GB laptop GPU has room to give back for the KV cache vLLM needs to actually serve a request. SGLang didn't get that far — its `outlines_core` dependency failed to compile from source (`cargo` exit 101) before any model touched the GPU.
+
+<Admonition type="info" title="⚙️ Technical Insight">
+"Compute capability 8.6 is supported" and "this model runs on an 8GB Ampere card" are different claims. vLLM's memory profiler reserves space for model weights, CUDA graph capture buffers, and the paged KV cache as three separate allocations against one VRAM pool — and 7B-class models at AWQ 4-bit already consume the bulk of an 8GB budget before the KV cache gets its share. The published minimum-VRAM figures for 7B models assume headroom that a shared-use laptop GPU, with a display and OS compositor drawing from the same pool, doesn't actually have. Ollama and llama.cpp avoid this because their memory management is designed around exactly this constraint — variable KV cache sizing, GGUF's tighter footprint, no CUDA graph pre-allocation by default.
+</Admonition>
+
+## Could Containers Have Saved Either Ship?
+
+The natural next question: Imperator's own local inference already moved to a containerized runtime (kitwarp) for unrelated Vulkan driver reasons — would the same move rescue vLLM here? Checked before closing the mission: Galleon already has `nvidia-container-toolkit` and CDI configured; Tanker has neither podman nor nvidia-ctk installed at all.
+
+Even where the tooling exists, it doesn't reach either root cause. Tanker's blocker is a missing kernel binary in the PyTorch wheel — a container built from the same wheel ships the same absence; only a from-source rebuild targeting `sm_52` fixes it, container or not. Galleon's blocker is arithmetic — passthrough doesn't manufacture VRAM, so the same model hits the same negative KV cache budget inside a container as outside one. The one place a container plausibly helps is SGLang's Rust build failure, since the official SGLang image ships prebuilt wheels and never invokes `cargo` on the host at all. Containers fix toolchain and reproducibility problems. They do not fix compute-capability gaps or physical memory limits.
+
+## The Baseline That Was Already There
+
+Every one of these failures happened on hardware where Ollama was already serving the equivalent model, at the same VRAM budget, without incident. That's the actual finding, more than any single stack trace: the "just install and run" framing that surrounds vLLM and SGLang in most comparison posts is written from a datacenter GPU's vantage point, where 24GB+ and a fixed compute-capability floor are assumed defaults. Neither assumption survives contact with a 2015 workstation card or a 2021 laptop GPU sharing VRAM with a desktop compositor.
+
+<Admonition type="tip" title="📚 Knowledge Transfer">
+
+**The lesson worth keeping:** matching an engine's stated minimum compute capability is necessary, not sufficient. VRAM budget math — weights + CUDA graph overhead + KV cache, all in one fixed pool — kills a technically-supported GPU just as reliably as an unsupported one kills an old GPU.
+
+**Pattern:** when a framework's docs list a compute-capability floor, treat it as "will install," not "will serve a request." Only a memory-budget dry run (weights size + quant overhead + declared KV cache reservation vs. actual free VRAM) tells you if a specific model fits.
+
+**What we'd do differently:** run the VRAM arithmetic before the install, not after — `gpu_memory_utilization` sweeps found the wall but wasted install/build time getting there on hardware where the answer was knowable up front.
+
+**If you're building this yourself:** on 8GB-class consumer GPUs, llama.cpp/Ollama's GGUF path remains the only inference stack that reliably fits 7B-8B models with room for a usable context window. Reach for vLLM or SGLang only once VRAM clears roughly 12GB, or accept a much smaller model on the smaller card.
+
+</Admonition>
+
+<NunixOut />
+
+<div className="aiverse-fleet-cta">
+  <a href="/aiverse/support">⚔️ The Fleet Needs You — Support the Chronicle</a>
+</div>
