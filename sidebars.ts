@@ -161,6 +161,7 @@ const sidebars: SidebarsConfig = {
     { type: 'doc', id: 'aiverse/nebula/the-ghost-monitor',         label: '✦ The Ghost Monitor' },
     { type: 'doc', id: 'aiverse/nebula/the-forge-and-the-quadlet', label: '✦ The Forge and the Quadlet' },
     { type: 'doc', id: 'aiverse/nebula/the-crew-that-forgot-everything', label: '✦ The Crew That Forgot Everything' },
+    { type: 'doc', id: 'aiverse/nebula/the-compute-capability-trap', label: '✦ The Compute Capability Trap' },
   ],
 
   // ── FORGE — active implementation chronicles ──
