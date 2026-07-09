@@ -14,12 +14,12 @@ This is where new chapters are announced, writing choices are explained, and the
 
 ---
 
-## 2026.07.08 — Era VIII: The Borrowed Crown
+## 2026.07.09 — Era VIII: The Borrowed Crown
 
-Era VIII grows to twelve with **[The Borrowed Crown](/aiverse/era-viii-silicon/the-borrowed-crown)** (M111) — a follow-up prompted by an outside source: a viewer's tier-list video crowned two models S-tier for 8GB VRAM cards, the same class Galleon runs. Fetching that crown meant re-testing all six S/A-tier candidates against the fleet's own five-question harness instead of trusting someone else's benchmark. Two of the six turned out to be unpublished ghosts — no pullable Ollama tag exists for either. Of the four that ran, the video's own top pick underperformed on tool-calling reliability, while an already-deployed incumbent (Llama 3.1 8B) came out fastest and cleanest. The lesson: a benchmark built on someone else's questions proves someone else's use case, not yours.
+Era VIII grows to twelve with **[The Borrowed Crown](/aiverse/era-viii-silicon/the-borrowed-crown)** (M111–M112) — a follow-up prompted by an outside source: a viewer's tier-list video crowned two models S-tier for 8GB VRAM cards, the same class Galleon runs. What started as a one-round retest turned into three: Round One (Ollama) found two "ghost" models with no pullable tag and one crash on the video's own top pick; Round Two chased those ghosts to Hugging Face directly and migrated Galleon to a CUDA build of llama.cpp, finding both ghosts were real (one physically impossible on 8GB regardless of registry, one genuinely usable) — but only after discovering, mid-migration, that the GPU itself had silently wedged at the driver level while `nvidia-smi` kept answering normally. Round Three found that even a clean single-shot tool-call test doesn't predict multi-turn agentic reliability — every model but one collapsed once tool results actually fed back into a real conversation, including the model this same fleet had rejected twice before. The lesson: every layer in a stack can lie about the layer beneath it, and a passing check only ever covers the specific thing it tested.
 
 What's next:
-- Continue watching for a request-shape fix so DeepSeek R1 7B's tool-calling failure can get a fair second run.
+- Continue watching for a tool-call-capable chat template so DeepSeek R1 7B gets a fair shot at agentic work.
 
 ---
 

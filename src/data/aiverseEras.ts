@@ -394,9 +394,9 @@ export const AIVERSE_ERAS: AiverseEra[] = [
       },
       {
         title: 'The Borrowed Crown',
-        subtitle: "A stranger's S-tier crown didn't exist. The ones that did stumbled on the Fleet's own questions.",
+        subtitle: 'A ghost model, a wedged GPU, and a smoke test that lied — three layers, each hiding the one beneath it.',
         path: '/aiverse/era-viii-silicon/the-borrowed-crown',
-        missions: 'M111',
+        missions: 'M111-M112',
       },
     ],
   },
