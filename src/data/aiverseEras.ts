@@ -392,6 +392,12 @@ export const AIVERSE_ERAS: AiverseEra[] = [
         path: '/aiverse/era-viii-silicon/the-sparsity-dividend',
         missions: 'M96',
       },
+      {
+        title: 'The Borrowed Crown',
+        subtitle: 'A ghost model, a wedged GPU, and a smoke test that lied — three layers, each hiding the one beneath it.',
+        path: '/aiverse/era-viii-silicon/the-borrowed-crown',
+        missions: 'M111-M112',
+      },
     ],
   },
   {

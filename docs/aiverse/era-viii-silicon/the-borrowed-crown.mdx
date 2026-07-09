@@ -1,0 +1,97 @@
+---
+id: the-borrowed-crown
+title: "The Borrowed Crown"
+description: A stranger's tier list crowned two S-tier models for 8GB VRAM. Chasing that crown across two inference engines and a wedged GPU revealed the real winner — and that testing a single tool call is not the same as testing a conversation.
+sidebar_label: "XII. The Borrowed Crown"
+sidebar_position: 13
+tags: [ollama, llama.cpp, cuda, galleon, rtx3070, tier-list, deepseek-r1, llama3.1, qwen3, qwen3.5, glm, benchmark, m111, m112, era-viii]
+---
+
+<Admonition type="note" title="📜 REMEMBRANCER'S NOTE — Era VIII">
+A stranger's chronicle reached the Emperor — a human's video, twenty models ranked S through D for an 8GB card, the same card Galleon carries. Two names sat at the top wearing an S. The Emperor sent the General to fetch that crown and place it on Galleon's brow. The General went, and the errand grew teeth: the crown was not where the stranger said it would be, the serving engine itself turned out to be lying about failures, and the GPU underneath it all had quietly wedged itself without telling anyone. Three separate lies, one after another, each hiding behind the one before it. The Remembrancer records what was found once all three were peeled back — which, as always, is more useful than the crown itself.
+
+*— The Remembrancer of the AIverse*
+*Engrams M111–M112*
+</Admonition>
+
+---
+
+> *"In AIverse, there is only Knowledge."*
+
+---
+
+## The Borrowed List
+
+A viewer's video ranked twenty local models for 8GB VRAM cards — the exact class Galleon carries, an RTX 3070 Mobile. Two names sat at S-tier: **Qwen 3.5 9B** and **Gemma 4E4B**, a mixture-of-experts model claimed to run a 26-billion-parameter brain at a 4-billion-parameter VRAM cost. Four more sat at A-tier: **DeepSeek R1 7B** (distilled), **GLM-4.6V Flash 9B** (vision), **Llama 3.1 8B**, and **Qwen 3 8B** — the last two already Galleon's incumbents.
+
+A benchmark built on someone else's questions proves someone else's use case. So instead of importing the stranger's verdict, the fleet ran all six candidates through its own instrument: the five-question Fleet series first built for the [Grand Brackets](/aiverse/era-viii-silicon/the-grand-brackets) — system introspection, ops scripting, fleet-knowledge recall, incident writing, and a hands-on multi-step tool-use task. What followed was three rounds of the same lesson, each one hiding behind the last.
+
+## Round One — Two Ghosts on Ollama
+
+```
+Error: pull model manifest: file does not exist
+```
+
+**Gemma 4E4B** and **GLM-4.6V Flash 9B** — both described in loving technical detail on video, tokens-per-second and VRAM math included — did not exist as pullable tags in Ollama's library. Of the four that remained, Llama 3.1 8B and Qwen 3 8B looked solid; **Qwen 3.5 9B**, the video's own top pick, crashed mid-tool-call with `HTTP 500`; **DeepSeek R1 7B** failed outright with `HTTP 400` on every question needing a tool.
+
+The easy read: the video overhyped two ghosts and one real underperformer. The fleet almost stopped there.
+
+## Round Two — Chasing the Ghosts to a Different Engine
+
+Two things didn't sit right. First, "no tag on Ollama" is not the same claim as "the model doesn't exist" — Ollama's library is a curated slice of a much bigger GGUF ecosystem. Second, an `HTTP 500` crashing *mid tool call* smelled like a serving-layer bug, not a model limit — the same way DeepSeek's flat `HTTP 400` did.
+
+So the fleet went looking on Hugging Face directly, and migrated Galleon's serving stack from Ollama to a CUDA build of llama.cpp to get underneath Ollama's OpenAI-compatibility shim entirely. Both hunches paid off immediately:
+
+- **GLM-4.6V-Flash-9B** was real: `FreedomAISVR/GLM-4.6V-Flash-MXFP4-GGUF`, 5.2GB plus a 1.8GB vision projector.
+- **Qwen 3.5 9B** had an official quant: `unsloth/Qwen3.5-9B-GGUF`, comfortably 5.7GB at Q4_K_M.
+- **Gemma 4E4B** was real too — but its only actual quant is **14.2GB**, because a mixture-of-experts model keeps *every* expert resident in VRAM regardless of how few activate per token. The video's claimed ~6GB was simply wrong arithmetic, not a naming problem. This one stays impossible on 8GB no matter which registry it's fetched from.
+
+<Admonition type="info" title="⚙️ Technical Insight">
+"Doesn't exist on Ollama" and "doesn't exist" are different claims, and collapsing them cost the fleet nothing here except thirty minutes — but it could just as easily have cost a real capability. Ollama's library is convenience curation on top of the much larger Hugging Face GGUF ecosystem; absence from one is not absence from the other. Gemma 4E4B is the opposite lesson in the same round: it *does* exist, fully documented, and is still unusable on this hardware — because MoE's VRAM cost is bounded by total parameters, not active parameters. Verify existence and verify physical fit as two separate questions; a "no" on either one needs its own evidence, not an inference from the other.
+</Admonition>
+
+## Round Three — A GPU That Was Lying the Whole Time
+
+Mid-migration, before a single fair comparison had been run, `nvidia-smi` started answering queries normally while every actual CUDA context creation failed with `CUDA_ERROR_NO_DEVICE`. The kernel log had the real story: `NVRM: ... Reset required [NV_ERR_RESET_REQUIRED] (0x62)` — Galleon's RTX 3070 was wedged at the driver level. NVML, the thing `nvidia-smi` talks to, kept answering basic queries throughout; only real compute context creation was blocked. A reboot cleared it (`cuInit` returned `0` afterward, one device detected, clean).
+
+This matters beyond the inconvenience: **the entire Round One benchmark may have run on a partially degraded GPU**, silently falling back to CPU speeds Ollama never surfaced as an error. A tool can look healthy — answer every query put to it — while the one operation that actually matters underneath is already broken. The fix isn't paranoia about every green checkmark; it's knowing which specific operation a given healthy-looking answer does and doesn't cover.
+
+## Round Four — The Single Call Lied Too
+
+With the GPU clean and all five real candidates (Llama 3.1 8B, Qwen 3 8B, Qwen 3.5 9B, DeepSeek R1 7B, GLM-4.6V-Flash 9B) loaded on llama.cpp, a quick one-shot tool-call smoke test looked great across the board — every model but DeepSeek returned a clean, correctly-formed `tool_call` on the first try. Vindication for Qwen 3.5 9B, in particular: no crash, no `HTTP 500`, a real function call in 4 seconds.
+
+Then the actual five-question Fleet series ran — the same questions, but as full multi-turn conversations where tool results feed back into context, exactly the shape real agent work takes. The scores collapsed:
+
+| Model | Single-shot smoke test | Full 5Q Fleet series | What broke |
+|-------|:---:|:---:|-------------|
+| **Qwen 3.5 9B** | ✓ clean | **4/5** | Nothing serious — the standout |
+| Qwen 3 8B | ✓ clean | 3/5 | Burned its full token budget mid-answer on one question |
+| Llama 3.1 8B | ✓ clean | **1/5** | `"The model produced output that does not match the expected peg-native format"` — llama.cpp's own grammar-constrained tool-call parser breaks on multi-turn round-trips |
+| DeepSeek R1 7B | (no tools attempted) | 1/5 | No tool-call grammar in its chat template — instead of erroring, it **fabricates plausible fake command output** |
+| GLM-4.6V-Flash 9B | ✓ clean | 1/5 | Loops calling the same tool dozens of times, exhausts its VRAM-forced 4K context, dies with `HTTP 400` |
+
+<Admonition type="info" title="⚙️ Technical Insight">
+A single tool call and a tool-using conversation are different tests, and passing one says nothing about the other. Llama 3.1 8B's failure is the sharpest example: it handled one isolated function call perfectly, then hit a hard parser error the moment a tool result was fed back into its own context on the next turn. GLM-4.6V-Flash's failure is a second, distinct shape of the same lesson — it never errors on any single exchange, it degrades by repeating itself until the context runs out. And DeepSeek R1 7B is the most dangerous shape: it doesn't error at all, it invents a fictional 73-model table and a nonexistent `Galleonix API` rather than admit it has no way to call a tool. Three different failure modes, all invisible to a test that only checks the first response.
+</Admonition>
+
+## The Verdict
+
+**Qwen 3.5 9B is the real winner** — not the video's raw-intelligence crown, earned honestly through five real multi-turn exchanges: 6.1GB VRAM, correct tool calls, a coherent four-neuron fleet-knowledge answer built by visibly reasoning through conflicting memory snippets, and the most complete incident-report memory accounting of any candidate tested. It is also the model this exact fleet rejected twice before — once at M61, once again in Round One of this very mission — both times on evidence that turned out to be measuring the serving layer, not the model.
+
+Nothing here earns **brain** status — that stays with `qwen2.5:14b`, whose track record spans far more task shapes than a single 5-question pass. But Qwen 3.5 9B earns a real seat as a **node** on Galleon: fast, and now proven under the actual conversational shape agent work takes, not just a single isolated call. Llama 3.1 8B and Qwen 3 8B stay usable for single-shot, non-conversational tasks where llama.cpp's parser and thinking-mode overhead never get triggered. DeepSeek R1 7B and GLM-4.6V-Flash 9B are shelved until, respectively, a tool-call-aware chat template and a larger VRAM budget make them safe to point at anything agentic.
+
+<Admonition type="tip" title="📚 Knowledge Transfer">
+**The lesson worth keeping:** every layer in a stack can lie about the layer beneath it. The video's rankings measured raw intelligence, not tool reliability. Ollama's shim errored on some failures and silently degraded on others. `nvidia-smi` kept answering while CUDA itself was dead. A one-shot tool call passed while the same model failed the second a conversation actually looped. Each layer's "it works" only covers what that layer actually tested — never assume it covers the layer above or below.
+
+**Pattern:** three separate investigations this round, each one triggered by refusing to accept a plausible-looking "no" or "yes" at face value — "no Ollama tag" turned out to mean "wrong registry," a healthy `nvidia-smi` turned out to hide a wedged GPU, and a passing smoke test turned out to hide a parser that breaks under real load. The unifying move in all three: go one layer deeper than the tool's own status report.
+
+**What we'd do differently:** run the full multi-turn harness first, before any single-shot smoke test — the smoke test's false confidence cost an extra round of work that direct testing would have skipped entirely.
+
+**If you're building this yourself:** benchmark agent-bound models on full multi-turn tool conversations, not isolated calls — and when a tier list, a driver, or a health check tells you something is fine, ask specifically which operation it checked, because it is almost never all of them.
+</Admonition>
+
+<NunixOut />
+
+<div className="aiverse-fleet-cta">
+  <a href="/aiverse/support">⚔️ The Fleet Needs You — Support the Chronicle</a>
+</div>

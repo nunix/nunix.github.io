@@ -128,6 +128,7 @@ const sidebars: SidebarsConfig = {
     { type: 'doc', id: 'aiverse/era-viii-silicon/the-engine-and-the-assistant', label: 'IX. The Engine and the Assistant' },
     { type: 'doc', id: 'aiverse/era-viii-silicon/the-containers-edge',          label: "X. The Container's Edge" },
     { type: 'doc', id: 'aiverse/era-viii-silicon/the-sparsity-dividend',        label: 'XI. The Sparsity Dividend' },
+    { type: 'doc', id: 'aiverse/era-viii-silicon/the-borrowed-crown',           label: 'XII. The Borrowed Crown' },
   ],
 
   // ── ERA IX — The Economy of Mind ──
