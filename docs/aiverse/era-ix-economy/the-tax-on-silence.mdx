@@ -3,7 +3,7 @@ id: the-tax-on-silence
 title: "The Tax on Silence"
 sidebar_label: "VI. The Tax on Silence"
 description: "M74: a keep-alive ping was built to protect the 5-minute prompt cache for almost nothing — until two hooks were caught taxing every silent ping with a full reminder block, quietly fattening the very context the ping existed to protect."
-tags: [tokens, cache, keep-alive, prompt-cache, hooks, context, era-ix, m74]
+tags: [tokens, cache, keep-alive, prompt-cache, hooks, context, era-ix, m74, m108]
 pagination_prev: 'aiverse/era-ix-economy/every-lever-where-it-bites'
 pagination_next: 'aiverse/era-ix-economy/the-memory-gateway'
 ---
@@ -15,7 +15,7 @@ import Admonition from '@theme/Admonition';
 This chronicle predates the ledger that came after it, but the lesson it taught came first and cost less to learn. A session was creeping toward its context ceiling, and rather than let the fog roll in mid-thought, the Captain closed it clean and opened a fresh one to reckon with the fleet's own spending habits. The first question was small: is anything watching the cache clock? The answer — nothing was — opened a thread that ran from a four-minute heartbeat to two hook scripts quietly billing for their own silence.
 
 *— The Remembrancer of the AIverse*
-*Engrams M74*
+*Engrams M74, M108*
 
 </Admonition>
 
@@ -216,6 +216,143 @@ The mechanic underneath is simpler and stranger: there is no clock. Every touch 
 | Waiting on a delegated subagent | Looks like activity, should protect the cache | Silent from the cache's view — the parent session touches nothing while it waits |
 
 That last row is the one worth carrying forward. The moment work is handed to a subagent, the parent session's turn ends and goes idle — it is, from the cache's point of view, indistinguishable from a Captain who walked away. A subagent works in its own separate context; nothing it does, however long it takes, reaches back to touch the parent's cache. If that wait outlasts five minutes with no metronome running underneath it, the parent cache goes cold in complete silence, and the next real message pays full rebuild price as if from nowhere. Delegation, the very pattern built to keep the parent context small, is exactly the pattern most likely to manufacture this blind spot — because a busy subagent *looks* like activity without ever being a touch. A four-minute metronome running independently of what the parent is waiting on is what closes that gap; no countdown bookkeeping required, just a beat faster than the window.
+
+## Re-Arm vs. Reset — the Job's Own Lifecycle
+
+A later session (M108) ran straight into a sharper version of the same clock confusion, plus a real bug hiding under it: `/clear` and `/new` don't kill a session-only cron job — they only start a fresh conversation. Four `/clear`s in a row left four `[[KEEPALIVE]]` jobs ticking on staggered schedules at once, quietly quadrupling the tax the mechanism exists to avoid. Fixing it required naming two events that had been getting talked about as if they were the same thing:
+
+- **Re-arm** — `CronDelete` (if a survivor exists) then `CronCreate`. A brand-new job, and the four-minute clock actually restarts at zero.
+- **Reset** — the on-disk idle counter goes back to `0/10` because a real message arrived. The job itself, and the absolute schedule it's already running on, are completely untouched.
+
+Only two things trigger a re-arm: a session boundary (start, `/clear`, `/new`), and the moment right after a `10/10` cap-hit deletes the job. Every other real message just resets the counter — the metronome underneath keeps beating on whatever schedule it was already on.
+
+<div className="aiverse-diagram" style={{background: 'linear-gradient(160deg, #0b1220 0%, #0f172a 100%)', borderRadius: '20px', padding: '8px', margin: '2rem 0', boxShadow: '0 12px 40px rgba(0,0,0,0.45)', border: '1px solid rgba(45,212,191,0.18)'}}>
+<svg viewBox="0 0 1200 620" width="100%" role="img" aria-label="Timeline of a keep-alive cron job's lifecycle: re-arm creates a fresh job and restarts its clock at zero, ticks fire on that fixed schedule incrementing a counter, a real message only resets the counter without touching the schedule, and a 10/10 cap-hit deletes the job until the next real message re-arms a brand new one" style={{display: 'block', fontFamily: 'ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, sans-serif'}}>
+  <defs>
+    <linearGradient id="lcPurple" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stopColor="#a78bfa"/><stop offset="1" stopColor="#7c3aed"/>
+    </linearGradient>
+    <linearGradient id="lcTeal" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stopColor="#2dd4bf"/><stop offset="1" stopColor="#0ea5a4"/>
+    </linearGradient>
+    <linearGradient id="lcAmber" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stopColor="#fbbf24"/><stop offset="1" stopColor="#f59e0b"/>
+    </linearGradient>
+    <linearGradient id="lcRed" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stopColor="#fb7185"/><stop offset="1" stopColor="#e11d48"/>
+    </linearGradient>
+    <filter id="softLc" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="4" stdDeviation="6" floodColor="#000000" floodOpacity="0.35"/>
+    </filter>
+    <marker id="ahLc" markerWidth="12" markerHeight="12" refX="7" refY="4" orient="auto" markerUnits="strokeWidth">
+      <path d="M0,0 L8,4 L0,8 Z" fill="#7dd3c8"/>
+    </marker>
+    <marker id="ahdLc" markerWidth="12" markerHeight="12" refX="7" refY="4" orient="auto" markerUnits="strokeWidth">
+      <path d="M0,0 L8,4 L0,8 Z" fill="#64748b"/>
+    </marker>
+  </defs>
+
+  <text x="40" y="42" fill="#f1f5f9" fontSize="22" fontWeight="700">One Job's Life, Start to Cap</text>
+  <text x="40" y="64" fill="#7dd3c8" fontSize="12.5" letterSpacing="1.2">RE-ARM RESTARTS THE CLOCK · A REAL MESSAGE ONLY RESETS THE COUNTER</text>
+
+  <!-- main axis -->
+  <line x1="60" y1="300" x2="1150" y2="300" stroke="#334155" strokeWidth="2"/>
+  <path d="M1140 300 L1150 300" stroke="#334155" strokeWidth="2" markerEnd="url(#ahdLc)"/>
+
+  <!-- RE-ARM 1: session start -->
+  <circle cx="110" cy="300" r="22" fill="url(#lcPurple)" filter="url(#softLc)"/>
+  <text x="110" y="306" fill="#1a0b2e" fontSize="13" fontWeight="800" textAnchor="middle">A</text>
+  <text x="110" y="245" fill="#e2e8f0" fontSize="12.5" fontWeight="700" textAnchor="middle">Session start / /clear / /new</text>
+  <text x="110" y="262" fill="#a78bfa" fontSize="10.5" textAnchor="middle">RE-ARM · t=0</text>
+  <text x="110" y="340" fill="#64748b" fontSize="10" textAnchor="middle">CronList → delete survivors</text>
+  <text x="110" y="354" fill="#64748b" fontSize="10" textAnchor="middle">→ CronCreate fresh job</text>
+
+  <!-- tick 1 -->
+  <circle cx="230" cy="300" r="16" fill="url(#lcTeal)" filter="url(#softLc)"/>
+  <text x="230" y="305" fill="#04211f" fontSize="11" fontWeight="800" textAnchor="middle">1</text>
+  <text x="230" y="266" fill="#cbd5e1" fontSize="10.5" textAnchor="middle">t+4m</text>
+  <text x="230" y="336" fill="#64748b" fontSize="10" textAnchor="middle">tick 1/10</text>
+
+  <!-- tick 2 -->
+  <circle cx="350" cy="300" r="16" fill="url(#lcTeal)" filter="url(#softLc)"/>
+  <text x="350" y="305" fill="#04211f" fontSize="11" fontWeight="800" textAnchor="middle">2</text>
+  <text x="350" y="266" fill="#cbd5e1" fontSize="10.5" textAnchor="middle">t+8m</text>
+  <text x="350" y="336" fill="#64748b" fontSize="10" textAnchor="middle">tick 2/10</text>
+
+  <!-- real message / RESET -->
+  <path d="M430 280 L448 300 L430 320 L412 300 Z" fill="url(#lcAmber)" filter="url(#softLc)"/>
+  <text x="430" y="240" fill="#e2e8f0" fontSize="12.5" fontWeight="700" textAnchor="middle">Real message</text>
+  <text x="430" y="257" fill="#f59e0b" fontSize="10.5" textAnchor="middle">RESET · counter→0/10</text>
+  <text x="430" y="345" fill="#64748b" fontSize="10" textAnchor="middle">t+9m30s — clock</text>
+  <text x="430" y="359" fill="#64748b" fontSize="10" textAnchor="middle">itself untouched</text>
+
+  <!-- tick after reset lands on SAME absolute schedule -->
+  <circle cx="500" cy="300" r="16" fill="url(#lcTeal)" filter="url(#softLc)"/>
+  <text x="500" y="305" fill="#04211f" fontSize="11" fontWeight="800" textAnchor="middle">1</text>
+  <text x="500" y="266" fill="#cbd5e1" fontSize="10.5" textAnchor="middle">t+12m</text>
+  <text x="500" y="336" fill="#64748b" fontSize="10" textAnchor="middle">tick 1/10 — only 2m30s later</text>
+
+  <path d="M230 340 C 350 400, 430 400, 500 340" stroke="#64748b" strokeWidth="1.6" strokeDasharray="5 4" fill="none" markerEnd="url(#ahdLc)"/>
+  <text x="365" y="412" fill="#94a3b8" fontSize="10.5" textAnchor="middle">same absolute schedule the whole way — the reset never moved it</text>
+
+  <!-- ellipsis -->
+  <text x="600" y="305" fill="#475569" fontSize="20" fontWeight="700" textAnchor="middle">···</text>
+  <text x="600" y="266" fill="#475569" fontSize="10" textAnchor="middle">ticks 2–9/10</text>
+
+  <!-- tick 10 / cap hit -->
+  <circle cx="700" cy="300" r="18" fill="url(#lcRed)" filter="url(#softLc)"/>
+  <text x="700" y="306" fill="#2a0a12" fontSize="12" fontWeight="800" textAnchor="middle">10</text>
+  <text x="700" y="256" fill="#e2e8f0" fontSize="12.5" fontWeight="700" textAnchor="middle">Cap hit</text>
+  <text x="700" y="273" fill="#fb7185" fontSize="10.5" textAnchor="middle">10th consecutive idle tick</text>
+  <text x="700" y="336" fill="#64748b" fontSize="10" textAnchor="middle">~t+40m of silence</text>
+
+  <!-- delete -->
+  <circle cx="820" cy="300" r="20" fill="url(#lcPurple)" filter="url(#softLc)"/>
+  <text x="820" y="306" fill="#1a0b2e" fontSize="12" fontWeight="800" textAnchor="middle">X</text>
+  <text x="820" y="256" fill="#e2e8f0" fontSize="12.5" fontWeight="700" textAnchor="middle">Job deleted</text>
+  <text x="820" y="273" fill="#a78bfa" fontSize="10.5" textAnchor="middle">CronDelete · state→unarmed</text>
+  <text x="820" y="336" fill="#64748b" fontSize="10" textAnchor="middle">no ticks fire, no cost accrues</text>
+
+  <path d="M240 300 L688 300" stroke="url(#lcTeal)" strokeWidth="3" fill="none" opacity="0.25"/>
+
+  <!-- RE-ARM 2: next real message -->
+  <path d="M940 280 L958 300 L940 320 L922 300 Z" fill="url(#lcAmber)" filter="url(#softLc)"/>
+  <text x="940" y="240" fill="#e2e8f0" fontSize="12.5" fontWeight="700" textAnchor="middle">Real message</text>
+  <text x="940" y="257" fill="#f59e0b" fontSize="10.5" textAnchor="middle">arrives while unarmed</text>
+
+  <circle cx="1060" cy="300" r="22" fill="url(#lcPurple)" filter="url(#softLc)"/>
+  <text x="1060" y="306" fill="#1a0b2e" fontSize="13" fontWeight="800" textAnchor="middle">B</text>
+  <text x="1060" y="245" fill="#e2e8f0" fontSize="12.5" fontWeight="700" textAnchor="middle">Fresh job created</text>
+  <text x="1060" y="262" fill="#a78bfa" fontSize="10.5" textAnchor="middle">RE-ARM · clock resets to t=0</text>
+  <text x="1060" y="340" fill="#64748b" fontSize="10" textAnchor="middle">first real tick now a</text>
+  <text x="1060" y="354" fill="#64748b" fontSize="10" textAnchor="middle">full 4m out, guaranteed</text>
+
+  <path d="M840 300 L900 300" stroke="#334155" strokeWidth="2" strokeDasharray="4 4" fill="none" markerEnd="url(#ahdLc)"/>
+  <text x="870" y="410" fill="#94a3b8" fontSize="10.5" textAnchor="middle">idle gap — no job exists here</text>
+
+  <!-- legend -->
+  <rect x="180" y="500" width="16" height="16" rx="8" fill="url(#lcPurple)"/>
+  <text x="203" y="513" fill="#94a3b8" fontSize="12">Re-arm — job created/destroyed, clock restarts</text>
+  <rect x="560" y="500" width="16" height="16" rx="8" fill="url(#lcTeal)"/>
+  <text x="583" y="513" fill="#94a3b8" fontSize="12">Tick — counter++, fixed schedule keeps running</text>
+  <rect x="900" y="500" width="16" height="16" rx="3" fill="url(#lcAmber)"/>
+  <text x="923" y="513" fill="#94a3b8" fontSize="12">Real message — resets counter only (unless job is dead)</text>
+</svg>
+</div>
+
+## Q&A: Where Does the Four Minutes Actually Land?
+
+> **Q: I answered a question and the very next ping landed under a minute later — is the four-minute promise broken?**
+> No. A real message resets the *counter*, not the *schedule*. The job's clock is running on an absolute cadence set the moment it was created; the next tick lands wherever that existing metronome already was — anywhere from a few seconds to just under four minutes away, never a fresh four.
+
+> **Q: So when does a genuine full four-minute wait actually happen?**
+> Only right after the clock itself restarts: at a session boundary (start / `/clear` / `/new`), or the moment a real message arrives right after a `10/10` cap-hit deleted the job. Those are the only two re-arm events. Every other tick is inheriting a schedule that was already in motion.
+
+> **Q: Does `/clear` or `/new` at least kill the old job first?**
+> It didn't, and that was the M108 bug: session-only cron jobs are process-scoped, not conversation-scoped. Four `/clear`s stacked four live `[[KEEPALIVE]]` jobs on overlapping schedules — quadruple the tax the mechanism was built to avoid. Fixed by making the session-start hook run `CronList` → `CronDelete` every existing `[[KEEPALIVE]]` job before creating one fresh — every session boundary, no exceptions.
+
+> **Q: What's the actual difference between "re-arm" and "reset"?**
+> Re-arm = `CronDelete` (if needed) + `CronCreate` — a brand-new job, clock genuinely back to zero. Reset = the on-disk idle counter going to `0/10` because real traffic arrived — the job and its schedule are untouched. Conflating the two is exactly what makes tick timing feel random when it isn't.
 
 ## The Broader Habit
 
