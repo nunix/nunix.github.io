@@ -449,7 +449,7 @@ export const AIVERSE_ERAS: AiverseEra[] = [
         title: 'The Tax on Silence',
         subtitle: 'A keep-alive ping built to cost almost nothing — until two hooks taxed every silent fire with a full reminder block',
         path: '/aiverse/era-ix-economy/the-tax-on-silence',
-        missions: 'M74, M108',
+        missions: 'M74, M114',
       },
       {
         title: 'The Memory Gateway',
