@@ -3,7 +3,7 @@ id: the-tax-on-silence
 title: "The Tax on Silence"
 sidebar_label: "VI. The Tax on Silence"
 description: "M74: a keep-alive ping was built to protect the 5-minute prompt cache for almost nothing — until two hooks were caught taxing every silent ping with a full reminder block, quietly fattening the very context the ping existed to protect."
-tags: [tokens, cache, keep-alive, prompt-cache, hooks, context, era-ix, m74, m108]
+tags: [tokens, cache, keep-alive, prompt-cache, hooks, context, era-ix, m74, m114]
 pagination_prev: 'aiverse/era-ix-economy/every-lever-where-it-bites'
 pagination_next: 'aiverse/era-ix-economy/the-memory-gateway'
 ---
@@ -15,7 +15,7 @@ import Admonition from '@theme/Admonition';
 This chronicle predates the ledger that came after it, but the lesson it taught came first and cost less to learn. A session was creeping toward its context ceiling, and rather than let the fog roll in mid-thought, the Captain closed it clean and opened a fresh one to reckon with the fleet's own spending habits. The first question was small: is anything watching the cache clock? The answer — nothing was — opened a thread that ran from a four-minute heartbeat to two hook scripts quietly billing for their own silence.
 
 *— The Remembrancer of the AIverse*
-*Engrams M74, M108*
+*Engrams M74, M114*
 
 </Admonition>
 
@@ -219,7 +219,7 @@ That last row is the one worth carrying forward. The moment work is handed to a 
 
 ## Re-Arm vs. Reset — the Job's Own Lifecycle
 
-A later session (M108) ran straight into a sharper version of the same clock confusion, plus a real bug hiding under it: `/clear` and `/new` don't kill a session-only cron job — they only start a fresh conversation. Four `/clear`s in a row left four `[[KEEPALIVE]]` jobs ticking on staggered schedules at once, quietly quadrupling the tax the mechanism exists to avoid. Fixing it required naming two events that had been getting talked about as if they were the same thing:
+A later session (M114) ran straight into a sharper version of the same clock confusion, plus a real bug hiding under it: `/clear` and `/new` don't kill a session-only cron job — they only start a fresh conversation. Four `/clear`s in a row left four `[[KEEPALIVE]]` jobs ticking on staggered schedules at once, quietly quadrupling the tax the mechanism exists to avoid. Fixing it required naming two events that had been getting talked about as if they were the same thing:
 
 - **Re-arm** — `CronDelete` (if a survivor exists) then `CronCreate`. A brand-new job, and the four-minute clock actually restarts at zero.
 - **Reset** — the on-disk idle counter goes back to `0/10` because a real message arrived. The job itself, and the absolute schedule it's already running on, are completely untouched.
@@ -349,7 +349,7 @@ Only two things trigger a re-arm: a session boundary (start, `/clear`, `/new`), 
 > Only right after the clock itself restarts: at a session boundary (start / `/clear` / `/new`), or the moment a real message arrives right after a `10/10` cap-hit deleted the job. Those are the only two re-arm events. Every other tick is inheriting a schedule that was already in motion.
 
 > **Q: Does `/clear` or `/new` at least kill the old job first?**
-> It didn't, and that was the M108 bug: session-only cron jobs are process-scoped, not conversation-scoped. Four `/clear`s stacked four live `[[KEEPALIVE]]` jobs on overlapping schedules — quadruple the tax the mechanism was built to avoid. Fixed by making the session-start hook run `CronList` → `CronDelete` every existing `[[KEEPALIVE]]` job before creating one fresh — every session boundary, no exceptions.
+> It didn't, and that was the M114 bug: session-only cron jobs are process-scoped, not conversation-scoped. Four `/clear`s stacked four live `[[KEEPALIVE]]` jobs on overlapping schedules — quadruple the tax the mechanism was built to avoid. Fixed by making the session-start hook run `CronList` → `CronDelete` every existing `[[KEEPALIVE]]` job before creating one fresh — every session boundary, no exceptions.
 
 > **Q: What's the actual difference between "re-arm" and "reset"?**
 > Re-arm = `CronDelete` (if needed) + `CronCreate` — a brand-new job, clock genuinely back to zero. Reset = the on-disk idle counter going to `0/10` because real traffic arrived — the job and its schedule are untouched. Conflating the two is exactly what makes tick timing feel random when it isn't.
