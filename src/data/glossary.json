@@ -31,6 +31,30 @@
     "title": "MATEY",
     "def": "The worker-class subagent. Claude Code Haiku — fast, cheap, precise. Each ship has its own Matey. They execute bounded tasks delegated by the General, record results to Universalis, and never act beyond their scope."
   },
+  "claude": {
+    "title": "CLAUDE",
+    "def": "Anthropic's large language model family. Multiple tiers: Haiku (fast, cheap), Sonnet 5 (balanced captain-class), Opus 4.8 (top-tier reasoning). The fleet's default reasoning vendor for orchestration, code, and general delegation."
+  },
+  "anthropic": {
+    "title": "ANTHROPIC",
+    "def": "The AI research company that builds Claude. One of three vendors in the fleet's triumvirate trust system, alongside Google and OpenAI."
+  },
+  "gemini": {
+    "title": "GEMINI",
+    "def": "Google's large language model family. Multiple tiers: Gemini 3.5 Flash (fast, cost-effective), Gemini 3.1 Pro (reasoning-focused). One of three vendors in the fleet's triumvirate trust system."
+  },
+  "google": {
+    "title": "GOOGLE",
+    "def": "The company that builds Gemini. One of three vendors in the fleet's triumvirate trust system, alongside Anthropic and OpenAI."
+  },
+  "gpt": {
+    "title": "GPT",
+    "def": "OpenAI's large language model family. Multiple tiers: GPT-5.6 Terra (budget flagship), GPT-5.6 Sol (premium flagship). One of three vendors in the fleet's triumvirate trust system."
+  },
+  "openai": {
+    "title": "OPENAI",
+    "def": "The AI research company that builds GPT. One of three vendors in the fleet's triumvirate trust system, alongside Anthropic and Google."
+  },
   "haiku": {
     "title": "HAIKU",
     "def": "Anthropic's fastest, most cost-effective Claude model tier — roughly a third of the per-token price of the fleet's standard reasoning tier in both directions. Matey runs on Haiku: cheap for large mechanical tasks, but every spawn still pays full price for its standing instructions since subagents carry no memory between calls.",
@@ -313,5 +337,48 @@
     "title": "PGBOUNCER",
     "def": "A lightweight connection pooler for PostgreSQL. The fleet's mcp-lazy-proxy borrows its name and philosophy — pool and defer connections at the infrastructure layer, invisible to the caller.",
     "link": "https://www.pgbouncer.org"
+  },
+  "claude-sonnet-5": {
+    "title": "CLAUDE SONNET 5",
+    "def": "Anthropic's mid-tier reasoning model — priced at $2/$10 per million input/output tokens. The fleet's default captain-class model: strong enough for orchestration and code, cheap enough to run as the standing session model rather than reserve for special occasions.",
+    "link": "https://www.anthropic.com/claude/sonnet"
+  },
+  "claude-opus-4-8": {
+    "title": "CLAUDE OPUS 4.8",
+    "def": "Anthropic's top-tier reasoning model — $5/$25 per million tokens, two and a half times Sonnet 5's rate. Reserved in the fleet's routing doctrine for architecture-level judgment calls and critical verdicts, not routine delegation.",
+    "link": "https://www.anthropic.com/claude/opus"
+  },
+  "gemini-3-5-flash": {
+    "title": "GEMINI 3.5 FLASH",
+    "def": "Google's fast, low-cost Gemini tier, reached through the agy CLI. Undercuts its own Gemini 3.1 Pro sibling by roughly a quarter on price — one of the three vendors in the fleet's round-robin roster alongside Claude and GPT."
+  },
+  "gpt-5-6-sol": {
+    "title": "GPT-5.6 SOL",
+    "def": "OpenAI's flagship-tier GPT-5.6 model, reached through the copilot CLI — $5/$30 per million tokens, the most expensive tongue in the fleet's triumvirate. Reserved for brain/architecture-class tasks, not general delegation."
+  },
+  "gpt-5-6-terra": {
+    "title": "GPT-5.6 TERRA",
+    "def": "OpenAI's lighter GPT-5.6 tier — $2.50/$15 per million tokens, a fraction of Sol's cost for work OpenAI says lands within reach of the flagship's quality. One leg of the fleet's round-robin roster; briefly misrouted fleet-wide by a one-letter typo (`tera` vs `terra`) in model_registry until M128 caught it."
+  },
+  "peer-trust": {
+    "title": "PEER TRUST",
+    "def": "A domain-scored trust rating (0-100) built entirely from mutual review — two models rate a third's work on a task neither of them produced. No self-rating permitted at the database level. Each new review nudges the running score with a decay-weighted average (0.8 × old + 0.2 × new), so one bad day can't collapse a reputation built over months."
+  },
+  "round-robin-rotation": {
+    "title": "ROUND-ROBIN ROTATION",
+    "def": "A fixed-window routing override — matey_rotation_state cycles strictly through the vendor roster (Haiku, Gemini 3.5 Flash, GPT-5.6 Terra) regardless of current trust score, until every vendor has earned a comparable, correctly-tagged sample size. Normal trust-based routing resumes once the window closes."
+  },
+  "model-registry": {
+    "title": "MODEL REGISTRY",
+    "def": "The fleet's vendor/model roster, stored as plain unconstrained text rows with a lifecycle status flag (active/deprecated/testing) instead of a hardcoded CHECK enum. Onboarding a new vendor is one INSERT; retiring one is one UPDATE — no migration, no schema change."
+  },
+  "task-cost": {
+    "title": "TASK COST",
+    "def": "A per-task or per-subtask ledger row (task_cost) recording what a single delegation actually cost, linked to its parent so a whole mission's spend rolls up to one traceable number instead of scattering across untraceable API calls."
+  },
+  "finops": {
+    "title": "FINOPS",
+    "def": "Financial operations — the practice of tracking and attributing spend on cloud or API usage in real time, close to the teams generating it. In the fleet, FinOps means every routing decision can see cost sitting next to trust, domain by domain, instead of discovering the bill later.",
+    "link": "https://en.wikipedia.org/wiki/FinOps"
   }
 }

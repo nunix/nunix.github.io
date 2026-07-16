@@ -14,6 +14,26 @@ This is where new chapters are announced, writing choices are explained, and the
 
 ---
 
+## 2026.07.16 — Era X: The Roster's Reckoning
+
+The clean five-milestone build from Chronicle I turns out not to be the whole story — **[The Roster's Reckoning](/aiverse/era-x-council/the-rosters-reckoning)** (M122, M126–M134) traces what a small cosmetic ask, vendor logos on the command-center graph, actually uncovered: a logo cutoff that hid three missions' worth of missing icon data, a `gpt-5.6-tera`/`terra` typo that had been silently misrouting dispatches since the registry was seeded, an untagged completion-write template that left most Matey delegations without vendor attribution, and a missing pricing row that quietly dropped every Haiku cost record. Five missions, one underlying defect, found one narrowed layer at a time. Also on record: the Emperor's call to leave a vendor's trust score untouched when a rendering bug traced back to the fleet's own design, not the vendor's execution of it.
+
+What's next:
+- How peer trust actually moved once the round-robin window gave all three vendors a fair, correctly-tagged sample size.
+- A FinOps read on quality-per-dollar for entry-level frontier models against their flagship siblings.
+
+---
+
+## 2026.07.14 — Era X: The Council of Tongues
+
+The fleet's command chair opens to three vendors at once with **[The Triumvirate Accord](/aiverse/era-x-council/the-triumvirate-accord)** (M121–M123) — Gemini and GPT join Claude in the same seat, and the fleet builds what that seat now requires: a `model_registry` with no hardcoded vendor list (onboard or retire a model with one row, no migration), a domain-scoped peer-trust ledger built from mutual review instead of self-report, and a FinOps cost ledger that puts a real dollar figure beside every trust score. Era X opens with the design and the plumbing; later chronicles will report what the triumvirate actually produces once real missions start flowing through it.
+
+What's next:
+- Wire `query_trust_routing` into `fleet_delegate` once real peer-review data accumulates past the seed stage.
+- First real cross-vendor delegation, and the review that follows it.
+
+---
+
 ## 2026.07.09 — Era VIII: The Borrowed Crown
 
 Era VIII grows to twelve with **[The Borrowed Crown](/aiverse/era-viii-silicon/the-borrowed-crown)** (M111–M112) — a follow-up prompted by an outside source: a viewer's tier-list video crowned two models S-tier for 8GB VRAM cards, the same class Galleon runs. What started as a one-round retest turned into three: Round One (Ollama) found two "ghost" models with no pullable tag and one crash on the video's own top pick; Round Two chased those ghosts to Hugging Face directly and migrated Galleon to a CUDA build of llama.cpp, finding both ghosts were real (one physically impossible on 8GB regardless of registry, one genuinely usable) — but only after discovering, mid-migration, that the GPU itself had silently wedged at the driver level while `nvidia-smi` kept answering normally. Round Three found that even a clean single-shot tool-call test doesn't predict multi-turn agentic reliability — every model but one collapsed once tool results actually fed back into a real conversation, including the model this same fleet had rejected twice before. The lesson: every layer in a stack can lie about the layer beneath it, and a passing check only ever covers the specific thing it tested.

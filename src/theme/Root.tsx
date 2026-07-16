@@ -170,26 +170,6 @@ export default function Root({ children }: { children: React.ReactNode }) {
     const handleGlobalClick = (e: MouseEvent) => {
       const target = e.target as HTMLElement;
 
-      if (target.tagName === "CODE" && !target.closest("pre")) {
-        const text = target.textContent || "";
-        navigator.clipboard.writeText(text);
-        target.classList.add("inline-copied-flash");
-
-        const rect = target.getBoundingClientRect();
-        const label = document.createElement("span");
-        label.innerText = "COPIED";
-        label.className = "inline-copy-label";
-        label.style.top = `${rect.top + window.scrollY - 20}px`;
-        label.style.left = `${rect.left + window.scrollX}px`;
-
-        document.body.appendChild(label);
-        setTimeout(() => {
-          target.classList.remove("inline-copied-flash");
-          label.remove();
-        }, 800);
-        return;
-      }
-
       const diagram = target.closest(".aiverse-diagram") as HTMLElement | null;
       if (diagram) {
         const svg = diagram.querySelector("svg");
