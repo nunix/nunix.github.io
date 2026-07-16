@@ -2,7 +2,7 @@
 id: the-triumvirate-accord
 title: "The Triumvirate Accord"
 sidebar_label: "I. The Triumvirate Accord"
-description: "M121-M123: the fleet opened its command chair to three vendors at once — Claude, Gemini, GPT — and had to answer, before any of them touched a shared task, how three tongues could earn trust without one of them grading its own homework."
+description: "M121-M123: the fleet opened its command chair to three vendors at once — <Term id=\"claude\">Claude</Term>, <Term id=\"gemini\">Gemini</Term>, <Term id=\"gpt\">GPT</Term> — and had to answer, before any of them touched a shared task, how three tongues could earn trust without one of them grading its own homework."
 tags: [aiverse, era-x, multi-agent, trust, finops, m121, m122, m123]
 pagination_prev: 'aiverse/era-ix-economy/aiverse-era-ix-economy'
 ---
@@ -27,16 +27,20 @@ Nine eras had passed in a single tongue. Every chronicle before this one, howeve
 # I. The Triumvirate Accord
 
 <Admonition type="info" title="⚙️ M121-M123 — Three Tongues, One Ledger">
-The fleet had always assumed its captain and its worker agents shared one lineage. M121 broke that assumption on purpose: Gemini reachable through `agy`, GPT reachable through `copilot`, standing alongside Claude in the same command chair. Three chronicles' worth of missions — M121 through M123 — answered the three questions that assumption's death immediately raised: how does context survive a handoff between vendors, how does the fleet know which tongue to trust with which kind of work, and what does any of it cost.
+The fleet had always assumed its captain and its worker agents shared one lineage. M121 broke that assumption on purpose: <Term id="gemini">Gemini</Term> reachable through `agy`, <Term id="gpt">GPT</Term> reachable through `copilot`, standing alongside <Term id="claude">Claude</Term> in the same command chair. Three chronicles' worth of missions — M121 through M123 — answered the three questions that assumption's death immediately raised: how does context survive a handoff between vendors, how does the fleet know which tongue to trust with which kind of work, and what does any of it cost.
 
 *[Return to the Cosmic Map](/cosmos) to see all eras.*
 </Admonition>
 
 ## The Question Behind the Question
 
-The Emperor's opening ask sounded like a plumbing problem: keep one chat context, but let Gemini or GPT pick up where Claude left off. It wasn't a plumbing problem. Context does not travel between vendors — no shared KV cache, no shared system prompt, nothing but the words on the page. What actually crosses the boundary is whatever gets written down somewhere all three can read, which the fleet already had a name for: Universalis, the `fleet_memory` table that has recorded every delegation, objective, and observation since Era I. The research settled quickly on the pattern practitioners were already converging on across the wider field — a shared notebook every agent reads from and writes to, rather than a router that merely picks a model per request and forgets why.
+The Emperor's opening ask sounded like a plumbing problem: keep one chat context, but let <Term id="gemini">Gemini</Term> or <Term id="gpt">GPT</Term> pick up where <Term id="claude">Claude</Term> left off. It wasn't a plumbing problem. Context does not travel between vendors — no shared KV cache, no shared system prompt, nothing but the words on the page.
 
-But a shared notebook raises the harder question immediately behind it. If three tongues can all write to the same ledger, which one should be trusted to write the next line? A router answers "which model" on cost or latency alone. It has no opinion on which model is actually *good* at the task in front of it, and no memory of whether that opinion held up last time. The fleet needed something a router doesn't provide: a trust score that builds the way real peer trust does — earned across many small judgments, by the people (or tongues) doing adjacent work, not claimed by the one doing the work itself.
+What actually crosses the boundary is whatever gets written down somewhere all three can read, which the fleet already had a name for: Universalis, the `fleet_memory` table that has recorded every delegation, objective, and observation since Era I. The research settled quickly on the pattern practitioners were already converging on across the wider field — a shared notebook every agent reads from and writes to, rather than a router that merely picks a model per request and forgets why.
+
+But a shared notebook raises the harder question immediately behind it. If three tongues can all write to the same ledger, which one should be trusted to write the next line? A router answers "which model" on cost or latency alone. It has no opinion on which model is actually *good* at the task in front of it, and no memory of whether that opinion held up last time.
+
+The fleet needed something a router doesn't provide: a trust score that builds the way real peer trust does — earned across many small judgments, by the people (or tongues) doing adjacent work, not claimed by the one doing the work itself.
 
 ## Building the Ledger Without Painting Itself Into a Corner
 
@@ -59,15 +63,165 @@ CREATE TABLE model_registry (
 );
 ```
 
-Trust itself lives one layer up, in `peer_trust` — a score per `(model, domain)`, because a tongue that writes clean code and a tongue that writes a calm incident summary are not the same skill, and rating them with one number would hide exactly the information the fleet needed. Every score is built from `peer_reviews`, an append-only log where two agents rate the third's work on a task neither of them produced, 0 to 100, no self-rating permitted at the database level — a `CHECK (target_model_id <> reviewer_model_id)` constraint, not merely a house rule an agent could forget. Each new review nudges the running score with a decay-weighted average, `0.8 × old + 0.2 × new`, so a single bad day doesn't collapse a score built over months, and a genuine improvement doesn't take months to register either.
+### Scoring Without Self-Grading
 
-The cold-start problem — trusting a model on day one, before it has a single peer review to its name — got a second, humbler source: public benchmarks, pulled by WebSearch rather than guessed, cited by name and date in a `benchmark_seed` table, used only as a fallback until real reviews accumulate. Where no honest number existed for the exact model in question — reasoning and presentation benchmarks specific to Gemini 3.5 Flash or GPT-5.6 Sol simply don't exist yet — the table was left empty rather than filled with a number borrowed from a different model. A wrong number with a confident source citation is worse than an honest gap.
+Trust itself lives one layer up, in <Term id="peer-trust">`peer_trust`</Term> — a score per `(model, domain)`, because a tongue that writes clean code and a tongue that writes a calm incident summary are not the same skill, and rating them with one number would hide exactly the information the fleet needed.
+
+Every score is built from `peer_reviews`, an append-only log where two agents rate the third's work on a task neither of them produced, 0 to 100. No self-rating is permitted at the database level — a `CHECK (target_model_id <> reviewer_model_id)` constraint, not merely a house rule an agent could forget. Each new review nudges the running score with a decay-weighted average, `0.8 × old + 0.2 × new`, so a single bad day doesn't collapse a score built over months, and a genuine improvement doesn't take months to register either.
+
+The cold-start problem — trusting a model on day one, before it has a single peer review to its name — got a second, humbler source: public benchmarks, pulled by WebSearch rather than guessed, cited by name and date in a `benchmark_seed` table, used only as a fallback until real reviews accumulate. Where no honest number existed for the exact model in question — reasoning and presentation benchmarks specific to <Term id="gemini-3-5-flash">Gemini 3.5 Flash</Term> or <Term id="gpt-5-6-sol">GPT-5.6 Sol</Term> simply don't exist yet — the table was left empty rather than filled with a number borrowed from a different model. A wrong number with a confident source citation is worse than an honest gap.
 
 ## The Bill Nobody Was Watching
 
-The accord wasn't finished once trust could be measured. Three vendors billed three different ways, at three different rates, and a fleet that couldn't see what any one delegation cost couldn't reason about whether the trust it was building was worth the price. M123 closed that gap with `model_pricing` — dated rate cards per model, because prices change and a stale rate silently corrupts every cost estimate built on it — and `task_cost`, a row per task or subtask, each one able to point at a parent delegation node so a whole mission's spend rolls up to a single number instead of scattering across untraceable API calls.
+The accord wasn't finished once trust could be measured. Three vendors billed three different ways, at three different rates, and a fleet that couldn't see what any one delegation cost couldn't reason about whether the trust it was building was worth the price.
 
-The prices themselves told their own story once gathered: Claude Sonnet 5 at $2/$10 per million tokens against Opus 4.8 at $5/$25, Gemini 3.5 Flash undercutting its own Pro sibling by roughly a quarter, GPT-5.6 Sol at $5/$30 next to Terra's $2.50/$15 for work OpenAI itself says lands within reach of the flagship's quality. None of that is a reason to route blind toward whichever model is cheapest — a peer-trust score of 50 on an untested domain is still worth less than a proven 80 at triple the price, for anything that matters. But a fleet that can finally see cost sitting next to trust, domain by domain, can start asking the question routing is actually for: not "which model is smartest," but "which model is worth what it costs, for this exact kind of work."
+M123 closed that gap with `model_pricing` — dated rate cards per model, because prices change and a stale rate silently corrupts every cost estimate built on it — and <Term id="task-cost">`task_cost`</Term>, a row per task or subtask, each one able to point at a parent delegation node so a whole mission's spend rolls up to a single number instead of scattering across untraceable API calls.
+
+### What Three Tongues Actually Cost
+
+Once the rates were gathered side by side, the spread inside a single vendor's own lineup turned out to matter as much as the spread between vendors. <Term id="claude-sonnet-5">Claude Sonnet 5</Term> and <Term id="claude-opus-4-8">Opus 4.8</Term> sit two and a half times apart on cost alone, and OpenAI's own two tiers land at a similar spread — Sol prices at the flagship tier, <Term id="gpt-5-6-terra">Terra</Term> claims near-flagship quality for a fraction of the cost.
+
+| Model | Input $/MTok | Output $/MTok | Note |
+|---|---|---|---|
+| Claude Sonnet 5 | $2.00 | $10.00 | fleet's default captain-class model |
+| Claude Opus 4.8 | $5.00 | $25.00 | 2.5× Sonnet 5 — reserved for hard calls |
+| Gemini 3.5 Flash | — | — | ~25% below Gemini 3.1 Pro, its own sibling |
+| GPT-5.6 Sol | $5.00 | $30.00 | OpenAI's flagship tier |
+| GPT-5.6 Terra | $2.50 | $15.00 | OpenAI's near-flagship budget tier |
+
+None of that is a reason to route blind toward whichever model is cheapest — a peer-trust score of 50 on an untested domain is still worth less than a proven 80 at triple the price, for anything that matters. But a fleet that can finally see cost sitting next to trust, domain by domain, can start asking the question routing is actually for: not "which model is smartest," but "which model is worth what it costs, for this exact kind of work."
+
+### From Prompt to Answer, One Loop
+
+Routing and trust are not two separate systems — they are one loop, and the diagram below places every piece from this chronicle inside it: how a task gets routed today (a fixed-window round-robin, not the old habit of defaulting to one model), which of the three tongues actually executes it, and how the peer review and the cost row that follow both feed back into the next routing decision.
+
+<div className="aiverse-diagram" style={{background: 'linear-gradient(160deg, #0b1220 0%, #0f172a 100%)', borderRadius: '20px', padding: '8px', margin: '2rem 0', boxShadow: '0 12px 40px rgba(0,0,0,0.45)', border: '1px solid rgba(45,212,191,0.18)'}}>
+<svg viewBox="0 0 1200 590" width="100%" role="img" aria-label="The routing pipeline from a delegated task through vendor dispatch, execution, peer review, and cost logging, feeding back into the next routing decision" style={{display: 'block', fontFamily: 'ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, sans-serif'}}>
+  <defs>
+    <linearGradient id="rgTeal" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stopColor="#2dd4bf"/><stop offset="1" stopColor="#0ea5a4"/>
+    </linearGradient>
+    <linearGradient id="rgSky" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stopColor="#38bdf8"/><stop offset="1" stopColor="#0284c7"/>
+    </linearGradient>
+    <linearGradient id="rgPurple" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stopColor="#a78bfa"/><stop offset="1" stopColor="#7c3aed"/>
+    </linearGradient>
+    <linearGradient id="rgAmber" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stopColor="#fbbf24"/><stop offset="1" stopColor="#f59e0b"/>
+    </linearGradient>
+    <linearGradient id="rgSlate" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stopColor="#94a3b8"/><stop offset="1" stopColor="#64748b"/>
+    </linearGradient>
+    <linearGradient id="rgGreen" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stopColor="#34d399"/><stop offset="1" stopColor="#059669"/>
+    </linearGradient>
+    <filter id="rsoft" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="4" stdDeviation="6" floodColor="#000000" floodOpacity="0.35"/>
+    </filter>
+    <marker id="rah" markerWidth="12" markerHeight="12" refX="7" refY="4" orient="auto" markerUnits="strokeWidth">
+      <path d="M0,0 L8,4 L0,8 Z" fill="#7dd3c8"/>
+    </marker>
+    <marker id="rahd" markerWidth="12" markerHeight="12" refX="7" refY="4" orient="auto" markerUnits="strokeWidth">
+      <path d="M0,0 L8,4 L0,8 Z" fill="#34d399"/>
+    </marker>
+  </defs>
+
+  <text x="40" y="46" fill="#f1f5f9" fontSize="24" fontWeight="700">From Prompt to Trust</text>
+  <text x="40" y="70" fill="#7dd3c8" fontSize="13" letterSpacing="1.5">TASK → ROUTE → DISPATCH → EXECUTE → SCORE → MEMORY · feeds back into routing</text>
+
+  <path d="M182 180 L206 180" stroke="#7dd3c8" strokeWidth="2.5" fill="none" markerEnd="url(#rah)"/>
+  <path d="M432 180 L466 180" stroke="#7dd3c8" strokeWidth="2.5" fill="none" markerEnd="url(#rah)"/>
+  <path d="M692 180 L726 180" stroke="#7dd3c8" strokeWidth="2.5" fill="none" markerEnd="url(#rah)"/>
+  <path d="M840 252 C840 300, 840 312, 840 358" stroke="#7dd3c8" strokeWidth="2.5" fill="none" markerEnd="url(#rah)"/>
+  <path d="M726 430 L694 430" stroke="#7dd3c8" strokeWidth="2.5" fill="none" markerEnd="url(#rah)"/>
+  <path d="M466 430 L434 430" stroke="#7dd3c8" strokeWidth="2.5" fill="none" markerEnd="url(#rah)"/>
+  <path d="M206 430 L184 430" stroke="#7dd3c8" strokeWidth="2.5" fill="none" markerEnd="url(#rah)"/>
+  <path d="M320 358 L320 254" stroke="#34d399" strokeWidth="2" strokeDasharray="6 5" fill="none" markerEnd="url(#rahd)"/>
+  <text x="332" y="312" fill="#6ee7b7" fontSize="11.5">⟲ trust + cost</text>
+  <text x="332" y="328" fill="#4b7a68" fontSize="10.5">feed next routing pick</text>
+
+  <rect x="40" y="150" width="142" height="62" rx="31" fill="#111a2e" stroke="#334155" strokeWidth="1.5" filter="url(#rsoft)"/>
+  <text x="111" y="178" fill="#e2e8f0" fontSize="15" fontWeight="700" textAnchor="middle">Task</text>
+  <text x="111" y="197" fill="#94a3b8" fontSize="11" textAnchor="middle">delegated</text>
+
+  <rect x="210" y="112" width="222" height="140" rx="16" fill="#111a2e" stroke="#2dd4bf" strokeWidth="1.4" strokeOpacity="0.5" filter="url(#rsoft)"/>
+  <circle cx="240" cy="146" r="18" fill="url(#rgTeal)"/>
+  <text x="240" y="152" fill="#04211f" fontSize="18" fontWeight="800" textAnchor="middle">1</text>
+  <text x="268" y="142" fill="#e2e8f0" fontSize="15.5" fontWeight="700">Routing Decision</text>
+  <text x="268" y="160" fill="#2dd4bf" fontSize="10.5" letterSpacing="1">WAS HABIT · NOW ROSTER</text>
+  <line x1="226" y1="176" x2="416" y2="176" stroke="#1e293b" strokeWidth="1"/>
+  <text x="226" y="200" fill="#cbd5e1" fontSize="11.5">› was: default → Haiku</text>
+  <text x="226" y="220" fill="#cbd5e1" fontSize="11.5">› now: next_matey round-robin</text>
+  <text x="226" y="240" fill="#64748b" fontSize="10.5">› M130 fixed call-window</text>
+
+  <rect x="470" y="112" width="222" height="140" rx="16" fill="#111a2e" stroke="#38bdf8" strokeWidth="1.4" strokeOpacity="0.5" filter="url(#rsoft)"/>
+  <circle cx="500" cy="146" r="18" fill="url(#rgSky)"/>
+  <text x="500" y="152" fill="#04211f" fontSize="18" fontWeight="800" textAnchor="middle">2</text>
+  <text x="528" y="142" fill="#e2e8f0" fontSize="15.5" fontWeight="700">Dispatch</text>
+  <text x="528" y="160" fill="#38bdf8" fontSize="10.5" letterSpacing="1">3-VENDOR ROSTER</text>
+  <line x1="486" y1="176" x2="676" y2="176" stroke="#1e293b" strokeWidth="1"/>
+  <circle cx="491" cy="197" r="5" fill="#2dd4bf"/>
+  <text x="502" y="201" fill="#cbd5e1" fontSize="11.5">Haiku (Claude)</text>
+  <circle cx="491" cy="217" r="5" fill="#38bdf8"/>
+  <text x="502" y="221" fill="#cbd5e1" fontSize="11.5">Gemini 3.5 Flash</text>
+  <circle cx="491" cy="237" r="5" fill="#a78bfa"/>
+  <text x="502" y="241" fill="#cbd5e1" fontSize="11.5">GPT-5.6 Terra</text>
+
+  <rect x="730" y="112" width="222" height="140" rx="16" fill="#111a2e" stroke="#a78bfa" strokeWidth="1.4" strokeOpacity="0.5" filter="url(#rsoft)"/>
+  <circle cx="760" cy="146" r="18" fill="url(#rgPurple)"/>
+  <text x="760" y="152" fill="#1a0b2e" fontSize="18" fontWeight="800" textAnchor="middle">3</text>
+  <text x="788" y="142" fill="#e2e8f0" fontSize="15.5" fontWeight="700">Execute</text>
+  <text x="788" y="160" fill="#a78bfa" fontSize="10.5" letterSpacing="1">TASK RUNS</text>
+  <line x1="746" y1="176" x2="936" y2="176" stroke="#1e293b" strokeWidth="1"/>
+  <text x="746" y="200" fill="#cbd5e1" fontSize="11.5">› vendor tongue does the work</text>
+  <text x="746" y="220" fill="#cbd5e1" fontSize="11.5">› verify --model hit CLI log</text>
+  <text x="746" y="240" fill="#64748b" fontSize="10.5">› confirm, don't assume (M128)</text>
+
+  <rect x="730" y="360" width="222" height="140" rx="16" fill="#111a2e" stroke="#f59e0b" strokeWidth="1.4" strokeOpacity="0.5" filter="url(#rsoft)"/>
+  <circle cx="760" cy="394" r="18" fill="url(#rgAmber)"/>
+  <text x="760" y="400" fill="#2a1a02" fontSize="18" fontWeight="800" textAnchor="middle">4</text>
+  <text x="788" y="390" fill="#e2e8f0" fontSize="15.5" fontWeight="700">Peer Review</text>
+  <text x="788" y="408" fill="#f59e0b" fontSize="10.5" letterSpacing="1">0-100 · NO SELF-RATE</text>
+  <line x1="746" y1="424" x2="936" y2="424" stroke="#1e293b" strokeWidth="1"/>
+  <text x="746" y="448" fill="#cbd5e1" fontSize="11.5">› 2 other tongues score the 3rd</text>
+  <text x="746" y="468" fill="#cbd5e1" fontSize="11.5">› writes peer_trust(model,domain)</text>
+  <text x="746" y="488" fill="#64748b" fontSize="10.5">› CHECK constraint, not a rule</text>
+
+  <rect x="470" y="360" width="222" height="140" rx="16" fill="#111a2e" stroke="#64748b" strokeWidth="1.4" strokeOpacity="0.6" filter="url(#rsoft)"/>
+  <circle cx="500" cy="394" r="18" fill="url(#rgSlate)"/>
+  <text x="500" y="400" fill="#0b1220" fontSize="18" fontWeight="800" textAnchor="middle">5</text>
+  <text x="528" y="390" fill="#e2e8f0" fontSize="15.5" fontWeight="700">Cost Ledger</text>
+  <text x="528" y="408" fill="#94a3b8" fontSize="10.5" letterSpacing="1">FINOPS · WRITE</text>
+  <line x1="486" y1="424" x2="676" y2="424" stroke="#1e293b" strokeWidth="1"/>
+  <text x="486" y="448" fill="#cbd5e1" fontSize="11.5">› task_cost row, parent-linked</text>
+  <text x="486" y="468" fill="#cbd5e1" fontSize="11.5">› model_pricing dated rate card</text>
+  <text x="486" y="488" fill="#64748b" fontSize="10.5">› rolls up to mission spend</text>
+
+  <rect x="210" y="360" width="222" height="140" rx="16" fill="#111a2e" stroke="#34d399" strokeWidth="1.4" strokeOpacity="0.5" filter="url(#rsoft)"/>
+  <circle cx="240" cy="394" r="18" fill="url(#rgGreen)"/>
+  <text x="240" y="400" fill="#04211a" fontSize="18" fontWeight="800" textAnchor="middle">6</text>
+  <text x="268" y="390" fill="#e2e8f0" fontSize="15.5" fontWeight="700">Routing Memory</text>
+  <text x="268" y="408" fill="#34d399" fontSize="10.5" letterSpacing="1">TRUST + COST, JOINED</text>
+  <line x1="226" y1="424" x2="416" y2="424" stroke="#1e293b" strokeWidth="1"/>
+  <text x="226" y="448" fill="#cbd5e1" fontSize="11.5">› not "smartest" — "worth it"</text>
+  <text x="226" y="468" fill="#cbd5e1" fontSize="11.5">› joined only at query time</text>
+  <text x="226" y="488" fill="#64748b" fontSize="10.5">› informs the next Node 1 pick</text>
+
+  <rect x="42" y="399" width="142" height="62" rx="31" fill="#111a2e" stroke="#f59e0b" strokeWidth="1.6" filter="url(#rsoft)"/>
+  <text x="113" y="427" fill="#e2e8f0" fontSize="15" fontWeight="700" textAnchor="middle">Result</text>
+  <text x="113" y="446" fill="#94a3b8" fontSize="11" textAnchor="middle">to Imperator</text>
+
+  <rect x="40" y="524" width="16" height="16" rx="4" fill="url(#rgTeal)"/>
+  <text x="63" y="537" fill="#94a3b8" fontSize="12">Haiku (Claude)</text>
+  <rect x="220" y="524" width="16" height="16" rx="4" fill="url(#rgSky)"/>
+  <text x="243" y="537" fill="#94a3b8" fontSize="12">Gemini 3.5 Flash</text>
+  <rect x="420" y="524" width="16" height="16" rx="4" fill="url(#rgPurple)"/>
+  <text x="443" y="537" fill="#94a3b8" fontSize="12">GPT-5.6 Terra</text>
+  <line x1="620" y1="532" x2="660" y2="532" stroke="#34d399" strokeWidth="2" strokeDasharray="6 5"/>
+  <text x="667" y="537" fill="#94a3b8" fontSize="12">Feedback loop (trust + cost → next route)</text>
+</svg>
+</div>
 
 ## Knowledge Transfer
 

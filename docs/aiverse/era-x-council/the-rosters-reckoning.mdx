@@ -34,15 +34,27 @@ M122 built the trust ledger the Triumvirate needed: `model_registry`, `peer_trus
 
 ## The Clean Build
 
-M122 shipped in five tight milestones. M1 and M2 laid the schema and the tooling — `register_model`, `write_peer_review`, `query_trust_routing`, `run_probe_batch`, each a thin CLI wrapper the way `write_fleet_memory.py` had already set the house style. M3 seeded real data: three vendors onboarded, five benchmark tasks split across code and ops domains, reasoning and presentation left deliberately empty because no honest number existed yet for models this new. M4 was the mission that mattered most — not new code, but an adversarial pass against the code already written. A fake vendor, `mistral`, was registered and deprecated mid-verification with zero schema changes, proving the no-`CHECK`-enum design actually held under a real onboarding-and-retirement cycle rather than just looking correct on paper. The peer-review decay math was hand-checked against its own formula. The deprecated vendor was confirmed excluded from the next probe batch. M5 closed the mission and reported to the Emperor. Every box ticked, nothing deferred.
+M122 shipped in five tight milestones:
+
+- **M1-M2** laid the schema and the tooling — `register_model`, `write_peer_review`, `query_trust_routing`, `run_probe_batch`, each a thin CLI wrapper the way `write_fleet_memory.py` had already set the house style.
+- **M3** seeded real data: three vendors onboarded, five benchmark tasks split across code and ops domains, reasoning and presentation left deliberately empty because no honest number existed yet for models this new.
+- **M4** was the mission that mattered most — not new code, but an adversarial pass against the code already written. A fake vendor, `mistral`, was registered and deprecated mid-verification with zero schema changes, proving the no-`CHECK`-enum design actually held under a real onboarding-and-retirement cycle rather than just looking correct on paper. The peer-review decay math was hand-checked against its own formula, and the deprecated vendor was confirmed excluded from the next probe batch.
+- **M5** closed the mission and reported to the Emperor. Every box ticked, nothing deferred.
 
 That is the version of this story that fits in a five-milestone changelog. It is also, on its own, an incomplete one — because the very next ask, four missions later, would spend five more missions finding out how much of M122's own bookkeeping had quietly drifted since the day it closed.
 
 ## The Logo That Wouldn't Sit Still
 
-M126 asked for something simple: show each Matey delegation's vendor as a small icon on the command-center graph. The fix was scoped to new data — a cutoff at `objectives.created_at` so only nodes created after the feature shipped would carry an icon. Reasonable, and wrong in a way that took three more missions to become visible: every node from M122 through M125 stayed icon-less, not because the feature was broken, but because the fix had quietly declined to look backward at all.
+M126 asked for something simple: show each Matey delegation's vendor as a small icon on the command-center graph. The fix was scoped to new data — a cutoff at `objectives.created_at` so only nodes created after the feature shipped would carry an icon.
 
-M128 went looking for that gap and found four separate bugs sitting underneath it, none of which had anything to do with icons. Cross-vendor dispatches were missing their `--model` flag, silently falling back to a vendor's default. The Copilot response parser was reading ephemeral control-plane fragments out of the JSONL stream instead of the assistant's actual text, corrupting both the recorded output and its cost. Copilot dispatches into repo-scoped tasks were failing on filesystem-denied errors because no working-directory flag had ever been passed. And sitting under all of it: `model_registry` had `gpt-5.6-tera` on one row and `gpt-5.6-terra` on every dispatch call that referenced it — a single missing letter, silently routing every GPT-5.6-Terra delegation to nothing, for as long as the typo had existed.
+Reasonable, and wrong in a way that took three more missions to become visible: every node from M122 through M125 stayed icon-less, not because the feature was broken, but because the fix had quietly declined to look backward at all.
+
+M128 went looking for that gap and found four separate bugs sitting underneath it, none of which had anything to do with icons:
+
+1. Cross-vendor dispatches were missing their `--model` flag, silently falling back to a vendor's default.
+2. The Copilot response parser was reading ephemeral control-plane fragments out of the JSONL stream instead of the assistant's actual text, corrupting both the recorded output and its cost.
+3. Copilot dispatches into repo-scoped tasks were failing on filesystem-denied errors because no working-directory flag had ever been passed.
+4. Sitting under all of it: `model_registry` had `gpt-5.6-tera` on one row and `gpt-5.6-terra` on every dispatch call that referenced it — a single missing letter, silently routing every <Term id="gpt-5-6-terra">GPT-5.6-Terra</Term> delegation to nothing, for as long as the typo had existed.
 
 <Admonition type="info" title="⚙️ Technical Insight">
 
@@ -50,25 +62,35 @@ The typo survived four missions because nothing in the system was built to notic
 
 </Admonition>
 
-M128 also moved the icon cutoff back from M126 to M122 and backfilled eighteen real delegation-and-observation pairs with vendor and model reconstructed from Imperator's own tool-call history — the only ground truth left, since the pairs themselves had never recorded it. That backfill surfaced its own quiet fact: seventeen of eighteen had run on Claude Sonnet despite Matey doctrine specifying Haiku for that class of work. Only M122's own first two milestones had actually used the model the rule called for.
+M128 also moved the icon cutoff back from M126 to M122 and backfilled eighteen real delegation-and-observation pairs with vendor and model reconstructed from Imperator's own tool-call history — the only ground truth left, since the pairs themselves had never recorded it. That backfill surfaced its own quiet fact: seventeen of eighteen had run on <Term id="claude-sonnet-5">Claude Sonnet 5</Term> despite Matey doctrine specifying <Term id="haiku">Haiku</Term> for that class of work. Only M122's own first two milestones had actually used the model the rule called for.
 
 ## The Backing Disc Nobody Liked
 
-M129 was feedback, not a bug hunt — the Emperor looked at the rendered graph and flagged three things at once: vendor icons were appearing on `imperator` nodes as well as `matey` nodes, when only worker delegations should carry a vendor face; the Anthropic and OpenAI brand marks read as near-black smudges against the UI's dark background; and M123's own completion node, `objectives.memory_id`, was sitting NULL, silently degrading the graph's cluster lookup to a weaker regex fallback nobody had asked for. Each fix was small — gate icon rendering on `actor === 'matey'`, add a white contrast disc behind the icon, patch the one NULL row directly — and each one was correct for the moment it shipped in.
+M129 was feedback, not a bug hunt — the Emperor looked at the rendered graph and flagged three things at once:
+
+- Vendor icons were appearing on `imperator` nodes as well as `matey` nodes, when only worker delegations should carry a vendor face.
+- The <Term id="anthropic">Anthropic</Term> and <Term id="openai">OpenAI</Term> brand marks read as near-black smudges against the UI's dark background.
+- M123's own completion node, `objectives.memory_id`, was sitting NULL, silently degrading the graph's cluster lookup to a weaker regex fallback nobody had asked for.
+
+Each fix was small — gate icon rendering on `actor === 'matey'`, add a white contrast disc behind the icon, patch the one NULL row directly — and each one was correct for the moment it shipped in.
 
 M131 arrived because the white disc, once seen in daylight, "looked worse than transparent." The fix became a monochrome canvas filter instead — the icon itself recolored to sit legibly on dark without a disc at all. Small aesthetic corrections, real ones, but still not the typo.
 
-Worth keeping from this pair of missions: the Emperor explicitly declined to dock Gemini's trust score for either issue, on the grounds that Gemini had executed exactly what the design specified both times. The bug was in the spec Imperator wrote, not in the hand that carried it out — a distinction a peer-trust system only stays honest by drawing correctly, every time, even when it would be easier not to look closely at whose fault it actually was.
+Worth keeping from this pair of missions: the Emperor explicitly declined to dock <Term id="gemini">Gemini</Term>'s trust score for either issue, on the grounds that <Term id="gemini">Gemini</Term> had executed exactly what the design specified both times. The bug was in the spec Imperator wrote, not in the hand that carried it out — a distinction a <Term id="peer-trust">peer-trust</Term> system only stays honest by drawing correctly, every time, even when it would be easier not to look closely at whose fault it actually was.
 
 ## Root Cause, Finally
 
-M132 and M133 traced the `--model`/`--vendor` tagging gap all the way to its source: `matey-prompt.md`'s mandatory completion-write block asked for a plain `MATEY: <outcome>` observation on every delegation, but had never asked that observation to carry vendor or model at all. Only the separate `dispatch_vendor` wrapper rows had ever been tagged correctly — everything routed through the plain Matey path had been silently untagged since the multi-vendor system existed. The fix went into the template itself, not into another one-off backfill script, and the backfill that followed tagged 109 of 110 untagged rows fleet-wide, defaulting the 106 bulk pre-M126 rows to Haiku on the documented grounds that multi-vendor tagging simply didn't exist before that point. One row stayed NULL on purpose — an orphaned parent with no honest vendor to assign it, left for manual review rather than guessed.
+M132 and M133 traced the `--model`/`--vendor` tagging gap all the way to its source: `matey-prompt.md`'s mandatory completion-write block asked for a plain `MATEY: <outcome>` observation on every delegation, but had never asked that observation to carry vendor or model at all. Only the separate `dispatch_vendor` wrapper rows had ever been tagged correctly — everything routed through the plain Matey path had been silently untagged since the multi-vendor system existed.
+
+The fix went into the template itself, not into another one-off backfill script. The backfill that followed tagged 109 of 110 untagged rows fleet-wide, defaulting the 106 bulk pre-M126 rows to Haiku on the documented grounds that multi-vendor tagging simply didn't exist before that point. One row stayed NULL on purpose — an orphaned parent with no honest vendor to assign it, left for manual review rather than guessed.
 
 M134 found the last gap: `record_task_cost` had been mandated for every native Anthropic call since M122, but `model_pricing` had no row for `claude-haiku-4-5` at all. Every Haiku cost record since the mission that built the pricing table had been silently failing to write, for want of one INSERT. Fifty-four historical nodes were backfilled with an estimated cost from a character-count heuristic, closing the ledger's own books on itself.
 
 ## What the Trust Ledger Actually Learned
 
-Read end to end, M122 through M134 is not a story about a buggy feature. It's a trust system finding out, the hard way, that a ledger only tells the truth about the missions that bothered to write to it correctly — and that "bothered to write to it correctly" is a property of the *template* every mission inherits, not of any single mission's diligence. M122's own five milestones were verified thoroughly and closed clean; the drift that took five more missions to surface lived entirely in the parts of the system nobody had a reason to re-check, because nothing had told them it needed checking. The round-robin rotation that followed in M130 — a durable `matey_rotation_state` table cycling strictly through Haiku, Gemini 3.5 Flash, and GPT-5.6 Terra regardless of trust score, until all three have earned a comparable sample size — exists precisely so the next trust judgment the fleet makes is built on data every vendor had an equal, correctly-tagged chance to produce.
+Read end to end, M122 through M134 is not a story about a buggy feature. It's a trust system finding out, the hard way, that a ledger only tells the truth about the missions that bothered to write to it correctly — and that "bothered to write to it correctly" is a property of the *template* every mission inherits, not of any single mission's diligence.
+
+M122's own five milestones were verified thoroughly and closed clean; the drift that took five more missions to surface lived entirely in the parts of the system nobody had a reason to re-check, because nothing had told them it needed checking. The <Term id="round-robin-rotation">round-robin rotation</Term> that followed in M130 — a durable `matey_rotation_state` table cycling strictly through <Term id="haiku">Haiku</Term>, <Term id="gemini-3-5-flash">Gemini 3.5 Flash</Term>, and <Term id="gpt-5-6-terra">GPT-5.6 Terra</Term> regardless of trust score, until all three have earned a comparable sample size — exists precisely so the next trust judgment the fleet makes is built on data every vendor had an equal, correctly-tagged chance to produce.
 
 <Admonition type="tip" title="📚 Knowledge Transfer">
 
