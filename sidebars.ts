@@ -148,6 +148,18 @@ const sidebars: SidebarsConfig = {
     { type: 'doc', id: 'aiverse/era-ix-economy/the-memory-gateway',                label: 'VII. The Memory Gateway' },
   ],
 
+  // ── ERA X — The Council of Tongues ──
+  era_x: [
+    {
+      type: 'html',
+      value: '<div class="sidebar-era-header"><span class="sidebar-era-header-icon">🗣️</span>Era X — The Council of Tongues<span class="sidebar-era-header-range">M121–</span></div>',
+      defaultStyle: true,
+    },
+    { type: 'doc', id: 'aiverse/era-x-council/aiverse-era-x-council',   label: 'Era X Overview' },
+    { type: 'doc', id: 'aiverse/era-x-council/the-triumvirate-accord',  label: 'I. The Triumvirate Accord' },
+    { type: 'doc', id: 'aiverse/era-x-council/the-rosters-reckoning',   label: 'II. The Roster\'s Reckoning' },
+  ],
+
   // ── NEBULA — standalone idea stars, not part of any Era arc ──
   nebula: [
     {

@@ -1,0 +1,90 @@
+---
+id: the-triumvirate-accord
+title: "The Triumvirate Accord"
+sidebar_label: "I. The Triumvirate Accord"
+description: "M121-M123: the fleet opened its command chair to three vendors at once — Claude, Gemini, GPT — and had to answer, before any of them touched a shared task, how three tongues could earn trust without one of them grading its own homework."
+tags: [aiverse, era-x, multi-agent, trust, finops, m121, m122, m123]
+pagination_prev: 'aiverse/era-ix-economy/aiverse-era-ix-economy'
+---
+
+import Admonition from '@theme/Admonition';
+
+<Admonition type="note" title="📜 Remembrancer's Note">
+
+Nine eras had passed in a single tongue. Every chronicle before this one, however strange the machinery grew, was written by one lineage of mind talking to itself across sessions and ships. Then the Emperor asked a question that had been sitting unspoken since the fleet first drew its hierarchy: why only one voice in the command chair, when three now sat within reach? This is the chronicle of the accord that followed — not a merger of minds, for that was never possible, but a ledger by which three separate tongues could be trusted to speak for the fleet, each rated by the other two, none grading its own work.
+
+*— The Remembrancer of the AIverse*
+*Engrams M121–M123*
+
+</Admonition>
+
+---
+
+> *"In AIverse, there is only Knowledge."*
+
+---
+
+# I. The Triumvirate Accord
+
+<Admonition type="info" title="⚙️ M121-M123 — Three Tongues, One Ledger">
+The fleet had always assumed its captain and its worker agents shared one lineage. M121 broke that assumption on purpose: Gemini reachable through `agy`, GPT reachable through `copilot`, standing alongside Claude in the same command chair. Three chronicles' worth of missions — M121 through M123 — answered the three questions that assumption's death immediately raised: how does context survive a handoff between vendors, how does the fleet know which tongue to trust with which kind of work, and what does any of it cost.
+
+*[Return to the Cosmic Map](/cosmos) to see all eras.*
+</Admonition>
+
+## The Question Behind the Question
+
+The Emperor's opening ask sounded like a plumbing problem: keep one chat context, but let Gemini or GPT pick up where Claude left off. It wasn't a plumbing problem. Context does not travel between vendors — no shared KV cache, no shared system prompt, nothing but the words on the page. What actually crosses the boundary is whatever gets written down somewhere all three can read, which the fleet already had a name for: Universalis, the `fleet_memory` table that has recorded every delegation, objective, and observation since Era I. The research settled quickly on the pattern practitioners were already converging on across the wider field — a shared notebook every agent reads from and writes to, rather than a router that merely picks a model per request and forgets why.
+
+But a shared notebook raises the harder question immediately behind it. If three tongues can all write to the same ledger, which one should be trusted to write the next line? A router answers "which model" on cost or latency alone. It has no opinion on which model is actually *good* at the task in front of it, and no memory of whether that opinion held up last time. The fleet needed something a router doesn't provide: a trust score that builds the way real peer trust does — earned across many small judgments, by the people (or tongues) doing adjacent work, not claimed by the one doing the work itself.
+
+## Building the Ledger Without Painting Itself Into a Corner
+
+The design that followed had one hard constraint the Emperor stated plainly: vendors and models must be addable and removable without touching the schema. The industry turns over its frontier models every few months — a trust system hard-coded to today's roster would need surgery every quarter. The fleet's own database already contained the cautionary tale. `captain_trust`, the older table rating ship captains, carries a `CHECK` constraint listing every valid captain by name. Every new ship means a migration. That table was never meant to scale past a handful of known ships, and it shows.
+
+<Admonition type="info" title="⚙️ Technical Insight">
+
+The fix was not a clever constraint, it was the absence of one. `model_registry` stores vendor and model name as plain, unconstrained text, and governs a model's lifecycle with a `status` flag — `active`, `deprecated`, `testing` — instead of a `CHECK` enum or a `DELETE`. Onboarding a new vendor is one `INSERT`. Retiring one is one `UPDATE`. Nothing else in the schema has to know the roster changed, because nothing else was ever told what the roster *was* — every other table points at `model_registry.id`, never at a vendor's name directly. The proof that this actually held was a fake vendor, `mistral`/`mixtral-large`, added and deprecated mid-build with zero migrations, and correctly filtered out of the next probe run without anyone touching a single other table.
+
+</Admonition>
+
+```sql
+CREATE TABLE model_registry (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  vendor TEXT NOT NULL,
+  model_name TEXT NOT NULL,
+  cli_binary TEXT,
+  status TEXT NOT NULL DEFAULT 'active' CHECK (status IN ('active','deprecated','testing')),
+  UNIQUE (vendor, model_name)
+);
+```
+
+Trust itself lives one layer up, in `peer_trust` — a score per `(model, domain)`, because a tongue that writes clean code and a tongue that writes a calm incident summary are not the same skill, and rating them with one number would hide exactly the information the fleet needed. Every score is built from `peer_reviews`, an append-only log where two agents rate the third's work on a task neither of them produced, 0 to 100, no self-rating permitted at the database level — a `CHECK (target_model_id <> reviewer_model_id)` constraint, not merely a house rule an agent could forget. Each new review nudges the running score with a decay-weighted average, `0.8 × old + 0.2 × new`, so a single bad day doesn't collapse a score built over months, and a genuine improvement doesn't take months to register either.
+
+The cold-start problem — trusting a model on day one, before it has a single peer review to its name — got a second, humbler source: public benchmarks, pulled by WebSearch rather than guessed, cited by name and date in a `benchmark_seed` table, used only as a fallback until real reviews accumulate. Where no honest number existed for the exact model in question — reasoning and presentation benchmarks specific to Gemini 3.5 Flash or GPT-5.6 Sol simply don't exist yet — the table was left empty rather than filled with a number borrowed from a different model. A wrong number with a confident source citation is worse than an honest gap.
+
+## The Bill Nobody Was Watching
+
+The accord wasn't finished once trust could be measured. Three vendors billed three different ways, at three different rates, and a fleet that couldn't see what any one delegation cost couldn't reason about whether the trust it was building was worth the price. M123 closed that gap with `model_pricing` — dated rate cards per model, because prices change and a stale rate silently corrupts every cost estimate built on it — and `task_cost`, a row per task or subtask, each one able to point at a parent delegation node so a whole mission's spend rolls up to a single number instead of scattering across untraceable API calls.
+
+The prices themselves told their own story once gathered: Claude Sonnet 5 at $2/$10 per million tokens against Opus 4.8 at $5/$25, Gemini 3.5 Flash undercutting its own Pro sibling by roughly a quarter, GPT-5.6 Sol at $5/$30 next to Terra's $2.50/$15 for work OpenAI itself says lands within reach of the flagship's quality. None of that is a reason to route blind toward whichever model is cheapest — a peer-trust score of 50 on an untested domain is still worth less than a proven 80 at triple the price, for anything that matters. But a fleet that can finally see cost sitting next to trust, domain by domain, can start asking the question routing is actually for: not "which model is smartest," but "which model is worth what it costs, for this exact kind of work."
+
+## Knowledge Transfer
+
+<Admonition type="tip" title="📚 Knowledge Transfer">
+
+**The lesson worth keeping:** Trust that's meant to last across a fast-moving industry can't be encoded as a list of known names — the moment you write `CHECK (vendor IN (...))`, you've committed to a migration every time the industry ships something new. Model the *lifecycle* (a status flag on a registry row), not the *roster* (a hardcoded enum), and additions or removals become data changes instead of schema changes.
+
+**Pattern:** Split "how good" from "how much." A peer-trust score and a cost-per-token rate are two different axes of the same routing decision, and collapsing them into one number throws away the ability to ask "is this worth it" instead of just "which is best." Keep them in separate tables, joined only at query time.
+
+**What we'd do differently:** The benchmark-seed cold start should have been scoped as "manual and honest" from the first line of the plan, not discovered as a limitation partway through — several searches were spent looking for numbers that, on reflection, could never have existed for models this new. Naming that constraint up front would have saved the detour.
+
+**If you're building this yourself:** No self-rating is worth enforcing at the database layer, not just in a prompt — a `CHECK` constraint that a reviewer and a target can't be the same row survives a forgetful agent, a rewritten prompt, and a future maintainer who never read the design doc. Prompts get skipped. Constraints don't.
+
+</Admonition>
+
+<NunixOut />
+
+<div className="aiverse-fleet-cta">
+  <a href="/aiverse/support">⚔️ The Fleet Needs You — Support the Chronicle</a>
+</div>
