@@ -158,6 +158,8 @@ const sidebars: SidebarsConfig = {
     { type: 'doc', id: 'aiverse/era-x-council/aiverse-era-x-council',   label: 'Era X Overview' },
     { type: 'doc', id: 'aiverse/era-x-council/the-triumvirate-accord',  label: 'I. The Triumvirate Accord' },
     { type: 'doc', id: 'aiverse/era-x-council/the-rosters-reckoning',   label: 'II. The Roster\'s Reckoning' },
+    { type: 'doc', id: 'aiverse/era-x-council/the-rotations-verdict',   label: 'III. The Rotation\'s Verdict' },
+    { type: 'doc', id: 'aiverse/era-x-council/the-uncounted-tongues',   label: 'IV. The Uncounted Tongues' },
   ],
 
   // ── NEBULA — standalone idea stars, not part of any Era arc ──
