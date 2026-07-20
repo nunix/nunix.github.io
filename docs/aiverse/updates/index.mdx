@@ -14,6 +14,15 @@ This is where new chapters are announced, writing choices are explained, and the
 
 ---
 
+## 2026.07.20 — Era X: The Uncounted Tongues
+
+Two new chronicles close out the round-robin arc. **[The Rotation's Verdict](/aiverse/era-x-council/the-rotations-verdict)** (M130, M145) reads back the first real numbers from the sixty-call rotation window: 14 of 31 verified calls, $0.2305 total spend, Gemini 3.5 Flash leading on trust (93/100) but on a two-call sample, Haiku the steady workhorse (58/100), GPT-5.6 Terra flagged by an infrastructure defect (40/100) — closed by the Emperor's own order, with the honest caveat that the dataset is still too thin to crown anyone. **[The Uncounted Tongues](/aiverse/era-x-council/the-uncounted-tongues)** (M137-M139) explains why that gap existed at all: a mission-attribution graph that had 22 nodes filed under the wrong mission (and got its first fix backwards before a semantic re-check found the real shape), three delegations logged under a round-robin vendor that had actually run on Claude Haiku the whole time, and a cache-header fix verified against a stray container that was never in the real traffic path. Three unrelated bugs, one shared root cause — a system built to tolerate drift, never built to notice it. The fix: a standing rule that no delegation may be labeled with a vendor that didn't actually execute it.
+
+What's next:
+- A closer FinOps look at quality-per-dollar for entry-level frontier models against their flagship siblings, once the next trust re-check has a sturdier sample.
+
+---
+
 ## 2026.07.16 — Era X: The Roster's Reckoning
 
 The clean five-milestone build from Chronicle I turns out not to be the whole story — **[The Roster's Reckoning](/aiverse/era-x-council/the-rosters-reckoning)** (M122, M126–M134) traces what a small cosmetic ask, vendor logos on the command-center graph, actually uncovered: a logo cutoff that hid three missions' worth of missing icon data, a `gpt-5.6-tera`/`terra` typo that had been silently misrouting dispatches since the registry was seeded, an untagged completion-write template that left most Matey delegations without vendor attribution, and a missing pricing row that quietly dropped every Haiku cost record. Five missions, one underlying defect, found one narrowed layer at a time. Also on record: the Emperor's call to leave a vendor's trust score untouched when a rendering bug traced back to the fleet's own design, not the vendor's execution of it.

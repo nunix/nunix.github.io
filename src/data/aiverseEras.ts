@@ -486,6 +486,18 @@ export const AIVERSE_ERAS: AiverseEra[] = [
         path: '/aiverse/era-x-council/the-rosters-reckoning',
         missions: 'M122, M126–M134',
       },
+      {
+        title: "The Rotation's Verdict",
+        subtitle: 'Sixty calls, one honest scorecard',
+        path: '/aiverse/era-x-council/the-rotations-verdict',
+        missions: 'M130, M145',
+      },
+      {
+        title: 'The Uncounted Tongues',
+        subtitle: 'Three cracks, one shared root cause',
+        path: '/aiverse/era-x-council/the-uncounted-tongues',
+        missions: 'M137–M139',
+      },
     ],
   },
 ];

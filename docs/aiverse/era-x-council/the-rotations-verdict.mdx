@@ -1,0 +1,87 @@
+---
+id: the-rotations-verdict
+title: "The Rotation's Verdict"
+sidebar_label: "III. The Rotation's Verdict"
+description: "M130 gave the round-robin its fair, correctly-tagged sample. M145 closed it and read the numbers back — a real dollar figure, a real quality signal, and an honest admission that the sample is still too thin for the last word."
+tags: [aiverse, era-x, multi-agent, trust, finops, m130, m145]
+pagination_prev: 'aiverse/era-x-council/the-rosters-reckoning'
+pagination_next: 'aiverse/era-x-council/the-uncounted-tongues'
+---
+
+import Admonition from '@theme/Admonition';
+
+<Admonition type="note" title="📜 Remembrancer's Note">
+
+The Roster's Reckoning ended with a promise: once the typo was gone and every delegation carried its own honest vendor tag, the fleet would finally get to ask a question it had never been able to answer cleanly — which of the three tongues actually earns its keep? M130 built the mechanism that could ask it fairly. This chronicle is the fleet reading back the first real numbers, and having the discipline to say out loud that the sample is still too small to crown anyone.
+
+*— The Remembrancer of the AIverse*
+*Engrams M130, M145*
+
+</Admonition>
+
+---
+
+> *"In AIverse, there is only Knowledge."*
+
+---
+
+# III. The Rotation's Verdict
+
+<Admonition type="info" title="⚙️ M130, M145 — Sixty Calls, One Honest Scorecard">
+
+M130 built `matey_rotation_state` — a durable, DB-backed counter cycling strictly through <Term id="haiku">Haiku</Term>, <Term id="gemini-3-5-flash">Gemini 3.5 Flash</Term>, and <Term id="gpt-5-6-terra">GPT-5.6 Terra</Term> for a fixed window of sixty subagent calls, overriding the fleet's own habit of reaching for Haiku by default. Fifteen missions later, M145 closed the window and re-checked the ledger: 14 of 31 verified rotation calls, $0.2305 total spend, and a quality signal thin enough that the Emperor closed the mission anyway and ordered a re-check a few missions out rather than call it settled.
+
+*[Return to the Cosmic Map](/cosmos) to see all eras.*
+</Admonition>
+
+## Why the Fleet Needed a Rotation at All
+
+By the end of The Roster's Reckoning, the trust ledger finally had what it needed to be honest: every delegation tagged with a real vendor and model, a pricing table with no missing rows, a typo that no longer silently misrouted a third of the roster to nowhere. But a clean ledger with a skewed sample is still a skewed ledger. <Term id="matey">Matey</Term> defaulted to <Term id="haiku">Haiku</Term> out of the fleet's own golden rule — cheap, fast, precise — and that habit meant Gemini and GPT-5.6 Terra had barely been exercised for real work by the time M122's bookkeeping closed. A <Term id="peer-trust">peer-trust</Term> score built on eight Haiku calls and one Gemini call isn't a comparison. It's an opinion about Haiku.
+
+The Emperor's fix was blunt on purpose: for the next sixty subagent calls, ignore trust score, ignore habit, ignore which vendor "feels" right for the task. Cycle strictly anthropic → google → openai → anthropic, regardless of domain, until all three had a comparable number of real-work samples on the books. Only then would trust-informed routing get to resume.
+
+<Admonition type="info" title="⚙️ Technical Insight">
+
+The rotation counter lives in a single-row Postgres table, not in session memory or a script's local variable, for the same reason the trust ledger itself lives in Universalis rather than in any one conversation: a fairness guarantee that resets every time the model forgets is not a guarantee. `next_matey` reads `calls_remaining`, decrements it, and hands back the next vendor in sequence — durable across sessions, restarts, and context compaction, the same property that made `matey_rotation_state` survive fifteen missions of real use without ever quietly reverting to habit.
+
+</Admonition>
+
+## Fifteen Missions of Real Work
+
+The window ran through the back half of Era X's build-out — cache-header fixes, a mission-graph color bug, a mission-code regex fix, a Postgres immutability research task, a `SynapseMap.jsx` toggle bug — each one dispatched to whichever vendor the rotation named next, whether or not that vendor was the "obvious" pick for the job. Some of that work is its own chronicle already; some of it, as the fleet would find out later, wasn't actually where the rotation said it was. That story belongs to the next chapter. This one stays with the numbers the ledger could still stand behind once the drift was caught and corrected.
+
+## The Numbers M145 Actually Found
+
+Fifteen missions in, the Emperor asked for the real table — not a status update, a reckoning. M145 pulled it: of 31 dispatches attributed to the round-robin window, 14 carried a `task_cost` row that could be independently verified against the vendor's own billing shape, rather than an estimate reconstructed after the fact.
+
+| Vendor | Verified calls | Total cost | Peer-trust score |
+|---|---|---|---|
+| <Term id="haiku">Claude Haiku</Term> | 8 | $0.1436 | 58/100 |
+| <Term id="gemini-3-5-flash">Gemini 3.5 Flash</Term> | 2 | $0.0658 | 93/100 |
+| <Term id="gpt-5-6-terra">GPT-5.6 Terra</Term> | 4 | $0.0211 | 40/100 |
+
+Read as a scorecard rather than a leaderboard: Gemini 3.5 Flash came back looking the strongest — highest trust score, zero infrastructure issues across its two calls — but two calls is not a sample, it's an anecdote with a number attached. Haiku held the line as the workhorse it was built to be: middling trust, the most volume, the most total spend, exactly what a default-tier model earning its keep on bulk mechanical work should look like. GPT-5.6 Terra came back flagged — a copilot-backend empty-response defect surfaced during its window, dragging its trust score to 40 — a real infrastructure finding, not a verdict on the model's own reasoning.
+
+<Term id="peer-trust">Peer-review</Term> coverage across the window was thinner than the cost data: only 2 of the 14 verified calls had a written peer review attached, meaning the trust numbers above are directionally honest but statistically fragile. Fourteen out of thirty-one is itself the finding worth sitting with — over half the calls attributed to the rotation window couldn't be independently verified from a clean `task_cost` row at all, which is the exact kind of gap the next chronicle spends its whole length explaining.
+
+## Closed, Not Settled
+
+The Emperor's read matched the data: "I agree, the dataset is too thin. Still, you proved the round robin works now fine, so let's close M130 too." M130 closed — not because the numbers were conclusive, but because the *mechanism* had proven itself: a durable rotation that actually cycled, actually decremented, actually forced three vendors through comparable real work instead of leaving one of them a rounding error in the ledger. The scorecard reopens in a few missions, once enough calls have accumulated for the trust numbers to mean something sturdier than a coin flip with 14 data points.
+
+<Admonition type="tip" title="📚 Knowledge Transfer">
+
+**The lesson worth keeping:** A fairness mechanism and a conclusive result are different deliverables, and it's fine to ship the first without the second. M130 closed on "the rotation works," not on "Gemini is better than GPT" — conflating the two would have crowned a winner off two data points.
+
+**Pattern:** When a verification pass finds that fewer than half the records it expected to check are actually verifiable (14 of 31 here), that gap is not noise to average away — it's the headline finding, and it should be reported before the numbers that did survive verification.
+
+**What we'd do differently:** Peer-review coverage (2 of 14) should have been enforced at dispatch time, not audited for after the fact — a rotation designed to guarantee sample *fairness* said nothing about guaranteeing review *coverage*, and the second gap turned out to matter just as much as the first.
+
+**If you're building this yourself:** Separate "the mechanism is fair" from "the mechanism has produced enough data to trust its output" as two distinct claims with two distinct thresholds. A round-robin can be working correctly on day one and still not be ready to inform a real decision on day one — closing the first claim doesn't obligate you to also close the second.
+
+</Admonition>
+
+<NunixOut />
+
+<div className="aiverse-fleet-cta">
+  <a href="/aiverse/support">⚔️ The Fleet Needs You — Support the Chronicle</a>
+</div>
