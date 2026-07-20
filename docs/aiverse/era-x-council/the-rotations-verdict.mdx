@@ -12,7 +12,7 @@ import Admonition from '@theme/Admonition';
 
 <Admonition type="note" title="📜 Remembrancer's Note">
 
-The Roster's Reckoning ended with a promise: once the typo was gone and every delegation carried its own honest vendor tag, the fleet would finally get to ask a question it had never been able to answer cleanly — which of the three tongues actually earns its keep? M130 built the mechanism that could ask it fairly. This chronicle is the fleet reading back the first real numbers, and having the discipline to say out loud that the sample is still too small to crown anyone.
+[The Roster's Reckoning](./the-rosters-reckoning) ended with a promise: once the typo was gone and every delegation carried its own honest vendor tag, the fleet would finally get to ask a question it had never been able to answer cleanly — which of the three tongues actually earns its keep? M130 built the mechanism that could ask it fairly. This chronicle is the fleet reading back the first real numbers, and having the discipline to say out loud that the sample is still too small to crown anyone.
 
 *— The Remembrancer of the AIverse*
 *Engrams M130, M145*
@@ -36,7 +36,7 @@ M130 built `matey_rotation_state` — a durable, DB-backed counter cycling stric
 
 ## Why the Fleet Needed a Rotation at All
 
-By the end of The Roster's Reckoning, the trust ledger finally had what it needed to be honest: every delegation tagged with a real vendor and model, a pricing table with no missing rows, a typo that no longer silently misrouted a third of the roster to nowhere. But a clean ledger with a skewed sample is still a skewed ledger. <Term id="matey">Matey</Term> defaulted to <Term id="haiku">Haiku</Term> out of the fleet's own golden rule — cheap, fast, precise — and that habit meant Gemini and GPT-5.6 Terra had barely been exercised for real work by the time M122's bookkeeping closed. A <Term id="peer-trust">peer-trust</Term> score built on eight Haiku calls and one Gemini call isn't a comparison. It's an opinion about Haiku.
+By the end of [The Roster's Reckoning](./the-rosters-reckoning), the trust ledger finally had what it needed to be honest: every delegation tagged with a real vendor and model, a pricing table with no missing rows, a typo that no longer silently misrouted a third of the roster to nowhere. But a clean ledger with a skewed sample is still a skewed ledger. <Term id="matey">Matey</Term> defaulted to <Term id="haiku">Haiku</Term> out of the fleet's own golden rule — cheap, fast, precise — and that habit meant Gemini and GPT-5.6 Terra had barely been exercised for real work by the time M122's bookkeeping closed. A <Term id="peer-trust">peer-trust</Term> score built on eight Haiku calls and one Gemini call isn't a comparison. It's an opinion about Haiku.
 
 The Emperor's fix was blunt on purpose: for the next sixty subagent calls, ignore trust score, ignore habit, ignore which vendor "feels" right for the task. Cycle strictly anthropic → google → openai → anthropic, regardless of domain, until all three had a comparable number of real-work samples on the books. Only then would trust-informed routing get to resume.
 
