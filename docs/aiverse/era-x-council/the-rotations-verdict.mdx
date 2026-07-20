@@ -62,7 +62,25 @@ Fifteen missions in, the Emperor asked for the real table — not a status updat
 
 Read as a scorecard rather than a leaderboard: Gemini 3.5 Flash came back looking the strongest — highest trust score, zero infrastructure issues across its two calls — but two calls is not a sample, it's an anecdote with a number attached. Haiku held the line as the workhorse it was built to be: middling trust, the most volume, the most total spend, exactly what a default-tier model earning its keep on bulk mechanical work should look like. GPT-5.6 Terra came back flagged — a copilot-backend empty-response defect surfaced during its window, dragging its trust score to 40 — a real infrastructure finding, not a verdict on the model's own reasoning.
 
-<Term id="peer-trust">Peer-review</Term> coverage across the window was thinner than the cost data: only 2 of the 14 verified calls had a written peer review attached, meaning the trust numbers above are directionally honest but statistically fragile. Fourteen out of thirty-one is itself the finding worth sitting with — over half the calls attributed to the rotation window couldn't be independently verified from a clean `task_cost` row at all, which is the exact kind of gap the next chronicle spends its whole length explaining.
+<Term id="peer-trust">Peer-review</Term> coverage across the window was thinner than the cost data: only 2 of the 14 verified calls had a written peer review attached, meaning the trust numbers above are directionally honest but statistically fragile. Fourteen out of thirty-one is itself the finding worth sitting with — over half the calls attributed to the rotation window couldn't be independently verified from a clean `task_cost` row at all.
+
+## The Table Above Didn't Survive Scrutiny Either
+
+<Admonition type="info" title="⚙️ Update from the M137-M139 audit — read this table with the one above">
+
+The fourteen "verified" calls in the first table were verified against a `task_cost` row existing at all — not against whether the row named the vendor that actually did the work. The audit chronicled in [The Uncounted Tongues](./the-uncounted-tongues) found three of them didn't: two of GPT-5.6 Terra's four calls and one of Gemini 3.5 Flash's two had, in fact, run on Claude Haiku through the Agent tool, with the round-robin's assigned vendor kept on the label because `dispatch_vendor`'s single-shot design couldn't do the iterative edit those three tasks needed. The corrected count:
+
+</Admonition>
+
+| Vendor | Recorded (M145) | Corrected | What changed |
+|---|---|---|---|
+| <Term id="haiku">Claude Haiku</Term> | 8 | 11 | absorbs the 3 mislabeled calls, run on Haiku all along |
+| <Term id="gemini-3-5-flash">Gemini 3.5 Flash</Term> | 2 | 1 | 1 of 2 calls never actually reached Gemini |
+| <Term id="gpt-5-6-terra">GPT-5.6 Terra</Term> | 4 | 2 | 2 of 4 calls never actually reached GPT-5.6 Terra |
+
+That correction cuts the two headline numbers this chronicle leaned on hardest. Gemini 3.5 Flash's 93/100 trust score was already resting on two calls; it's now resting on one, and "one call, zero infrastructure issues" is a fact about a single run, not a model. GPT-5.6 Terra's flagged 40/100 score is the more durable of the two readings, since its defect (the copilot-backend empty response) was found on a call that genuinely did reach OpenAI's infrastructure — but the vendor only earned that verdict twice, not four times, and the ledger said four for as long as nobody checked.
+
+None of this makes the original table dishonest — it reported exactly what the data showed at the moment M145 pulled it. It makes the original table a demonstration of the same lesson the fleet kept re-learning across this era: a number that passed its check the first time is a claim, not a fact, until something goes back and checks whether the label underneath it was ever true.
 
 ## Closed, Not Settled
 
