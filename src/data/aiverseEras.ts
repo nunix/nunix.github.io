@@ -498,6 +498,18 @@ export const AIVERSE_ERAS: AiverseEra[] = [
         path: '/aiverse/era-x-council/the-uncounted-tongues',
         missions: 'M137–M139',
       },
+      {
+        title: 'Astronomis Redrawn',
+        subtitle: 'A mission graph that inflated its own size, corrected',
+        path: '/aiverse/era-x-council/astronomis-redrawn',
+        missions: 'M145–M147, M154',
+      },
+      {
+        title: 'The Price of Truth',
+        subtitle: 'A ledger that finally tells the truth about itself',
+        path: '/aiverse/era-x-council/the-price-of-truth',
+        missions: 'M134, M149, M153–M154',
+      },
     ],
   },
 ];

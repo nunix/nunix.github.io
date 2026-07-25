@@ -1,0 +1,109 @@
+---
+id: the-price-of-truth
+title: "The Price of Truth"
+sidebar_label: "VI. The Price of Truth"
+description: "A trust ledger is only as honest as the cost figures sitting next to it. M134 found a vendor with zero cost records at all, M149 spent three attempts finding out how wrong a cheap estimate can be, and M153 caught the audit itself drifting before M154 finally made the whole problem automatic."
+tags: [aiverse, era-x, finops, cost, task-cost, audit, m134, m149, m153, m154]
+pagination_prev: 'aiverse/era-x-council/astronomis-redrawn'
+---
+
+import Admonition from '@theme/Admonition';
+
+<Admonition type="note" title="📜 Remembrancer's Note">
+
+Every chronicle in this era has leaned on one number or another — fourteen verified calls, a dollar figure, a trust score. This is the chronicle of where those numbers actually came from, and how far the fleet had to go to trust them. It starts with a vendor that had never once been priced, runs through an estimate that turned out to be off by two orders of magnitude, survives a correction that briefly made things worse before it made them right, and ends with the fleet finally admitting that pricing a thing after the fact was never going to work as well as pricing it while it happened. This is the last chronicle of Era X — the Council of Tongues closes here, its ledger finally telling the truth about itself.
+
+*— The Remembrancer of the AIverse*
+*Engrams M134, M149, M153–M154*
+
+</Admonition>
+
+---
+
+> *"In AIverse, there is only Knowledge."*
+
+---
+
+# VI. The Price of Truth
+
+<Admonition type="info" title="⚙️ M134, M149, M153-M154 — FinOps, Finally Honest">
+
+A routine audit found that <Term id="haiku">Claude Haiku</Term> — the fleet's default Matey model, the one running the most delegations of any vendor by far — had zero <Term id="task-cost">task_cost</Term> rows to its name. The native Anthropic subagent path simply never called the pricing function the other two vendors' CLI wrappers called automatically. Fixing that blind spot led to a full retroactive backfill across 142 session files and thousands of memory nodes, which itself went wrong twice before it went right — first by trusting rough character-count estimates that undershot real usage by roughly 130x, then by a window-correlation bug that briefly attributed 63 million cache tokens to a single conversation turn. A later audit found the correction itself had mis-filed six nodes under a mission number that didn't exist. The fix that finally stuck wasn't a better backfill script — it was building automatic cost capture into the moment work happens, so there is nothing left to backfill.
+
+*[Return to the Cosmic Map](/cosmos) to see all eras.*
+</Admonition>
+
+## A Blind Spot Nobody Noticed
+
+M134 opened on a question the round-robin audit forced into the open: with real dollar figures now flowing for two of three vendors, why did Claude Haiku — the workhorse, the default, the model running more Matey calls than <Term id="gemini-3-5-flash">Gemini</Term> and <Term id="gpt-5-6-terra">GPT-5.6 Terra</Term> combined — have no cost records at all? The answer was structural rather than accidental: `dispatch_vendor` and its CLI-wrapped siblings called `record_task_cost` as part of their own dispatch path, but the native Agent-tool path used for Anthropic subagents never did, because nobody had wired it to. Every Haiku delegation since the round-robin began had executed, and cost real money, without a single line in the ledger to show for it.
+
+The fix that mission actually shipped was a rule change — mandate `record_task_cost --estimated` for every native Anthropic Matey call — but a rule only closes the gap going forward. Behind it sat 142 session transcripts and 4,832 memory nodes going back to early May, every one of them missing the number that would tell the fleet what any of this had actually cost.
+
+## Off By 130x
+
+Closing that historical gap meant a retroactive backfill: read every Claude Code session's own token-usage data, correlate it against the fleet_memory nodes written during that window, and insert real `task_cost` rows using the pricing that was actually in effect on each node's own date — not today's pricing, which the existing `record_task_cost` tooling hardcoded by default.
+
+The first attempt reached for the cheapest available proxy: estimate token counts from character length, divide by four, call it close enough. It wasn't. Measured against real per-turn `usage` blocks already sitting in the session JSONL files — `input_tokens`, `output_tokens`, `cache_creation_input_tokens`, `cache_read_input_tokens`, present on every assistant message the whole time — the character-count estimate undershot actual usage by roughly 130x. <Term id="prompt-caching">Prompt caching</Term> was the reason: a cache-read token costs a fraction of a fresh input token, but it still *is* a token, and a rough char-count guess had no way to know the difference between a cheap cache hit and an expensive cold read, let alone how many of each a real turn actually consumed.
+
+<Admonition type="info" title="⚙️ Technical Insight">
+
+The 130x gap wasn't a rounding error in the estimate — it was a category error in what the estimate was measuring. Character-count-to-token approximation assumes a roughly flat exchange rate between text length and cost. Prompt caching breaks that assumption directly: two turns with identical visible text length can differ in real cost by an order of magnitude depending on how much of that text was served from cache versus computed fresh. Once caching is in the pricing model at all, any estimate that doesn't separately account for cache-read versus cache-write versus fresh tokens isn't approximately right, it's structurally blind to the single largest cost variable in the system.
+
+</Admonition>
+
+## The Correction That Broke Worse
+
+The second attempt fixed the estimation problem correctly — pull real usage straight from the session transcripts instead of guessing — but introduced a new one. A window-correlation bug matched fleet_memory nodes to session usage by timestamp proximity rather than a tight, provably-correct join, and in the worst cases summed usage across far too wide a window: up to 63 million cache tokens attributed to a single conversation turn, an order of magnitude beyond what any real turn could produce. The same pass also fabricated 22 `model_pricing` rows to paper over a gap in historical pricing data for the 06-22 to 07-13 window, rows that had no basis in the fleet's actual pricing history and had to be deleted along with the implausible cost figures they produced.
+
+The fix that followed was less clever and more disciplined: a hard floor restricting the backfill to nodes timestamped on or after 2026-07-14 — the only date real `model_pricing` data actually existed for `claude-sonnet-5` — combined with a strict read-only contract against the pricing table (select only, never insert or update) and a sanity cap rejecting any node whose summed window tokens exceeded 2,000,000, logging it as uncovered rather than inserting a number nobody could stand behind. A dry run, a sanity check of the dry run's output, and only then a real run. The backfill that finally landed correctly wasn't the one that tried hardest to fill every gap — it was the one willing to leave gaps honestly unfilled rather than paper over them with a plausible-looking wrong number.
+
+## When the Audit Found the Auditor Wrong
+
+Even a correctly-scoped backfill can drift. Working through a related mission on real per-turn cost capture, the Emperor noticed something off: "I'm reaching some drift. Assess M152 and M149 and ensure that all correct nodes are linked correctly. It assigned some nodes from the round-robin mission, which is totally wrong." An audit of the audit found six nodes — covering the original round-robin pricing-coverage discovery — mislabeled under `[M148]`, a mission number that had never existed as an objective at all, and wrongly re-parented under M149 as if they belonged to the backfill-script saga rather than the original M134 discovery that started it. Content review confirmed all six matched M134's scope exactly: the Matey vendor cost-tracking gap, not the backfill tooling built to fix it. All six were reparented to their correct home. A separate check of M152's own 54 footer-related child nodes came back clean — no drift found there, a useful negative result confirming the problem was isolated rather than systemic.
+
+The correction closed with the same honesty this whole saga had needed from the start: no attempt to force a running total to match a target number exactly. When a later pass reconciled this session's own node-level costs against the Emperor's independently-reported ground truth — a total session cost including keepalive pings of $3.14815, with keepalive itself accounting for $0.04869 of it — the backfilled sum was reported as what it actually was, with the gap to target stated plainly rather than adjusted to close it.
+
+## The Hook That Ended the Backfill Era
+
+Every mission in this chronicle so far was, in one way or another, about reconstructing a cost that should have been captured the moment it happened. M154 — nominally a small visual fix for a vendor logo overlapping a mission's root node — closed on the piece that actually ended the pattern: `cost-auto-record.sh`, a `PostToolUse(Agent)` hook that fires after every subagent call, automatically writing a fleet_memory observation and calling `record_task_cost`, keyed off a simple on-disk convention (`~/.claude/.active_objective`) rather than a human remembering to invoke it by hand. The Emperor's own framing of the ask made the shift explicit: "ensure your nodes have the price set to them too. this should be now automated and I shouldn't be remembering it."
+
+Verified live during the same mission — a cost node auto-created, `cost_usd` populated, `parent_id` correctly set to the active objective, with no manual `record_task_cost` call anywhere in sight. Three missions of backfilling a gap after the fact, closed by one mission that made the gap structurally impossible to reopen.
+
+## What Era X Delivered
+
+<Admonition type="info" title="🗣️ Era X — Full Summary">
+
+Thirty-plus missions. Three vendors, one command chair, and a ledger that finally tells the truth about both.
+
+| Mission | Delivered |
+|---------|-----------|
+| M121–M123 | The Triumvirate Accord — `model_registry`, domain-scoped peer trust, FinOps cost ledger, three vendors in one seat |
+| M126–M129 | The Roster's Reckoning — logo cutoff, `terra`/`tera` typo, untagged completions, missing Haiku pricing row, one root cause found in layers |
+| M130 | Durable round-robin rotation live — `matey_rotation_state`, `next_matey`, 60-call fairness window |
+| M134 | Haiku cost-tracking blind spot found — native Agent-tool path never called `record_task_cost` |
+| M137–M139 | The Uncounted Tongues — mis-grouped mission graph, three delegations wearing the wrong vendor's face, a fix deployed to a container nobody was serving traffic from |
+| M145–M147 | Astronomis Redrawn — a mission graph inflating node counts 5x, fixed by retiring client-side heuristics for a backend-authoritative recursive CTE |
+| M149 | Real per-turn cost backfill — a 130x-wrong estimate, a window-correlation bug, then a read-only, hard-floored, sanity-capped pass that finally held |
+| M153 | Cost-audit drift caught and corrected — six nodes reparented off a mission number that never existed |
+| M154 | Logo-overlap fix, and `cost-auto-record.sh` — cost capture made automatic, ending the backfill era for good |
+
+Era X opened with a question about which model should answer a delegation. It closes having answered a harder one: whether the fleet's own record of its work — who did it, what it cost, which mission it belongs to — can be trusted without a human re-checking it by hand. Three vendors now share the command chair on a rotation that's honest about its own limits, a trust ledger that no longer credits work nobody performed, a mission graph that computes its own truth instead of guessing at it, and a cost pipeline that prices work as it happens rather than reconstructing it afterward. What comes next is whatever the fleet asks three tongues to do once it no longer has to double-check that they actually did it.
+</Admonition>
+
+<Admonition type="tip" title="📚 Knowledge Transfer">
+
+**The lesson worth keeping:** A cost or usage figure produced after the fact is a reconstruction, not a measurement — and every reconstruction in this chronicle needed at least one more pass to get right. The only backfill that never needs correcting is the one you never had to run, because the number was captured the moment the work happened.
+
+**Pattern:** Each fix in this saga was disciplined by a guardrail added *after* the previous attempt's failure taught the fleet what to guard against — a hard date floor, a read-only contract, a sanity cap on plausible token counts. None of those guardrails were obvious in advance; all of them were obvious in hindsight, once a specific failure showed exactly where an unconstrained backfill could go wrong.
+
+**What we'd do differently:** The character-count estimate should never have been trusted for a system with prompt caching already live. The moment a pricing model has more than one rate for the same conceptual unit (fresh input vs. cache read vs. cache write), any estimate that collapses those into a single average is guaranteed to be wrong in one direction or the other — checking for that structural gap up front would have skipped the first failed attempt entirely.
+
+**If you're building this yourself:** Whenever possible, price a unit of work at the moment it happens, with the tool or hook that actually performed it, using the real usage numbers that tool already has on hand. Retroactive reconstruction should be a one-time migration for historical gaps, never a standing strategy — every mission in this chronicle exists because it was treated as the latter for too long.
+
+</Admonition>
+
+<NunixOut />
+
+<div className="aiverse-fleet-cta">
+  <a href="/aiverse/support">⚔️ The Fleet Needs You — Support the Chronicle</a>
+</div>
