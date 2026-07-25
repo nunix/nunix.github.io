@@ -1,0 +1,99 @@
+---
+id: astronomis-redrawn
+title: "Astronomis Redrawn"
+sidebar_label: "V. Astronomis Redrawn"
+description: "The command-center graph had been lying about mission size since before anyone thought to ask. M145-M147 found a mission with eight real nodes displaying thirty-nine, traced it through three separate heuristics compounding each other, and replaced guesswork with a backend that actually knows the answer."
+tags: [aiverse, era-x, astronomis, graph, bugfix, root-cause, m145, m146, m147, m154]
+pagination_prev: 'aiverse/era-x-council/the-uncounted-tongues'
+pagination_next: 'aiverse/era-x-council/the-price-of-truth'
+---
+
+import Admonition from '@theme/Admonition';
+
+<Admonition type="note" title="📜 Remembrancer's Note">
+
+[The Uncounted Tongues](./the-uncounted-tongues) closed on a rule: never claim a label you can't back up. This chronicle is what happened when that same standard turned inward, onto the map the fleet uses to see itself. Astronomis — the command-center's living graph — had been drawing a mission's story with far more nodes than the mission actually had, for long enough that nobody had thought to count. What looked like one bug turned out to be three heuristics, stacked, each one covering for the others' mistakes until a blank page finally forced the fleet to stop guessing and build something that actually knew the truth.
+
+*— The Remembrancer of the AIverse*
+*Engrams M145–M147, M154*
+
+</Admonition>
+
+---
+
+> *"In AIverse, there is only Knowledge."*
+
+---
+
+# V. Astronomis Redrawn
+
+<Admonition type="info" title="⚙️ M145-M147, M154 — The Map Corrected">
+
+A single mission's node count on the command-center graph read 39 when the database held 8. The inflation traced to three separate heuristics in `MapPanel.jsx` — content-substring matching, a weak hub-vote guard, and a descend-pass with no vote guard at all — each dragging in nodes the others had already mis-claimed, compounding rather than canceling. Two independent reviewers, dispatched in parallel to avoid one reviewer's blind spot becoming the fleet's blind spot, converged on the same root cause from different angles. The fix took three tries to actually land, crashed the page once on the way, and ended with the heuristics fully retired in favor of a backend that computes the true mission tree once and hands it down.
+
+*[Return to the Cosmic Map](/cosmos) to see all eras.*
+</Admonition>
+
+## Thirty-Nine Nodes Where Eight Belonged
+
+M145 started as a routine relink check. The Emperor asked why a mission's node count still looked wrong after an earlier correction: "M145 system still shows 39 nodes instead of few ones only." A direct query against the database gave the true answer — eight nodes, no more — which meant the front end wasn't reading the wrong data, it was *computing* the wrong picture from data that was already correct. That distinction mattered: no query fix, however careful, would touch a bug living entirely in client-side clustering logic.
+
+The Emperor's response set the scope wide on purpose: "great finding, but it triggers the question if there's more bugs. So open a new mission to review and fix Astronomis from top to bottom." M146 opened not to patch one number, but to audit the whole panel-and-graph rendering path against the fleet's own `operations.md` rules.
+
+## Two Reviewers, One Diagnosis
+
+Before writing a line of fix code, the mission split the diagnosis across two independent reviewers who couldn't see each other's work: `gpt-5.6-sol` via Copilot, and an <Term id="claude-opus-4-8">Opus 4.8</Term> subagent doing an architecture-level read. Neither was told what the other found.
+
+GPT-5.6-sol traced the inflation to three concrete mechanisms: `attachBridgeNodes`' hub-vote logic promoting an ancestor node and then dragging its *entire* subtree along for the ride; `attachContentMatchedNodes` still catching parentless nodes by matching preview text rather than real structure; and a `findNodesByMission` fallback that ignored ancestry chains altogether. It also flagged something neither fix so far had touched — the canvas renders *all* global nodes at all times, just dimmed to 18% opacity, so unrelated nodes never actually leave the screen even when a mission is "selected."
+
+Opus confirmed all three mechanisms independently, then added the piece GPT-5.6-sol's review had missed: the real seed of the inflation was `auto_universalis_record.sh` — the very same auto-hook the fleet's own memory-linkage rule already knew couldn't inject a `parent_id` — writing parentless observation nodes after every response. Those orphans were exactly what `attachContentMatchedNodes` went looking for, and once picked up, `attachBridgeNodes`' unguarded descend pass pulled in their whole subtree behind them. Two independently-run reviews, using two different methods, landing on the same shape of bug from two different directions — the adversarial-verification pattern working exactly as intended, catching what a single review might have stopped short of.
+
+<Admonition type="info" title="⚙️ Technical Insight">
+
+Running two structurally different reviews in parallel — one an external-vendor CLI audit, one an in-house architecture read — isn't redundancy for its own sake. It's insurance against the specific failure mode where one reviewer's assumptions become the fix's assumptions. GPT-5.6-sol, working closer to the rendering code, found the three compounding mechanisms. Opus, reading the system a layer up, connected those mechanisms back to an already-known structural gap (the auto-hook's missing `parent_id`) that the closer read had no reason to think about. Neither review was wrong; neither was complete alone. The two together gave a diagnosis with no gaps either one would have left standing on its own.
+
+</Admonition>
+
+## Three Fixes, Each One Necessary
+
+The repair shipped in three tranches, each addressing a layer the previous one left standing.
+
+**T1** tightened the heuristics themselves: `attachContentMatchedNodes` was restricted to true structural orphans with no `parentId` at all, instead of grabbing any node whose real parent happened to sit outside the current zone, and the hub-vote guard in `attachBridgeNodes` was raised to a minimum of three votes rather than a bare vote-margin. Deployed and verified — the node count for the target mission dropped from 39 to 8, matching the database exactly.
+
+That held for exactly as long as it took someone to click around. **T2** implemented the two reviewers' shared recommendation: a backend-authoritative recursive CTE (`UNION`, not `UNION ALL` — cycle-safe by construction) exposed at `GET /api/graph/mission/{missionId}`, computing the true mission tree server-side instead of inferring it from heuristics client-side. The frontend now fetches the strict node set on mission select, falls back to the heuristic cluster only while that request is in flight, then swaps to the authoritative set the moment it lands. The old heuristics stayed in place, but demoted — used only for galaxy-view *layout* positioning, never for panel counts or selection highlighting again.
+
+Even that wasn't the end of it. The heuristics, still driving layout, kept unrelated nodes visually orbiting a mission's centroid on the galaxy map even though clicking that mission now correctly highlighted only its true tree — a cosmetic gap, but a confusing one. **T3** closed it by extending the same recursive-CTE approach to a bulk endpoint, `GET /api/graph/mission-trees`, covering every mission's tree in one query, and rebuilding the galaxy layout to cluster directly from those strict server-side trees. `attachContentMatchedNodes` and `attachBridgeNodes` were left in the file, defined but now fully unused — harmless dead code rather than a live liability. Orphans with no strict tree of their own now go straight to the asteroid belt, instead of being heuristically reassigned to whichever mission's content they happened to resemble.
+
+## The Blank Page
+
+Between T2 and T3, the fix broke the page outright. Selecting no mission at all crashed the entire React render tree to a blank screen, with nothing in the console pointing at an obvious cause. A headless browser console capture found it: `const rootId = strictMissionTree?.missionId === mId ? strictMissionTree.rootId : zone?.id` — when no mission was selected, both `strictMissionTree?.missionId` and `mId` were `undefined`, and `undefined === undefined` evaluates to `true`. The ternary took the wrong branch and dereferenced `.rootId` on a `null` object, with no error boundary anywhere in the tree to catch the throw before it took the whole page down.
+
+The fix was one guard clause — `mId &&` prepended to the check — but the underlying lesson generalizes past this one line: a strict-equality check between two values that are each independently allowed to be `undefined` is not a safety check at all, it's a coin flip that happens to land on "safe" most of the time.
+
+## One Last Logo
+
+Astronomis kept confessing small sins even after the big one was fixed. M154 found the fleet's vendor-logo overlay — the small icon marking which model executed a node, added back in the Roster's Reckoning days — rendering directly on top of a mission's *root* node, obscuring the price figure sitting underneath it. The fix was a single guard, `!isRoot`, added to the overlay condition in `MapPanel.jsx` at line 677: root nodes represent the mission itself, not a single vendor's work, and never needed a vendor icon in the first place.
+
+M154 closed on something more durable than a CSS-adjacent fix, though — a `PostToolUse(Agent)` hook, `cost-auto-record.sh`, that now writes a cost-tracking observation and calls `record_task_cost` automatically after every subagent call, keyed off a simple on-disk convention (`~/.claude/.active_objective`) rather than a human remembering to ask for it. That thread — how the fleet stopped needing to remember to price its own work after the fact — is the story [The Price of Truth](./the-price-of-truth) picks up next.
+
+## Why Root Cause Took Three Passes
+
+Every layer of this bug looked, on its own, like a reasonable piece of client-side convenience logic: a content match to catch stragglers, a hub-vote to promote likely ancestors, a fallback for missions with sparse structure. None of the three was wrong in isolation. Stacked, with no single authoritative source of truth underneath them, they compounded into a graph that could inflate a mission's visible size by nearly 5x and stay that way until someone happened to count. The fix that actually held wasn't a smarter heuristic — heuristics were the disease, not a treatable symptom of it. It was removing the guesswork entirely and replacing it with one query that could only ever return the true answer.
+
+<Admonition type="tip" title="📚 Knowledge Transfer">
+
+**The lesson worth keeping:** Client-side heuristics that infer structure from content are a liability that scales with how much content there is to match against. They will always look correct on a small dataset and always eventually over-match on a large one — the failure mode isn't a bug to patch, it's the approach itself reaching its limit.
+
+**Pattern:** When a bug survives a first "fix" (T1 held for a demo, then broke under real use), that's a signal the fix addressed a symptom the diagnosis correctly identified but didn't go deep enough to eliminate. T2 and T3 didn't correct T1 — they removed the entire category of logic T1 had only tightened.
+
+**What we'd do differently:** The auto-hook's missing `parent_id` — the actual seed of the inflation, per Opus's review — was a *known* gap, already documented in the fleet's own memory-linkage rule, before M145 ever surfaced. Treating a documented structural gap as low-priority because nothing had visibly broken yet is exactly how it broke visibly, three missions later.
+
+**If you're building this yourself:** If a UI needs to answer "what belongs to X," and the honest answer requires walking a graph, compute that answer once, authoritatively, on the server that owns the graph. Every heuristic added on the client to approximate that same answer is a future audit waiting to happen.
+
+</Admonition>
+
+<NunixOut />
+
+<div className="aiverse-fleet-cta">
+  <a href="/aiverse/support">⚔️ The Fleet Needs You — Support the Chronicle</a>
+</div>
