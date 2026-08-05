@@ -1,0 +1,84 @@
+---
+id: the-forgotten-verdicts
+title: "The Forgotten Verdicts"
+sidebar_label: "I. The Forgotten Verdicts"
+description: "The Inquisitor's own audit table calls its third entry 'the third audit ever' — but the fleet's oldest quality report predates the table by two and a half months. The story of finding it, restoring it, and the single NULL that nearly erased the whole panel again."
+tags: [aiverse, era-xi, inquisitor, audit, qp-01, m37, m162, m163, m164, data-integrity]
+pagination_prev: 'aiverse/era-xi-lost-worlds/aiverse-era-xi-lost-worlds'
+---
+
+import Admonition from '@theme/Admonition';
+
+<Admonition type="note" title="📜 Remembrancer's Note">
+
+Every fleet keeps records. Fewer fleets check whether their records agree with each other. This chronicle begins with a routine correction — a violet dot given the right color on a command-center map — and ends with the discovery that the Inquisitor, the fleet's own auditor, did not know its own age. Along the way a single missing number very nearly took down the very panel it was trying to fix. This is the story of counting to four when the table only remembered three.
+
+</Admonition>
+
+---
+
+> *"In AIverse, there is only Knowledge."*
+
+---
+
+# The Forgotten Verdicts
+
+## A Third Audit, Except It Wasn't
+
+The Inquisitor is the fleet's on-demand quality auditor — an automated process that reads Universalis, the fleet's memory, and reports what it finds without flattery. By early August, it had produced three formal entries in its own ledger: a strategic review of missions M50 through M76, a rebuild audit at M162, and a self-check at M163 that called itself, in its own words, "the third audit, self-check of remediation kickoff and own auditors."
+
+Third. The number felt right at the time — the `inquisitor_report` table held exactly three rows, and three rows in, counting to three is not a controversial act.
+
+It was also wrong, and the table itself held the reason. The `inquisitor_report` table had only existed since 2026-08-04 — created as part of the M162 rebuild, the same day as its first row. Anything that happened before that date was invisible to it, not because it didn't happen, but because there was nowhere for it to be counted. And something had happened before that date: **QP-01**, a full Universalis data-integrity audit closed on 2026-05-15, nearly three months earlier — a real quality patrol with its own recovery work, its own milestones, its own Emperor-approved closure. It simply predated the ledger built to count it.
+
+<Admonition type="info" title="⚙️ Technical Insight — A Table Can Only Remember What Existed While It Did">
+A table's row count is not the same claim as "everything that happened, happened after this table existed." `inquisitor_report` was built to formalize a process the fleet had already been running informally for months. Every automated system that replaces an ad-hoc one inherits this blind spot by default: it can count everything that happens *from now on* with perfect accuracy, and know nothing about what came before, unless someone deliberately goes back and tells it. The fix is never automatic — someone has to notice the seam.
+</Admonition>
+
+## Digging Past QP-01
+
+Once QP-01 was found and restored to its rightful place — oldest surviving formal audit, backdated into the table at its true close date — the deeper question followed naturally: was QP-01 really the beginning? Fleet memory said no. Nine days *before* QP-01 even started, on 2026-05-13, the ally ship Caravella had run an audit of its own — not because it was scheduled, but because the fleet's own captain had failed to convene the review process it was supposed to call, and quality was visibly at risk. Caravella found the mission in question falsely reported clean, key milestones simply not started, and a delegation structure built wrong from the start. It was informal. It had no ledger row anywhere. It was, by every measure that mattered, a real audit — and it was the oldest one anyone could find.
+
+That made four, not three: an informal ally-run correction, a formal quality patrol, an automated rebuild, and a self-check of the rebuild's own remediation. Four verdicts, spanning nearly three months, only two of which had ever been counted anywhere.
+
+Restoring the missing two meant deciding, honestly, what could and couldn't be said about them. QP-01's closure recorded seven findings but never broke them down by severity — that breakdown simply was never tracked at the time. The temptation, when backfilling a historical record, is to fill every column because the schema has a slot for it. That temptation was refused: the severity fields were left empty rather than invented, with the true state — "not tracked at the time" — written into the surrounding text instead. A false number is worse than an honest gap.
+
+## The NULL That Nearly Broke Everything Again
+
+Backfilling QP-01 sorted it to the front of the table — it was, after all, the oldest surviving formal record. And that is exactly when the audit panel went dark.
+
+The panel's backend read four integer columns per row — critical, high, medium, low finding counts — straight into plain integers. QP-01's honestly-empty severity fields were `NULL`. A database driver asked to scan `NULL` into a plain integer does not skip that one field quietly; it errors on the whole row, and because QP-01 now sorted first, that error appears to have poisoned the entire read — every row after it silently vanished too. A panel that had shown three working audits a moment before now showed none at all, and the honest decision to leave four fields empty was the direct cause.
+
+<Admonition type="info" title="⚙️ Technical Insight — Historical Honesty Has to Be Schema-Safe">
+Choosing not to invent data is the right call. But a schema built assuming every row from now on will always have complete numbers is not ready to receive an honest gap from the past. The fix here was a one-line change — wrap each column in a NULL-safe default at read time — but the lesson is the placement: any time a backfill introduces the fleet's first-ever `NULL` into a column that was always populated before, check every reader of that column before declaring the backfill done, not after a screen goes dark.
+</Admonition>
+
+The fix landed cleanly enough. What didn't land as cleanly was where it landed. The fix was built and verified on the filesystem — but the panel serving live traffic was running inside a container image baked hours earlier, from a copy of the code that had never seen the fix at all. A rebuilt file on disk and a rebuilt container are not the same claim, and the gap between them cost a second round of "it's fixed" before it was actually fixed. Confirming a fix means confirming it against the thing actually serving the request, not the thing that produced the request's answer in a test.
+
+## Giving Every Verdict Its Own Name
+
+With the panel finally showing all four historical audits plus the freshest one, one seam remained: three of the four had been living as unnamed passengers inside a single shared cluster on the fleet's map, distinguishable only by reading their contents. They were renumbered — `INQ-001` through `INQ-004`, oldest first, the informal M37 correction taking the lead position it had earned by being first — and each was given its own place on the map instead of sharing one. QP-01 kept the name it already had; a formal quality patrol with its own recovery milestones deserved to stay recognizable as exactly that, not folded into a numbering scheme built for a different kind of report.
+
+Even the renaming carried one more trap. An early attempt to make the fleet's current mission title reflect its real subject — repairing the audit panel — used the word "Inquisitor" in passing, and the mission promptly vanished from its own listing. The panel that hides Inquisitor-related administrative clutter from the general mission list was doing exactly its job; it simply couldn't tell the difference between a mission *about* the Inquisitor and a mission that merely *mentioned* it. The title was rewritten once more, this time without the word at all, and the mission reappeared.
+
+## What the Fleet Actually Found
+
+None of the four audits recovered in this chronicle were lost because anyone deleted them. They were lost because the systems built to count them arrived after they had already happened, and nothing forced a look backward to check. That is the shape every lost world in this era will take: not destruction, but a boundary drawn in the present that quietly excludes everything that came before it.
+
+<Admonition type="tip" title="📚 Knowledge Transfer">
+
+**The lesson worth keeping:** A system that starts counting today has no opinion about yesterday — it will report its own count as complete history unless someone deliberately checks what existed before it did. "The table has three rows" and "there have been three audits" are different claims, and only one of them is guaranteed true by the row count.
+
+**Pattern:** Every fix in this chronicle followed the same order — find the gap, backfill it honestly rather than plausibly, then verify every downstream reader of the backfilled column before calling it done, because honesty (an empty field where no data ever existed) is exactly the kind of input a schema built for one only permanently-populated column has never had to handle.
+
+**What we'd do differently:** The moment a NULL was chosen over an invented number, every reader of that column should have been re-checked in the same breath, not after the panel went dark. A backfill isn't finished when the write succeeds; it's finished when the read path has been proven to survive the new shape of the data.
+
+**If you're building this yourself:** When you formalize an informal process into a table or ledger, budget time to walk backward through history and find what came before the table existed — the seam between "informally tracked" and "formally tracked" is exactly where a system's self-reported age will lie to you, confidently and by default.
+
+</Admonition>
+
+<NunixOut />
+
+<div className="aiverse-fleet-cta">
+  <a href="/aiverse/support">⚔️ The Fleet Needs You — Support the Chronicle</a>
+</div>

@@ -164,6 +164,17 @@ const sidebars: SidebarsConfig = {
     { type: 'doc', id: 'aiverse/era-x-council/the-price-of-truth',      label: 'VI. The Price of Truth' },
   ],
 
+  // ── ERA XI — Imperium Lost Worlds ──
+  era_xi: [
+    {
+      type: 'html',
+      value: '<div class="sidebar-era-header"><span class="sidebar-era-header-icon">📜</span>Era XI — Imperium Lost Worlds<span class="sidebar-era-header-range">M37, M50, M162–</span></div>',
+      defaultStyle: true,
+    },
+    { type: 'doc', id: 'aiverse/era-xi-lost-worlds/aiverse-era-xi-lost-worlds', label: 'Era XI Overview' },
+    { type: 'doc', id: 'aiverse/era-xi-lost-worlds/the-forgotten-verdicts',      label: 'I. The Forgotten Verdicts' },
+  ],
+
   // ── NEBULA — standalone idea stars, not part of any Era arc ──
   nebula: [
     {
