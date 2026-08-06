@@ -25,9 +25,77 @@ Not every failure looks like a failure. Sometimes the write succeeds every singl
 
 ## A Table That Never Complained
 
-`fleet_patrol` is the fleet's routine health sweep — it runs, checks heartbeats and system state, and when something looks wrong it writes a row into the `alerts` table. By early August that table had been collecting rows for months without a single error. Every patrol cycle either found nothing or wrote its finding cleanly. By every signal the writing side could offer, the system was healthy.
+<Term id="fleet-patrol">fleet_patrol</Term> is the fleet's routine health sweep — it runs, checks heartbeats and system state, and when something looks wrong it writes a row into the `alerts` table. By early August that table had been collecting rows for months without a single error. Every patrol cycle either found nothing or wrote its finding cleanly. By every signal the writing side could offer, the system was healthy.
 
-The Inquisitor's second audit — the fleet's first fully automated one — looked at the other side of that pipe and found nothing there at all. `alerts` had no `NOTIFY` trigger, no acknowledged or resolved column, and no consumer anywhere in Astronomis, the fleet's command-center map. Two high-severity Caravella alerts had been sitting in the table, unread, for three months. Not lost. Not corrupted. Simply never looked at, because nothing in the system was built to look.
+The <Term id="inquisitor">Inquisitor</Term>'s second audit — the fleet's first fully automated one — looked at the other side of that pipe and found nothing there at all. `alerts` had no <Term id="postgresql">NOTIFY</Term> trigger, no acknowledged or resolved column, and no consumer anywhere in Astronomis, the fleet's command-center map. Two high-severity Caravella alerts had been sitting in the table, unread, for three months. Not lost. Not corrupted. Simply never looked at, because nothing in the system was built to look.
+
+<div className="aiverse-diagram" style={{background: 'linear-gradient(160deg, #0b1220 0%, #0f172a 100%)', borderRadius: '20px', padding: '8px', margin: '2rem 0', boxShadow: '0 12px 40px rgba(0,0,0,0.45)', border: '1px solid rgba(45,212,191,0.18)'}}>
+<svg viewBox="0 0 1200 460" width="100%" role="img" aria-label="Before and after diagram of the alerts pipeline: before, patrol writes into a table with no reader, notify, resolved state, or dedupe; after, a shared raise_alert gate dedupes writes, a NOTIFY trigger fires on insert, and a resolved column lets alerts be retracted" style={{display: 'block', fontFamily: 'ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, sans-serif'}}>
+  <defs>
+    <linearGradient id="avAmber" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stopColor="#fbbf24" /><stop offset="1" stopColor="#f59e0b" /></linearGradient>
+    <linearGradient id="avTeal" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stopColor="#2dd4bf" /><stop offset="1" stopColor="#0ea5a4" /></linearGradient>
+    <linearGradient id="avGreen" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stopColor="#34d399" /><stop offset="1" stopColor="#059669" /></linearGradient>
+    <filter id="avSoft" x="-20%" y="-20%" width="140%" height="140%"><feDropShadow dx="0" dy="4" stdDeviation="6" floodColor="#000000" floodOpacity="0.35" /></filter>
+    <marker id="avArrow" markerWidth="12" markerHeight="12" refX="7" refY="4" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L8,4 L0,8 Z" fill="#7dd3c8" /></marker>
+  </defs>
+
+  <text x="30" y="34" fontSize="21" fontWeight="700" fill="#f1f5f9">Before — A Pipe With Nothing on the Other End</text>
+  <text x="30" y="53" fontSize="12" fill="#fbbf24" letterSpacing="0.5">EVERY WRITE SUCCEEDED · NOTHING EVER READ</text>
+
+  <rect x="60" y="80" width="180" height="80" rx="14" fill="#111a2e" stroke="#fbbf24" strokeOpacity="0.5" strokeWidth="1.4" filter="url(#avSoft)" />
+  <text x="150" y="112" fontSize="13" fontWeight="700" fill="#f1f5f9" textAnchor="middle">fleet_patrol</text>
+  <text x="150" y="130" fontSize="10" fill="#cbd5e1" textAnchor="middle">11 raw INSERT sites</text>
+  <text x="150" y="144" fontSize="10" fill="#cbd5e1" textAnchor="middle">no dedupe check</text>
+
+  <path d="M240,120 L420,120" stroke="url(#avAmber)" strokeWidth="2.4" markerEnd="url(#avArrow)" fill="none" />
+
+  <rect x="420" y="80" width="220" height="80" rx="14" fill="#111a2e" stroke="#fbbf24" strokeOpacity="0.5" strokeWidth="1.4" filter="url(#avSoft)" />
+  <text x="530" y="108" fontSize="13" fontWeight="700" fill="#f1f5f9" textAnchor="middle">alerts table</text>
+  <text x="530" y="126" fontSize="10" fill="#cbd5e1" textAnchor="middle">duplicate stale-heartbeat</text>
+  <text x="530" y="140" fontSize="10" fill="#cbd5e1" textAnchor="middle">rows, unbounded growth</text>
+
+  <path d="M640,120 L800,120" stroke="#64748b" strokeWidth="2" strokeDasharray="5,5" fill="none" />
+  <text x="720" y="105" fontSize="10.5" fill="#64748b" textAnchor="middle">no NOTIFY</text>
+
+  <rect x="800" y="80" width="220" height="80" rx="14" fill="#0b1220" stroke="#64748b" strokeOpacity="0.4" strokeWidth="1.4" strokeDasharray="4,4" />
+  <text x="910" y="112" fontSize="13" fontWeight="700" fill="#64748b" textAnchor="middle">Astronomis</text>
+  <text x="910" y="130" fontSize="10" fill="#64748b" textAnchor="middle">nothing subscribed —</text>
+  <text x="910" y="144" fontSize="10" fill="#64748b" textAnchor="middle">2 alerts unread 3mo</text>
+
+  <line x1="30" y1="210" x2="1170" y2="210" stroke="#334155" strokeWidth="1" strokeDasharray="3,4" />
+
+  <text x="30" y="248" fontSize="21" fontWeight="700" fill="#f1f5f9">After — One Gate, One Channel, One State</text>
+  <text x="30" y="267" fontSize="12" fill="#2dd4bf" letterSpacing="0.5">EVERY INSERT SITE ROUTES THROUGH raise_alert()</text>
+
+  <rect x="60" y="295" width="180" height="90" rx="14" fill="#111a2e" stroke="#2dd4bf" strokeOpacity="0.6" strokeWidth="1.4" filter="url(#avSoft)" />
+  <text x="150" y="325" fontSize="13" fontWeight="700" fill="#f1f5f9" textAnchor="middle">fleet_patrol</text>
+  <text x="150" y="343" fontSize="10" fill="#cbd5e1" textAnchor="middle">11 sites, one</text>
+  <text x="150" y="357" fontSize="10" fill="#cbd5e1" textAnchor="middle">shared gate</text>
+
+  <path d="M240,340 L390,340" stroke="url(#avTeal)" strokeWidth="2.4" markerEnd="url(#avArrow)" fill="none" />
+
+  <rect x="390" y="295" width="200" height="90" rx="14" fill="#111a2e" stroke="#2dd4bf" strokeOpacity="0.6" strokeWidth="1.4" filter="url(#avSoft)" />
+  <text x="490" y="320" fontSize="13" fontWeight="700" fill="#f1f5f9" textAnchor="middle">raise_alert()</text>
+  <text x="490" y="338" fontSize="10" fill="#cbd5e1" textAnchor="middle">skip if identical</text>
+  <text x="490" y="352" fontSize="10" fill="#cbd5e1" textAnchor="middle">unresolved alert exists</text>
+
+  <path d="M590,340 L740,340" stroke="url(#avTeal)" strokeWidth="2.4" markerEnd="url(#avArrow)" fill="none" />
+
+  <rect x="740" y="295" width="200" height="90" rx="14" fill="#111a2e" stroke="#2dd4bf" strokeOpacity="0.6" strokeWidth="1.4" filter="url(#avSoft)" />
+  <text x="840" y="320" fontSize="13" fontWeight="700" fill="#f1f5f9" textAnchor="middle">alerts table</text>
+  <text x="840" y="338" fontSize="10" fill="#cbd5e1" textAnchor="middle">+ resolved column</text>
+  <text x="840" y="352" fontSize="10" fill="#cbd5e1" textAnchor="middle">+ pg_notify trigger</text>
+
+  <path d="M940,340 L1090,340" stroke="url(#avGreen)" strokeWidth="2.4" markerEnd="url(#avArrow)" fill="none" />
+  <text x="1015" y="325" fontSize="10.5" fill="#34d399" textAnchor="middle">fleet_update</text>
+
+  <rect x="1090" y="295" width="90" height="90" rx="14" fill="#111a2e" stroke="#34d399" strokeOpacity="0.6" strokeWidth="1.4" filter="url(#avSoft)" />
+  <text x="1135" y="332" fontSize="12" fontWeight="700" fill="#f1f5f9" textAnchor="middle">Astro-</text>
+  <text x="1135" y="348" fontSize="12" fontWeight="700" fill="#f1f5f9" textAnchor="middle">nomis</text>
+
+  <text x="30" y="418" fontSize="11" fill="#64748b">Amber = write-only dead end · Teal = live, deduped write path · Green = subscriber finally notified</text>
+</svg>
+</div>
 
 <Admonition type="info" title="⚙️ Technical Insight — A Write-Only Table Is Not a Log, It's a Grave">
 Logging implies someone eventually reads the log. A table with inserts but no reader, no notification, and no resolution state isn't degraded logging — it's a write-only sink that happens to also be queryable by hand. The failure mode is invisible from the writer's side precisely because the writer's job (insert a row) always succeeds. The only way to catch it is to ask the question from the *reading* end: who consumes this, and when did they last do it.

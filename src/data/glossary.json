@@ -380,5 +380,17 @@
     "title": "FINOPS",
     "def": "Financial operations — the practice of tracking and attributing spend on cloud or API usage in real time, close to the teams generating it. In the fleet, FinOps means every routing decision can see cost sitting next to trust, domain by domain, instead of discovering the bill later.",
     "link": "https://en.wikipedia.org/wiki/FinOps"
+  },
+  "inquisitor": {
+    "title": "THE INQUISITOR",
+    "def": "The fleet's on-demand quality auditor — an automated process, run cold with no memory of prior sessions, that reads Universalis end to end and reports findings by severity without flattery or self-preservation. Answers to no captain; its verdicts stand until independently overturned."
+  },
+  "fleet-patrol": {
+    "title": "FLEET PATROL",
+    "def": "The routine automated health sweep — heartbeats, staleness checks, table growth — that raises alerts when something looks wrong. Originally session-triggered only; later given a systemd wall-clock backstop so it runs whether or not a captain is actively at the bridge."
+  },
+  "milestone": {
+    "title": "MILESTONE",
+    "def": "A recorded deliverable inside an objective, meant to carry related_memory_ids pointing back to the fleet-memory node that actually explains it. A milestone with no linked memory is a title with no evidence behind it — invisible to the graph meant to make the fleet's history navigable."
   }
 }

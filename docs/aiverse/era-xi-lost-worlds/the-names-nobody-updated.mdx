@@ -25,7 +25,7 @@ Not every lost world in this era was a dramatic failure. Some were just names �
 
 ## Four Tables, Renamed and Forgotten
 
-Era X's mission-creation protocol replaced an older, ad-hoc set of tables — `missions`, `sessions`, `timeline`, `activesession` — with the current `objectives`/`milestones` structure. The old tables weren't dropped; a full audit confirmed the `missions` table's 66 rows were completely duplicated inside `objectives.mission_id`, so nothing was lost by retiring it. All four were renamed with an `_archived_pre_m122` suffix rather than deleted — the fleet's standing preference for reversible caution over destructive cleanup.
+Era X's mission-creation protocol replaced an older, ad-hoc set of tables — `missions`, `sessions`, `timeline`, `activesession` — with the current `objectives`/<Term id="milestone">`milestones`</Term> structure. The old tables weren't dropped; a full audit confirmed the `missions` table's 66 rows were completely duplicated inside `objectives.mission_id`, so nothing was lost by retiring it. All four were renamed with an `_archived_pre_m122` suffix rather than deleted — the fleet's standing preference for reversible caution over destructive cleanup.
 
 What didn't get updated was `table_lore.go`, the backend file that documents what every table in Universalis is for. It still described the four original names as if they were live, with no mention that their real successors existed under new names. Anyone reading the fleet's own documentation of itself would have found four tables that no longer existed under those names, and no pointer to where the data had actually gone. The rename was correct. The lore describing it simply never followed.
 
@@ -37,7 +37,7 @@ Renaming a table is a single SQL statement. Renaming a table *correctly* means u
 
 A separate, smaller drift was found in `CLAUDE.md`, the fleet's own operating instructions: the delegation table still directed captains to route non-Haiku work through a round-robin rotation window (`next_matey`, backed by `matey_rotation_state`). That window had a fixed call budget, and it had run out — `calls_remaining = 0` — over a week earlier, on 2026-07-27. Trust-based routing had already resumed in practice. The instructions simply hadn't been told.
 
-This one carried a small irony of its own: the fix was never actually delegated to Matey in the original dispatch that was supposed to cover it — an oversight in the mission's own planning — and was only caught because the third Inquisitor audit checked the protocol document against the database state directly and found them disagreeing. The gap was corrected in place once found: the delegation table now states plainly that the rotation window closed and trust-based routing has resumed, with the rotation mechanism kept available for whenever the Emperor next opens a new one.
+This one carried a small irony of its own: the fix was never actually delegated to <Term id="matey">Matey</Term> in the original dispatch that was supposed to cover it — an oversight in the mission's own planning — and was only caught because the third <Term id="inquisitor">Inquisitor</Term> audit checked the protocol document against the database state directly and found them disagreeing. The gap was corrected in place once found: the delegation table now states plainly that the rotation window closed and trust-based routing has resumed, with the rotation mechanism kept available for whenever the Emperor next opens a new one.
 
 ## A Queue That Only Ever Grew
 

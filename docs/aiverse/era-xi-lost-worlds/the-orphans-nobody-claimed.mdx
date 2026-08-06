@@ -25,9 +25,36 @@ A rule written down is not a rule enforced. This chronicle follows one small pol
 
 ## A Rule With No Enforcement Behind It
 
-Somewhere in an earlier era, the fleet adopted a simple discipline: every milestone recorded in Universalis should carry `related_memory_ids` — a link back to the fleet-memory node that actually explains what happened. The reasoning was sound. A milestone with no linked memory is a title with no evidence behind it, invisible to the graph that's supposed to make the fleet's history navigable. The rule got written down. It did not get built into anything that would stop a milestone from being created without it.
+Somewhere in an earlier era, the fleet adopted a simple discipline: every <Term id="milestone">milestone</Term> recorded in <Term id="universalis">Universalis</Term> should carry `related_memory_ids` — a link back to the fleet-memory node that actually explains what happened. The reasoning was sound. A milestone with no linked memory is a title with no evidence behind it, invisible to the graph that's supposed to make the fleet's history navigable. The rule got written down. It did not get built into anything that would stop a milestone from being created without it.
 
-By the time the second Inquisitor audit looked, orphan linkage had regressed from 108 unlinked milestones — the count at an earlier M50-M76 review — to 129, a climb of 21 in roughly sixty days, alongside 156 entirely new parent-less nodes across the same window. The rule hadn't been repealed. It had simply never been anything more than a habit, and habits erode exactly as fast as attention does.
+By the time the second <Term id="inquisitor">Inquisitor</Term> audit looked, orphan linkage had regressed from 108 unlinked milestones — the count at an earlier M50-M76 review — to 129, a climb of 21 in roughly sixty days, alongside 156 entirely new parent-less nodes across the same window. The rule hadn't been repealed. It had simply never been anything more than a habit, and habits erode exactly as fast as attention does.
+
+<div className="aiverse-diagram" style={{background: 'linear-gradient(160deg, #0b1220 0%, #0f172a 100%)', borderRadius: '20px', padding: '8px', margin: '2rem 0', boxShadow: '0 12px 40px rgba(0,0,0,0.45)', border: '1px solid rgba(139,92,246,0.18)'}}>
+<svg viewBox="0 0 1200 260" width="100%" role="img" aria-label="Bar chart showing unlinked milestone count climbing from 108 to 129 to 136 across three audits, with the rule enforced only by habit and never by a code gate" style={{display: 'block', fontFamily: 'ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, sans-serif'}}>
+  <defs>
+    <linearGradient id="onSlate" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stopColor="#94a3b8" /><stop offset="1" stopColor="#64748b" /></linearGradient>
+    <linearGradient id="onAmber" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stopColor="#fbbf24" /><stop offset="1" stopColor="#f59e0b" /></linearGradient>
+    <linearGradient id="onRed" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stopColor="#f87171" /><stop offset="1" stopColor="#dc2626" /></linearGradient>
+    <filter id="onSoft" x="-20%" y="-20%" width="140%" height="140%"><feDropShadow dx="0" dy="4" stdDeviation="6" floodColor="#000000" floodOpacity="0.35" /></filter>
+  </defs>
+  <text x="30" y="34" fontSize="21" fontWeight="700" fill="#f1f5f9">A Rule Enforced by Nothing but Habit — Only Ever Moves One Way</text>
+  <text x="30" y="53" fontSize="12" fill="#f87171" letterSpacing="0.5">UNLINKED MILESTONES, THREE AUDITS</text>
+
+  <line x1="80" y1="220" x2="1140" y2="220" stroke="#334155" strokeWidth="2" />
+
+  <rect x="180" y="112" width="120" height="108" rx="10" fill="url(#onSlate)" filter="url(#onSoft)" />
+  <text x="240" y="102" fontSize="18" fontWeight="700" fill="#f1f5f9" textAnchor="middle">108</text>
+  <text x="240" y="245" fontSize="12" fill="#cbd5e1" textAnchor="middle">M50-M76 audit</text>
+
+  <rect x="520" y="90" width="120" height="130" rx="10" fill="url(#onAmber)" filter="url(#onSoft)" />
+  <text x="580" y="80" fontSize="18" fontWeight="700" fill="#f1f5f9" textAnchor="middle">129</text>
+  <text x="580" y="245" fontSize="12" fill="#cbd5e1" textAnchor="middle">M162 audit</text>
+
+  <rect x="860" y="70" width="120" height="150" rx="10" fill="url(#onRed)" filter="url(#onSoft)" />
+  <text x="920" y="60" fontSize="18" fontWeight="700" fill="#f1f5f9" textAnchor="middle">136</text>
+  <text x="920" y="245" fontSize="12" fill="#cbd5e1" textAnchor="middle">M163's own milestones, mid-fix</text>
+</svg>
+</div>
 
 <Admonition type="info" title="⚙️ Technical Insight — A Policy Without a Gate Decays Monotonically">
 A rule enforced only by memory or convention has one direction it can move: worse. Nothing pushes it back toward compliance except someone noticing and fixing it by hand, and every fix is a one-time correction against an ongoing source of new violations. The only stable fix is moving the check to the write path itself — the moment a milestone or memory node is created — so compliance becomes a property of the code, not a property of whoever remembered the rule that day.
