@@ -16,6 +16,7 @@ const ERAS = [
   { id: 'era-viii-silicon', label: '⚙ Era VIII', icon: '⚙', full: 'Era VIII — The Silicon Reckoning', overviewPath: '/aiverse/era-viii-silicon/aiverse-era-viii-silicon' },
   { id: 'era-ix-economy',   label: '▤ Era IX',   icon: '▤', full: 'Era IX — The Economy of Mind',       overviewPath: '/aiverse/era-ix-economy/aiverse-era-ix-economy' },
   { id: 'era-x-council',    label: '🗣️ Era X',   icon: '🗣️', full: 'Era X — The Council of Tongues',    overviewPath: '/aiverse/era-x-council/aiverse-era-x-council' },
+  { id: 'era-xi-lost-worlds', label: '📜 Era XI', icon: '📜', full: 'Era XI — Imperium Lost Worlds',     overviewPath: '/aiverse/era-xi-lost-worlds/aiverse-era-xi-lost-worlds' },
 ];
 
 const ERA_DOCS = [
@@ -29,6 +30,7 @@ const ERA_DOCS = [
   { docId: '/aiverse/era-viii-silicon/aiverse-era-viii-silicon',   label: '⚙ Era VIII — The Silicon Reckoning' },
   { docId: '/aiverse/era-ix-economy/aiverse-era-ix-economy',       label: '▤ Era IX — The Economy of Mind' },
   { docId: '/aiverse/era-x-council/aiverse-era-x-council',         label: '🗣️ Era X — The Council of Tongues' },
+  { docId: '/aiverse/era-xi-lost-worlds/aiverse-era-xi-lost-worlds', label: '📜 Era XI — Imperium Lost Worlds' },
 ];
 
 export default function EraNavItem(): JSX.Element {
