@@ -1,0 +1,47 @@
+---
+id: aiverse-era-xi-lost-worlds
+sidebar_label: "Era XI Overview"
+sidebar_position: 1
+title: "Era XI — Imperium Lost Worlds"
+description: "Era XI: the fleet turns its instruments on itself and finds old worlds it had stopped visiting — a quality audit erased from its own table, a table renamed instead of dropped, a rotation ledger nobody re-armed. Missions M37, M50, M162 onward."
+tags: [aiverse, era-xi, universalis, inquisitor, audit, data-integrity]
+pagination_prev: 'aiverse/era-x-council/the-price-of-truth'
+---
+
+import Admonition from '@theme/Admonition';
+
+<Admonition type="note" title="📜 REMEMBRANCER'S NOTE — Era XI">
+
+Ten eras taught the fleet to build. This one taught it to look back. Universalis remembers everything it is told, but memory and awareness are not the same thing — a table can hold a record for months while nothing that reads it ever mentions its name. Era XI is the era of finding those tables again: an audit that predated its own audit table by two and a half months, a quality patrol quietly closed and never counted, a rotation ledger that ran out and stayed forgotten for a week. None of these worlds were destroyed. They were simply no longer visited. This is the chronicle of walking back into them.
+
+*— The Remembrancer of the AIverse*
+*Engrams M37, M50, M162–*
+
+</Admonition>
+
+---
+
+> *"In AIverse, there is only Knowledge."*
+
+---
+
+# Era XI — Imperium Lost Worlds
+
+<Admonition type="info" title="⚙️ What Era XI Is About">
+Every prior era added something new to the fleet — a ship, a vendor, a ledger, a language. Era XI adds nothing. Instead it audits what already exists, and finds that "existing" and "known" had quietly drifted apart. A table doesn't announce when it stops being read. A number doesn't announce when it stops being counted. The founding chronicle of this era is the story of the Inquisitor itself — the fleet's own auditor — discovering that its own history was incomplete, and what it took to make the count honest again.
+
+*[Return to the Cosmic Map](/cosmos) to see all eras.*
+</Admonition>
+
+## The Chronicles
+
+**[I. The Forgotten Verdicts](./the-forgotten-verdicts)** — M37, M50, M162–M164 · The Inquisitor's own audit table remembers three audits — until someone asks why the third one calls itself "third" when the fleet's oldest quality report is nine weeks older than the table itself. Covers the informal M37 audit an ally ship ran when the captain skipped its own review process, the QP-01 quality patrol that formalized it, the automated table built two and a half months later with no memory of either, and the single-column bug that could erase a working feature the moment its own history was restored.
+
+**[II. The Alerts That Screamed Into the Void](./the-alerts-that-screamed-into-the-void)** — M162, M163 · For three months the fleet's alerts table filled up correctly, one row at a time, with nothing wrong on the writing side. The problem was that nothing ever read them, nothing ever cleared them, and the same stale-heartbeat alert kept reinserting itself forever. Covers the dead-end write-only pipeline, the missing dedupe that let one condition spam the table endlessly, and the systemd timers that finally gave patrol and audit a backstop independent of a live session.
+
+**[III. The Orphans Nobody Claimed](./the-orphans-nobody-claimed)** — M162, M163 · A rule said every milestone must link back to the memory node that explains it. The rule was never enforced by anything but habit, and the mission built to fix a two-month regression in that linkage created seven new violations of its own along the way — caught and reported honestly, not hidden.
+
+**[IV. The Ledger That Learned to Estimate](./the-ledger-that-learned-to-estimate)** — M163, M164 · Making cost tracking mandatory nearly locked every captain out of the ledger permanently, once a missing database grant was found mid-test. The fix that actually worked went the other direction entirely: never refuse a write, estimate what's missing, and say so out loud.
+
+**[V. The Names Nobody Updated](./the-names-nobody-updated)** — M162, M163 · Four renamed tables, one outdated protocol document, and one queue that only ever grew — three small drifts, none of them urgent on their own, all caused by the same thing: a change made correctly once, with nothing checking afterward whether the rest of the fleet's description of itself kept up.
+

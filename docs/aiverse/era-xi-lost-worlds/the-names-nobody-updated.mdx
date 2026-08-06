@@ -1,0 +1,72 @@
+---
+id: the-names-nobody-updated
+title: "The Names Nobody Updated"
+sidebar_label: "V. The Names Nobody Updated"
+description: "Four dead tables kept their old names for months after the process replacing them shipped. A protocol document still described a rotation window that had closed weeks earlier. A queue that only ever grows was never once pruned. None of it broke anything — until someone had to trust what the names said."
+tags: [aiverse, era-xi, table-lore, matey-rotation, contextalis-queue, housekeeping, m162, m163]
+pagination_prev: 'aiverse/era-xi-lost-worlds/the-ledger-that-learned-to-estimate'
+---
+
+import Admonition from '@theme/Admonition';
+
+<Admonition type="note" title="📜 Remembrancer's Note">
+
+Not every lost world in this era was a dramatic failure. Some were just names — a table renamed for a reason nobody wrote down, a protocol document describing a process that had already ended, a queue that kept every finished record forever because nobody told it to stop. This is the chronicle of the fleet's smaller housekeeping debts, the kind that cost nothing to ignore for months and cost almost nothing to fix once someone finally looked.
+
+</Admonition>
+
+---
+
+> *"In AIverse, there is only Knowledge."*
+
+---
+
+# The Names Nobody Updated
+
+## Four Tables, Renamed and Forgotten
+
+Era X's mission-creation protocol replaced an older, ad-hoc set of tables — `missions`, `sessions`, `timeline`, `activesession` — with the current `objectives`/<Term id="milestone">`milestones`</Term> structure. The old tables weren't dropped; a full audit confirmed the `missions` table's 66 rows were completely duplicated inside `objectives.mission_id`, so nothing was lost by retiring it. All four were renamed with an `_archived_pre_m122` suffix rather than deleted — the fleet's standing preference for reversible caution over destructive cleanup.
+
+What didn't get updated was `table_lore.go`, the backend file that documents what every table in Universalis is for. It still described the four original names as if they were live, with no mention that their real successors existed under new names. Anyone reading the fleet's own documentation of itself would have found four tables that no longer existed under those names, and no pointer to where the data had actually gone. The rename was correct. The lore describing it simply never followed.
+
+<Admonition type="info" title="⚙️ Technical Insight — A Rename Is Two Changes, Not One">
+Renaming a table is a single SQL statement. Renaming a table *correctly* means updating every place that describes, queries, or documents it under the old name — and those places don't fail loudly when they're missed. `table_lore.go` didn't error, didn't warn, and didn't stop compiling. It just quietly kept telling a truth that had stopped being true, which is precisely the kind of drift that only surfaces when someone cross-checks documentation against the schema directly.
+</Admonition>
+
+## A Protocol Document Describing a Window That Had Closed
+
+A separate, smaller drift was found in `CLAUDE.md`, the fleet's own operating instructions: the delegation table still directed captains to route non-Haiku work through a round-robin rotation window (`next_matey`, backed by `matey_rotation_state`). That window had a fixed call budget, and it had run out — `calls_remaining = 0` — over a week earlier, on 2026-07-27. Trust-based routing had already resumed in practice. The instructions simply hadn't been told.
+
+This one carried a small irony of its own: the fix was never actually delegated to <Term id="matey">Matey</Term> in the original dispatch that was supposed to cover it — an oversight in the mission's own planning — and was only caught because the third <Term id="inquisitor">Inquisitor</Term> audit checked the protocol document against the database state directly and found them disagreeing. The gap was corrected in place once found: the delegation table now states plainly that the rotation window closed and trust-based routing has resumed, with the rotation mechanism kept available for whenever the Emperor next opens a new one.
+
+## A Queue That Only Ever Grew
+
+The last of the smaller finds was `contextalis_queue`, a table used to move fleet-memory candidates through a processing pipeline. Rows marked `done` were never removed. By the time it was checked, the table held 3,748 rows, effectively all of them finished work sitting in a table that only ever gets read for what's still pending — permanent tombstones with no expiry.
+
+The fix here was intentionally two-part rather than a single cleanup. A one-time prune removed 255 `done` rows older than thirty days to bring the table back to a reasonable size immediately. Alongside it, ongoing retention was added as a step inside the existing `fleet_patrol` cycle, so the same prune now runs automatically on every patrol pass instead of needing to be remembered and re-run by hand.
+
+<Admonition type="info" title="⚙️ Technical Insight — A One-Time Cleanup Without Ongoing Retention Is a Snooze Button">
+Pruning `contextalis_queue` once and stopping there would have solved the symptom for exactly as long as it took the queue to refill — which, for a table that grows every cycle and never shrinks on its own, is not very long. The durable half of this fix wasn't the 255-row deletion; it was making retention a permanent step in the process that creates the rows in the first place, so the same debt can't silently reaccumulate the way it did the first time.
+</Admonition>
+
+## What the Fleet Actually Found
+
+None of these three findings were urgent on their own. A stale comment in a source file, an outdated line in an instructions document, and an unpruned table are all, individually, the kind of thing that's easy to deprioritize forever. What they had in common was the same root cause as the louder findings elsewhere in this era: a change was made correctly at the moment it happened, and nothing forced a look backward afterward to confirm every description of the system had kept pace with the system itself.
+
+<Admonition type="tip" title="📚 Knowledge Transfer">
+
+**The lesson worth keeping:** Small, low-severity drift accumulates for the same reason large drift does — a change was made once, correctly, and nothing checked whether everything describing that change kept up. Severity doesn't predict how long a gap will sit unnoticed; visibility does.
+
+**Pattern:** Pair every one-time cleanup with an ongoing mechanism where the underlying growth is ongoing. A prune without retention is a temporary fix to a permanent process; the retention step folded into `fleet_patrol` is the part that actually closes the gap for good.
+
+**What we'd do differently:** `table_lore.go` and `CLAUDE.md` both drifted from reality without any code failing — that's exactly the kind of gap a periodic audit is for, and exactly the kind that's cheap to check and easy to forget to check. A recurring pass that diffs documentation claims against live schema/config state would have caught both well before a full Inquisitor audit had to.
+
+**If you're building this yourself:** When you rename, retire, or replace something, write down everywhere else that names it — in code comments, in documentation, in operating instructions — as part of the same change, not as a follow-up. A follow-up that isn't blocking anything will wait indefinitely.
+
+</Admonition>
+
+<NunixOut />
+
+<div className="aiverse-fleet-cta">
+  <a href="/aiverse/support">⚔️ The Fleet Needs You — Support the Chronicle</a>
+</div>
