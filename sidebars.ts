@@ -173,6 +173,10 @@ const sidebars: SidebarsConfig = {
     },
     { type: 'doc', id: 'aiverse/era-xi-lost-worlds/aiverse-era-xi-lost-worlds', label: 'Era XI Overview' },
     { type: 'doc', id: 'aiverse/era-xi-lost-worlds/the-forgotten-verdicts',      label: 'I. The Forgotten Verdicts' },
+    { type: 'doc', id: 'aiverse/era-xi-lost-worlds/the-alerts-that-screamed-into-the-void', label: 'II. The Alerts That Screamed Into the Void' },
+    { type: 'doc', id: 'aiverse/era-xi-lost-worlds/the-orphans-nobody-claimed',  label: 'III. The Orphans Nobody Claimed' },
+    { type: 'doc', id: 'aiverse/era-xi-lost-worlds/the-ledger-that-learned-to-estimate', label: 'IV. The Ledger That Learned to Estimate' },
+    { type: 'doc', id: 'aiverse/era-xi-lost-worlds/the-names-nobody-updated',    label: 'V. The Names Nobody Updated' },
   ],
 
   // ── NEBULA — standalone idea stars, not part of any Era arc ──

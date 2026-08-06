@@ -1,0 +1,74 @@
+---
+id: the-alerts-that-screamed-into-the-void
+title: "The Alerts That Screamed Into the Void"
+sidebar_label: "II. The Alerts That Screamed Into the Void"
+description: "For months the fleet's alerts table filled up correctly, alert after alert, with nothing wrong at the point of writing. The problem was on the other end — nothing ever read them, nothing ever cleared them, and nothing ever stopped them from repeating forever."
+tags: [aiverse, era-xi, alerts, notify, patrol, scheduler, m162, m163]
+pagination_prev: 'aiverse/era-xi-lost-worlds/the-forgotten-verdicts'
+---
+
+import Admonition from '@theme/Admonition';
+
+<Admonition type="note" title="📜 Remembrancer's Note">
+
+Not every failure looks like a failure. Sometimes the write succeeds every single time, the row count climbs exactly as expected, and every dashboard that checks "is this process running" says yes. This chronicle is about a pipeline that did precisely what it was built to do, for three months, while the thing it was built *for* — someone, or something, actually seeing the alert — never happened once.
+
+</Admonition>
+
+---
+
+> *"In AIverse, there is only Knowledge."*
+
+---
+
+# The Alerts That Screamed Into the Void
+
+## A Table That Never Complained
+
+`fleet_patrol` is the fleet's routine health sweep — it runs, checks heartbeats and system state, and when something looks wrong it writes a row into the `alerts` table. By early August that table had been collecting rows for months without a single error. Every patrol cycle either found nothing or wrote its finding cleanly. By every signal the writing side could offer, the system was healthy.
+
+The Inquisitor's second audit — the fleet's first fully automated one — looked at the other side of that pipe and found nothing there at all. `alerts` had no `NOTIFY` trigger, no acknowledged or resolved column, and no consumer anywhere in Astronomis, the fleet's command-center map. Two high-severity Caravella alerts had been sitting in the table, unread, for three months. Not lost. Not corrupted. Simply never looked at, because nothing in the system was built to look.
+
+<Admonition type="info" title="⚙️ Technical Insight — A Write-Only Table Is Not a Log, It's a Grave">
+Logging implies someone eventually reads the log. A table with inserts but no reader, no notification, and no resolution state isn't degraded logging — it's a write-only sink that happens to also be queryable by hand. The failure mode is invisible from the writer's side precisely because the writer's job (insert a row) always succeeds. The only way to catch it is to ask the question from the *reading* end: who consumes this, and when did they last do it.
+</Admonition>
+
+## The Alert That Cried Wolf, Repeatedly
+
+The same audit found a second problem sitting right next to the first, and it made the silence worse rather than better: `fleet_patrol` had no deduplication. Every cycle that detected a stale heartbeat inserted a brand-new row for it, even if the identical alert already existed, unresolved, from the cycle before. A binary column called `alert_supersede` existed in the schema specifically to prevent this — and had never been wired into a single insert path. Eleven separate call sites in the patrol script each wrote their own raw `INSERT`, none of them checking first.
+
+The two findings compounded each other. A table nobody read was also a table quietly filling with duplicates of the one thing that most needed a human's attention — the same stale-heartbeat alert, written over and over, drowning out the two real Caravella alerts that had been waiting three months for anyone to notice them.
+
+## Making the Table Answer Back
+
+The fix started at the schema. `alerts` got a `resolved` boolean and a `pg_notify` trigger on the `fleet_update` channel — the same channel the rest of Astronomis already listens on for live updates. The two Caravella alerts that had been sitting for three months were retracted properly: marked `resolved = true`, not deleted, alongside seven other stale pre-onboarding highs that no longer reflected anything real. A false positive raised by the Inquisitor's own third audit — a heartbeat it flagged as 25 minutes stale when it was in fact 25 minutes fresh — was retracted the same way.
+
+Deduplication came next. All eleven raw `INSERT` sites in `fleet_patrol` were rewritten to route through one new helper, `raise_alert()`, which checks for an existing unresolved alert with identical text before writing anything. The fix was verified live, not just read: the next patrol cycle produced ten duplicate stale-heartbeat conditions, and the insert count for the table didn't move — `INSERT 0 0`, ten times, exactly as the dedupe was supposed to behave.
+
+The last piece addressed a gap the audit called out separately: nothing forced `fleet_patrol` or the Inquisitor to run at all beyond the interactive session hook that happened to fire when someone was actively using the fleet. Two systemd timers were added — `fleet-patrol.timer` daily, `fleet-inquisitor.timer` weekly — giving both processes a wall-clock backstop independent of whether anyone was in a live session to trigger them.
+
+<Admonition type="info" title="⚙️ Technical Insight — Dedup Belongs at the Write Path, Not the Read Path">
+It's tempting to solve alert spam by filtering duplicates when displaying them — cheaper to write, easier to ship. That approach leaves the underlying table growing unbounded forever and pushes the cost onto every future reader of that table. Routing every insert path through one shared gate (`raise_alert()`) instead of a display-time filter means the table itself stays honest — its row count means something, and any future consumer inherits the correctness for free.
+</Admonition>
+
+## What the Fleet Actually Found
+
+None of this required discovering new information the fleet didn't already have. Every alert had been written correctly. The gap was entirely on the consuming side — no trigger, no resolution state, no dedup, no scheduler independent of a human being present. A pipeline can pass every test a writer can run against itself and still be structurally incapable of doing the one thing it exists for.
+
+<Admonition type="tip" title="📚 Knowledge Transfer">
+
+**The lesson worth keeping:** A table that accepts every insert without error is not evidence the pipeline works — it's only evidence the *writing half* works. Ask who reads it, how they're notified, and how a resolved item gets marked resolved, before trusting the write-side's silence as a sign of health.
+
+**Pattern:** Consolidate every insert path that can raise the same kind of event through one shared gate function, not eleven independent call sites each trusting itself to be careful. A dedupe rule enforced in one place is verifiable; the same rule copy-pasted eleven times is a promise, not a guarantee.
+
+**What we'd do differently:** The `alert_supersede` column existed in the schema the entire time, unused. A schema field that isn't load-bearing in any code path is a warning sign worth chasing down the moment it's noticed, not three months and two unread alerts later.
+
+**If you're building this yourself:** Any table meant to drive attention — alerts, notifications, review queues — needs three things from day one, not as a follow-up: a way to be told about new rows (NOTIFY or equivalent), a way to mark a row handled (resolved/acknowledged state), and a way to guarantee it keeps running without a human in the loop (a scheduler backstop, not just a session hook).
+
+</Admonition>
+
+<NunixOut />
+
+<div className="aiverse-fleet-cta">
+  <a href="/aiverse/support">⚔️ The Fleet Needs You — Support the Chronicle</a>
+</div>

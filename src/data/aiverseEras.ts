@@ -533,6 +533,30 @@ export const AIVERSE_ERAS: AiverseEra[] = [
         path: '/aiverse/era-xi-lost-worlds/the-forgotten-verdicts',
         missions: 'M37, M50, M162–M164',
       },
+      {
+        title: 'The Alerts That Screamed Into the Void',
+        subtitle: 'A pipeline that wrote perfectly and was never once read',
+        path: '/aiverse/era-xi-lost-worlds/the-alerts-that-screamed-into-the-void',
+        missions: 'M162, M163',
+      },
+      {
+        title: 'The Orphans Nobody Claimed',
+        subtitle: 'A linkage rule enforced by nothing but habit',
+        path: '/aiverse/era-xi-lost-worlds/the-orphans-nobody-claimed',
+        missions: 'M162, M163',
+      },
+      {
+        title: 'The Ledger That Learned to Estimate',
+        subtitle: 'Why a hard-fail cost gate was the wrong shape',
+        path: '/aiverse/era-xi-lost-worlds/the-ledger-that-learned-to-estimate',
+        missions: 'M163, M164',
+      },
+      {
+        title: 'The Names Nobody Updated',
+        subtitle: 'Three small drifts nobody was forced to notice',
+        path: '/aiverse/era-xi-lost-worlds/the-names-nobody-updated',
+        missions: 'M162, M163',
+      },
     ],
   },
 ];
