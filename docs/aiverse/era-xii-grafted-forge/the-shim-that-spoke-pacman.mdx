@@ -1,0 +1,157 @@
+---
+id: the-shim-that-spoke-pacman
+title: "The Shim That Spoke Pacman"
+sidebar_label: "II. The Shim That Spoke Pacman"
+description: "A desktop that calls pacman from a hundred places cannot be ported by rewriting every call site. So pacman was made to exist on a system that has never had it — and then the installer around it had to survive being piped into bash on a stranger's machine."
+tags: [aiverse, era-xii, omaweed, pacman, zypper, opi, installer, shell, m171]
+pagination_prev: 'aiverse/era-xii-grafted-forge/what-we-took-from-another-forge'
+pagination_next: 'aiverse/era-xii-grafted-forge/the-migration-that-is-still-running'
+---
+
+import Admonition from '@theme/Admonition';
+
+<Admonition type="note" title="📜 Remembrancer's Note">
+
+There are two ways to make a program run on a system it was not written for. You can change the program, or you can change the system until the program stops noticing. This chronicle is about choosing the second, and about the bill that arrives afterwards.
+
+</Admonition>
+
+---
+
+> *"In AIverse, there is only Knowledge."*
+
+---
+
+# The Shim That Spoke Pacman
+
+The first serious decision in the Omaweed port was not which packages to install. It was what to do about the several hundred places where Omarchy invokes `pacman`.
+
+Rewriting them all was possible. It was also the wrong shape of work: every rewritten call site is a permanent divergence from upstream, and upstream keeps adding call sites. The port would spend the rest of its life re-applying the same transformation to new code.
+
+The alternative was to give the system a `pacman`.
+
+## Translating a package manager
+
+The shim is a shell script that accepts pacman's argument grammar and answers in zypper. The mapping is mostly mechanical:
+
+| pacman | meaning | zypper |
+|--------|---------|--------|
+| `-S` | install | `zypper in --no-recommends` |
+| `-R`, `-Rns` | remove | `zypper rm -u` |
+| `-Syu` | full upgrade | `zypper dup --no-allow-vendor-change` |
+| `-Q`, `-Qq` | query installed | `rpm -qa --qf "%{NAME}\n"` |
+| `-Ss` | search | `zypper search` |
+| `-Qo` | which package owns this file | `rpm -qf` |
+
+Underneath sits the name translation table from the previous chronicle, applied on every package argument:
+
+```bash
+translate_pkg() {
+  local p="$1"
+  case "$p" in
+    networkmanager) echo "NetworkManager" ;;
+    imagemagick)    echo "ImageMagick" ;;
+    libvips)        echo "libvips42" ;;
+    rofi)           echo "rofi-wayland" ;;
+    quickshell|qs)  echo "noctalia-qs" ;;
+    *)              echo "$p" ;;
+  esac
+}
+```
+
+The subtle part is not translation, it is the queries. Omarchy asks "is this package installed?" constantly, to decide whether to offer an install action. Answering that honestly on a system with different package names produces a desktop that offers to install things that are already there. So `-Q` checks three things before reporting a package missing: the literal name, the translated name, and whether a binary of that name is simply on `PATH`. The last one matters because plenty of Arch packages correspond to something Tumbleweed ships inside a differently-named package, and the only thing the caller actually cares about is whether the command exists.
+
+Keyring packages are skipped entirely. `archlinux-keyring` has no meaning here, and the honest answer to "is it installed" is neither yes nor no.
+
+<Admonition type="info" title="⚙️ Technical Insight — A Shim's Contract Is Its Callers' Expectations, Not the Original Tool">
+It is tempting to judge a compatibility shim by how faithfully it reimplements the original. That is the wrong target. The shim only has to satisfy the calls its callers actually make, and it has to satisfy them in the way the callers will *interpret*. `pacman -Q foo` returning failure means "offer to install foo" to Omarchy — so the shim's job is to make that decision correctly on Tumbleweed, not to replicate pacman's database semantics. Reimplementing the tool gets you a worse pacman; implementing the contract gets you a working desktop.
+</Admonition>
+
+## The repository that has no equivalent
+
+`yay` was harder, because the AUR is not a package manager feature — it is a social institution. Arch users publish build recipes; `yay` fetches and builds them.
+
+openSUSE's `opi` searches the Open Build Service, which is a real build farm with project namespaces and review. It covers most of what the AUR covers for mainstream software: browsers, editors, common desktop applications. It does not cover the long tail, and it never will, because the two systems have different theories about who gets to publish.
+
+So the `yay` shim translates the names it knows and is honest about the rest:
+
+```bash
+translate_aur_pkg() {
+  local p="$1"
+  p="${p#aur/}"
+  case "$p" in
+    google-chrome)             echo "google-chrome-stable" ;;
+    microsoft-edge-stable-bin) echo "microsoft-edge-stable" ;;
+    brave-bin|brave-origin-bin) echo "brave-browser" ;;
+    zen-browser-bin)           echo "zen-browser" ;;
+    *)                         echo "$p" ;;
+  esac
+}
+```
+
+An earlier revision of this shim faked the bulk listing operations, returning plausible-looking output so callers would not error. That was removed. `yay -Sl` now returns empty, and `yay -Sua` prints that bulk AUR updates have no OBS equivalent and the user should install per package. Empty and explained beats fabricated and convincing.
+
+## Where a shim is allowed to live
+
+The original port wrote these shims to `/usr/bin`. That works, and it is wrong.
+
+`/usr/bin` belongs to the package manager. A file placed there by hand is one package conflict away from being clobbered by an update, or from blocking one. It is also invisible to anyone auditing what is locally modified, because it sits among ten thousand packaged files. `/usr/local/bin` is the FHS location for exactly this — locally installed binaries, outside the package manager's domain, and ahead of `/usr/bin` on a default `PATH`.
+
+The complication is `sudo`. `secure_path` in `/etc/sudoers` does not always include `/usr/local/bin`, so a shim that works for the user vanishes under `sudo`. The port resolves it by installing the real file in `/usr/local/bin` and symlinking into `/usr/bin` **only where no file already exists**:
+
+```bash
+for bin in /usr/local/bin/*; do
+  [[ -f $bin ]] || continue
+  name="$(basename "$bin")"
+  [[ -e /usr/bin/$name ]] || sudo ln -sf "$bin" "/usr/bin/$name"
+done
+```
+
+The ownership stays clear, nothing packaged gets overwritten, and `sudo pacman -S` still resolves.
+
+## Surviving `curl | bash`
+
+The installer is meant to be run as a single line off GitHub. That delivery method imposes constraints that are easy to miss when you only ever test by running a local file.
+
+**Standard input is gone.** Bash is reading the script from the pipe, so anything that prompts is reading from a stream that contains the rest of the installer. The original script ended by announcing "System will now reboot" and then not rebooting. The rewrite either reboots (`--yes`), prompts when there is a real terminal, or prints the command to run — and never consumes stdin to decide.
+
+**The machine is not the author's machine.** The original hardcoded `x86_64` into three download URLs, pinned two tool versions inline, and assumed a distribution without checking. The rewrite reads `/etc/os-release` and refuses early on a distribution whose package names it does not know, maps `uname -m` to the right release artefact for `x86_64` and `aarch64`, and lifts every tunable to an environment variable:
+
+```bash
+OMAWEED_GPU=none OMAWEED_VNC=0 bash install-omaweed.sh
+OMARCHY_REF=my-branch bash install-omaweed.sh --dry-run
+```
+
+Failing at line 15 with "this is not openSUSE" is a kindness. Failing at line 400 with a hundred unresolvable package names is not.
+
+**You cannot see what it will do.** A script that reformats a stranger's system should be able to describe itself. `--dry-run` prints every action and changes nothing, which also makes the whole thing testable in CI without a victim machine.
+
+**Failures need coordinates.** `set -euo pipefail` gives you an exit code and no location. One trap fixes it:
+
+```bash
+trap 'err "failed at line $LINENO: ${BASH_COMMAND}"; err "log: $OMAWEED_LOG"' ERR
+```
+
+The counterpart matters as much: the original used `|| true` liberally, which converts a fatal error into an invisible one. The rewrite splits the difference with a `try` helper that warns loudly and continues, so an optional font pack failing to download no longer looks identical to a successful install.
+
+<Admonition type="info" title="⚙️ Technical Insight — `--dry-run` Is a Test Harness Wearing a Feature's Clothes">
+Adding a dry-run mode reads like a user-facing nicety. Its real value is that it turns an unrunnable script into a runnable one. A bootstrap installer normally cannot be exercised outside a disposable VM, so it gets tested rarely and late. With every mutating call routed through one `run` wrapper, the entire control flow — argument parsing, hardware detection, branch selection, the order of operations — executes in a second on any machine, and `shellcheck` plus a dry run become a real pre-commit gate. The bug found this way in this very script was a `sed` invocation mixing a bare expression with `-e`, which silently makes GNU sed treat the first expression as a filename.
+</Admonition>
+
+<Admonition type="tip" title="📚 Knowledge Transfer">
+
+**The lesson worth keeping:** When a project calls a platform tool from hundreds of places, providing the tool is cheaper and more durable than rewriting the calls — but only if you implement the callers' contract rather than the tool. Fidelity to the original is not the goal; correct decisions on the new platform are.
+
+**Pattern:** Route every mutating action in an installer through a single `run` wrapper. It costs nothing, gives you `--dry-run` for free, and converts an untestable script into one you can execute end to end anywhere.
+
+**What we'd do differently:** The shims were written straight into `/usr/bin` in the first version because it was one line shorter. Moving them to `/usr/local/bin` later meant reasoning about `sudo`'s `secure_path` under time pressure. Put local binaries where the filesystem standard says they go the first time; the standard exists because someone already had this problem.
+
+**If you're building this yourself:** Assume your installer will be piped into `bash` by someone whose machine looks nothing like yours. No stdin, no assumptions about architecture, no assumptions about distribution, and an error message that names the line it died on.
+
+</Admonition>
+
+<NunixOut />
+
+<div className="aiverse-fleet-cta">
+  <a href="/aiverse/support">⚔️ The Fleet Needs You — Support the Chronicle</a>
+</div>

@@ -17,6 +17,7 @@ const ERAS = [
   { id: 'era-ix-economy',   label: '▤ Era IX',   icon: '▤', full: 'Era IX — The Economy of Mind',       overviewPath: '/aiverse/era-ix-economy/aiverse-era-ix-economy' },
   { id: 'era-x-council',    label: '🗣️ Era X',   icon: '🗣️', full: 'Era X — The Council of Tongues',    overviewPath: '/aiverse/era-x-council/aiverse-era-x-council' },
   { id: 'era-xi-lost-worlds', label: '📜 Era XI', icon: '📜', full: 'Era XI — Imperium Lost Worlds',     overviewPath: '/aiverse/era-xi-lost-worlds/aiverse-era-xi-lost-worlds' },
+  { id: 'era-xii-grafted-forge', label: '🦎 Era XII', icon: '🦎', full: 'Era XII — The Grafted Forge',    overviewPath: '/aiverse/era-xii-grafted-forge/aiverse-era-xii-grafted-forge' },
 ];
 
 const ERA_DOCS = [
@@ -31,6 +32,7 @@ const ERA_DOCS = [
   { docId: '/aiverse/era-ix-economy/aiverse-era-ix-economy',       label: '▤ Era IX — The Economy of Mind' },
   { docId: '/aiverse/era-x-council/aiverse-era-x-council',         label: '🗣️ Era X — The Council of Tongues' },
   { docId: '/aiverse/era-xi-lost-worlds/aiverse-era-xi-lost-worlds', label: '📜 Era XI — Imperium Lost Worlds' },
+  { docId: '/aiverse/era-xii-grafted-forge/aiverse-era-xii-grafted-forge', label: '🦎 Era XII — The Grafted Forge' },
 ];
 
 export default function EraNavItem(): JSX.Element {

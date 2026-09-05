@@ -14,6 +14,27 @@ This is where new chapters are announced, writing choices are explained, and the
 
 ---
 
+## 2026.09.05 — Era XII: The Grafted Forge
+
+A new era opens, and for the first time it is about software the fleet did not write. **Omaweed** is Omarchy — an opinionated Arch/Hyprland desktop — grafted onto openSUSE Tumbleweed, and Era XII chronicles what that graft actually costs. **[What We Took From Another Forge](/aiverse/era-xii-grafted-forge/what-we-took-from-another-forge)** (M60, M171) makes the case for taking one project's desktop and another's substrate, and finds the assumptions an author never has to write down. **[The Shim That Spoke Pacman](/aiverse/era-xii-grafted-forge/the-shim-that-spoke-pacman)** (M171) covers giving Tumbleweed a `pacman` rather than rewriting several hundred call sites, the AUR that OBS only almost replaces, and hardening a bootstrap installer for `curl | bash` on a stranger's machine. **[The Migration That Is Still Running](/aiverse/era-xii-grafted-forge/the-migration-that-is-still-running)** (M60, M171) is about upstream switching its config language to Lua mid-port, and why a half-migrated desktop is indistinguishable from a working one. **[Seven and a Half Seconds a Frame](/aiverse/era-xii-grafted-forge/seven-and-a-half-seconds-a-frame)** (M170) closes with the measurement that ended two days of tuning the wrong layer: a Quadro M4000 on nouveau taking 7.5 seconds to capture one frame, and the 236× speedup that followed.
+
+The era is deliberately left open — the migration is still in flight, so there is no full-summary chronicle yet.
+
+What's next:
+- Finish the migration remainder listed in chronicle III: version the compatibility patches instead of inline `sed`, and confirm the NVIDIA KMP rebuilds cleanly across a Tumbleweed kernel bump.
+- The era's real destination: Omaweed on the daily-driver laptop. A workstation in a cupboard forgives a lot that a machine you carry does not — lid switches, battery and power profiles, backlight, touchpad, fingerprint, suspend and resume. The installer has never been asked any of those questions.
+
+---
+
+## 2026.08.07 — Era XI: The Boundary That Was Only a Suggestion
+
+A sixth chronicle joins Era XI. **[The Boundary That Was Only a Suggestion](/aiverse/era-xi-lost-worlds/the-boundary-that-was-only-a-suggestion)** (M165-M166) covers a mission created off the numbering standard and then hard-deleted rather than renamed — both violations of rules that had stood, unenforced, for months. The fix isn't a policy reminder; it's two PostgreSQL guardrails, a `CHECK` constraint on mission-ID format and a `BEFORE DELETE` trigger refusing deletion outright on both `fleet_memory` and `objectives`, each verified by reproducing the exact original failure against the patched schema and watching it fail loudly instead of succeeding silently.
+
+What's next:
+- M166's other half: real per-turn token capture to close the gap between Universalis's cost ledger and actual session spend, plus resolving the dead `.active_objective` mechanism found along the way.
+
+---
+
 ## 2026.08.06 — Era XI: Four more Lost Worlds
 
 Four new chronicles join the era's founding entry. **[The Alerts That Screamed Into the Void](/aiverse/era-xi-lost-worlds/the-alerts-that-screamed-into-the-void)** (M162-M163) traces a write-only alerts pipeline that filled up correctly for three months while nothing ever read it, plus the missing dedupe that let a single stale-heartbeat condition spam the table forever — fixed with a NOTIFY trigger, a resolved column, a shared `raise_alert()` gate, and two systemd timers giving patrol and audit a backstop independent of a live session. **[The Orphans Nobody Claimed](/aiverse/era-xi-lost-worlds/the-orphans-nobody-claimed)** (M162-M163) follows a milestone-linkage rule enforced by nothing but habit, regressing from 108 to 129 unlinked milestones in sixty days — and the mission built to fix it creating seven new violations of its own along the way, reported honestly rather than hidden. **[The Ledger That Learned to Estimate](/aiverse/era-xi-lost-worlds/the-ledger-that-learned-to-estimate)** (M163-M164) is the FinOps saga: a hard-fail cost gate that nearly locked every captain out permanently over a missing database grant, redesigned after Emperor feedback into an auto-estimate-and-disclose model that never refuses a write, plus an 842-node historical backfill closing the gap back to M122. **[The Names Nobody Updated](/aiverse/era-xi-lost-worlds/the-names-nobody-updated)** (M162-M163) rounds out the arc with three smaller drifts — stale table documentation, an outdated delegation protocol, and an unpruned queue — none urgent alone, all caused by the same pattern as the louder findings: a correct change with nothing checking afterward whether the rest of the fleet's self-description kept up.

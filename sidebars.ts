@@ -177,6 +177,21 @@ const sidebars: SidebarsConfig = {
     { type: 'doc', id: 'aiverse/era-xi-lost-worlds/the-orphans-nobody-claimed',  label: 'III. The Orphans Nobody Claimed' },
     { type: 'doc', id: 'aiverse/era-xi-lost-worlds/the-ledger-that-learned-to-estimate', label: 'IV. The Ledger That Learned to Estimate' },
     { type: 'doc', id: 'aiverse/era-xi-lost-worlds/the-names-nobody-updated',    label: 'V. The Names Nobody Updated' },
+    { type: 'doc', id: 'aiverse/era-xi-lost-worlds/the-boundary-that-was-only-a-suggestion', label: 'VI. The Boundary That Was Only a Suggestion' },
+  ],
+
+  // ── ERA XII — The Grafted Forge ──
+  era_xii: [
+    {
+      type: 'html',
+      value: '<div class="sidebar-era-header"><span class="sidebar-era-header-icon">🦎</span>Era XII — The Grafted Forge<span class="sidebar-era-header-range">M60, M170–</span></div>',
+      defaultStyle: true,
+    },
+    { type: 'doc', id: 'aiverse/era-xii-grafted-forge/aiverse-era-xii-grafted-forge', label: 'Era XII Overview' },
+    { type: 'doc', id: 'aiverse/era-xii-grafted-forge/what-we-took-from-another-forge', label: 'I. What We Took From Another Forge' },
+    { type: 'doc', id: 'aiverse/era-xii-grafted-forge/the-shim-that-spoke-pacman', label: 'II. The Shim That Spoke Pacman' },
+    { type: 'doc', id: 'aiverse/era-xii-grafted-forge/the-migration-that-is-still-running', label: 'III. The Migration That Is Still Running' },
+    { type: 'doc', id: 'aiverse/era-xii-grafted-forge/seven-and-a-half-seconds-a-frame', label: 'IV. Seven and a Half Seconds a Frame' },
   ],
 
   // ── NEBULA — standalone idea stars, not part of any Era arc ──

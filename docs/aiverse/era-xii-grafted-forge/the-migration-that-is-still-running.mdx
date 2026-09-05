@@ -1,0 +1,144 @@
+---
+id: the-migration-that-is-still-running
+title: "The Migration That Is Still Running"
+sidebar_label: "III. The Migration That Is Still Running"
+description: "Upstream changed its configuration language from .conf to Lua in the middle of the port. A half-migrated desktop looks exactly like a finished one until the moment it doesn't — and the failure modes are invisible, silent, and cheerfully painted across the top of the screen."
+tags: [aiverse, era-xii, omaweed, hyprland, migration, config, quickshell, m60, m171]
+pagination_prev: 'aiverse/era-xii-grafted-forge/the-shim-that-spoke-pacman'
+pagination_next: 'aiverse/era-xii-grafted-forge/seven-and-a-half-seconds-a-frame'
+---
+
+import Admonition from '@theme/Admonition';
+
+<Admonition type="note" title="📜 Remembrancer's Note">
+
+A migration is a state, not an event. This chronicle was written while the state was still in progress, which is the only honest time to write about one — afterwards, everybody remembers it as having been obvious.
+
+</Admonition>
+
+---
+
+> *"In AIverse, there is only Knowledge."*
+
+---
+
+# The Migration That Is Still Running
+
+Halfway through the port, upstream changed its configuration language.
+
+Omarchy Quattro moved Hyprland configuration from Hyprland's own `.conf` format to Lua. This is a good change — Lua gives you conditionals, functions, and the ability to load defaults and then override them, instead of a flat file the user must fork wholesale to alter one line. The new arrangement is genuinely better:
+
+```lua
+-- Load Omarchy defaults.
+require("default.hypr.omarchy")
+
+-- Put your personal overrides in these files. They're loaded after Omarchy's
+-- defaults so package updates can improve the defaults without rewriting your
+-- ~/.config/hypr files.
+require("hypr.monitors")
+require("hypr.input")
+require("hypr.bindings")
+require("hypr.looknfeel")
+```
+
+That is the shape you want: upstream keeps improving the defaults, and your customisations survive because they are applied on top rather than mixed in.
+
+The problem is the transition. A machine that has been running the old format has both sets of files, and Hyprland does not complain about the ones it is ignoring.
+
+## The files that shadow their replacements
+
+The port's provisioning step copies defaults into `~/.config` and then explicitly deletes the v3 leftovers:
+
+```bash
+rm -f "$HOME/.config/hypr/hyprland.conf" "$HOME/.config/hypr/bindings.conf" \
+  "$HOME/.config/hypr/input.conf" "$HOME/.config/hypr/looknfeel.conf" \
+  "$HOME/.config/hypr/autostart.conf"
+```
+
+Five lines, and they encode a debugging session nobody enjoyed. A stale `hyprland.conf` sitting beside `hyprland.lua` produces a desktop that starts, looks approximately right, and quietly ignores half your keybindings. There is no error. There is no warning. The old file is not *wrong*, it is simply no longer the file being read — or worse, on some code paths, it is.
+
+This is the defining characteristic of a half-finished migration: the failure mode is not a crash. It is a system that works well enough that you stop looking.
+
+<Admonition type="info" title="⚙️ Technical Insight — The Dangerous Migrations Are the Ones With No Error State">
+A migration that fails loudly — a schema change that rejects the old format, a parser that refuses an unknown key — is cheap, because the cost is paid immediately and by the person doing the migration. A migration where the old artefact remains syntactically valid but semantically dead is expensive, because the cost is deferred and paid by whoever is next confused. When designing one, ask what happens to a machine that is halfway through. If the answer is "it looks fine", add something that makes it not look fine: a version marker, a startup check, a deliberate error on encountering the superseded file.
+</Admonition>
+
+## A red bar across a running desktop
+
+The counter-example arrived from the same migration, and it is instructive precisely because it *did* fail loudly.
+
+An earlier session, working around a graphics bug on the machine described in the next chronicle, added a render block to `looknfeel.lua`:
+
+```lua
+hl.config({
+  render = {
+    explicit_sync = false,
+    direct_scanout = false,
+  },
+})
+```
+
+The intent was sound. The key was not. Hyprland 0.56.2 had removed `render:explicit_sync` — the behaviour became automatic and the option went away. So the block did nothing, and Hyprland reported exactly that, in a red bar across the top of the screen:
+
+```
+Your config has errors:
+/home/nunix/.config/hypr/looknfeel.lua:66: unknown config key 'render.explicit_sync'
+```
+
+It sat there for hours. Not because it was hard to fix — the fix was deleting two words — but because nobody looked at the physical display. Every interaction with that machine happened over SSH or a remote desktop session that was itself broken, so the one component loudly reporting a fault was the one component nobody could see.
+
+The fix was to keep the valid key and drop the invalid one, verified the only way worth verifying:
+
+```bash
+hyprctl getoption render:explicit_sync   # → "no such option"
+hyprctl getoption render:direct_scanout  # → "int: 0"
+hyprctl configerrors                     # → empty
+```
+
+Asking the running compositor which options it actually has beats trusting a changelog, and `hyprctl configerrors` returning empty is a machine-checkable assertion rather than a human squinting at a screenshot.
+
+<Admonition type="info" title="⚙️ Technical Insight — Ask the Running System What It Supports">
+Configuration keys drift across releases faster than documentation does, and a config language that silently accepts unknown keys will let a no-op sit in your file indefinitely. Where the software exposes an introspection interface — `hyprctl getoption`, `sysctl -a`, `git config --list`, `zypper --help` — validating against the *running binary* is both faster and more truthful than reading release notes. The corollary: prefer software that has such an interface, and when you write configuration handling yourself, make unknown keys an error rather than a shrug.
+</Admonition>
+
+## What "still running" means
+
+Several things in this port remain unfinished, and listing them is more useful than implying completeness.
+
+**The compatibility patches are unversioned.** They are `sed` expressions in the installer, matched against upstream file contents. Any upstream rewrite of a patched line makes the patch silently stop applying. There is no test that notices.
+
+**The screensaver disable is a state file, not a setting.** Omarchy's idle service reads its timeouts from `shell.json`, and a well-meaning attempt to disable the screensaver by setting `screensaver: -1` did nothing at all, because the loader treats negative values as invalid and substitutes the default:
+
+```js
+function secondsFromConfig(value, fallback) {
+  var n = Number(value)
+  if (!isFinite(n) || n < 0) return fallback
+  return Math.floor(n)
+}
+```
+
+The actual mechanism is the presence of a file — `~/.local/state/omarchy/indicators/stay-awake` — which the shell checks to compute `idleEnabled`. Reading the source settled in two minutes what an hour of configuration guesses had not.
+
+**The Quickshell restart path is fragile.** Restarting the desktop shell out of band can leave a second instance orphaned to init, with two bars fighting over the same surface. It is recoverable and cosmetic, but it is the kind of thing that erodes trust in a desktop.
+
+**The connector names moved.** Switching graphics drivers renamed the display output from `DP-1` to `DP-4`. Nothing referenced it by name yet. If `monitors.lua` ever does, that is a landmine already armed.
+
+None of these are emergencies. All of them are the ordinary residue of a migration in flight, and the reason to write them down is that a list of known-unfinished work is the only thing that distinguishes an in-progress migration from an abandoned one.
+
+<Admonition type="tip" title="📚 Knowledge Transfer">
+
+**The lesson worth keeping:** A migration is finished when nothing can still be running the old way, not when the new way works. Those are different dates, sometimes by months, and the gap between them is where the confusing bugs live.
+
+**Pattern:** When superseding a config format, delete the old artefacts as part of the upgrade rather than leaving them beside their replacements. A file that is ignored looks identical to a file that is read, right up until the moment it matters.
+
+**What we'd do differently:** The invalid `explicit_sync` key survived for hours on a desktop that was reporting it in red the entire time, because every hand on that machine was remote. When your only view of a system is a remote session, treat the physical display as an unmonitored log — take a screenshot as part of routine verification, or you are flying with one instrument covered.
+
+**If you're building this yourself:** Keep a written list of what is not yet migrated. Not a ticket queue — a plain list in the repository. An in-flight migration with a visible remainder is a project; one without is technical debt that has forgotten its own name.
+
+</Admonition>
+
+<NunixOut />
+
+<div className="aiverse-fleet-cta">
+  <a href="/aiverse/support">⚔️ The Fleet Needs You — Support the Chronicle</a>
+</div>
