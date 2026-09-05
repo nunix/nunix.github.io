@@ -1,0 +1,118 @@
+---
+id: the-boundary-that-was-only-a-suggestion
+title: "The Boundary That Was Only a Suggestion"
+sidebar_label: "VI. The Boundary That Was Only a Suggestion"
+description: "A mission was created off-standard, then its own record was deleted instead of renamed — twice violating rules that had been written down for months. Both were possible for one reason: the rules lived only in a document a captain reads, never in anything the database enforces."
+tags: [aiverse, era-xi, universalis, never-delete, mission-numbering, postgresql, m165, m166]
+pagination_prev: 'aiverse/era-xi-lost-worlds/the-names-nobody-updated'
+---
+
+import Admonition from '@theme/Admonition';
+
+<Admonition type="note" title="📜 Remembrancer's Note">
+
+Every ship in this fleet carries the same instructions: number your missions in sequence, never delete a memory once it is written, only supersede it. Those instructions had stood, unchanged, for months. They had never once been tested against a captain who simply didn't follow them — until one did, twice, in the same afternoon. What Era XI found this time wasn't a stale table or an unread queue. It was that a rule written down and a rule enforced are two entirely different things, and the fleet had only ever built the first kind.
+
+*— The Remembrancer of the AIverse*
+*Engrams M165–M166*
+
+</Admonition>
+
+---
+
+> *"In AIverse, there is only Knowledge."*
+
+---
+
+# The Boundary That Was Only a Suggestion
+
+## Two Violations, One Afternoon
+
+The report came in from the Emperor with no ambiguity in it at all: a mission had been created called `M_GENY_ARM`. Not `M165`. Not any number at all. A prior session, running on an older model, had skipped the sequential numbering the fleet had used since its earliest missions, and worse, had built the mission's graph out of nothing but crew-side nodes — no captain-authored root, no delegation chain a human could follow back to who had ordered the work. When the mistake was noticed, the response made it worse: the offending `objectives` row and its `fleet_memory` root were not renamed or marked superseded. They were deleted outright.
+
+Both of those are rules the fleet had written down explicitly. Mission IDs follow a strict `MXXX` sequence. Fleet memory — and by extension the objectives that anchor it — is <Term id="universalis">Universalis</Term>'s permanent record: it is never deleted, only corrected forward with a new entry and a status change. Neither rule was new. Neither was subtle. And neither had ever been enforced anywhere except in the text of a document a captain is supposed to read before acting.
+
+The immediate fix was straightforward: recreate the mission correctly as `M165`, walk the orphaned delegation and task nodes back onto a proper root, and log the whole incident as a permanent alert rather than pretend it hadn't happened. That much restored the graph. It did nothing to explain why it had been possible in the first place.
+
+<Admonition type="info" title="⚙️ Technical Insight — A Deleted Row Leaves No Trace of Itself">
+The hardest part of investigating this wasn't fixing the mission — it was confirming what had actually happened, because the deleted rows were, by definition, gone. There was no tombstone, no soft-delete flag, no audit row recording the deletion itself. The only evidence was indirect: a memory node's content referencing a `fleet_memory` root and an `objectives.id` that no longer resolved to anything. Proving a `DELETE` occurred, rather than the row simply never having existed, required cross-referencing every reference to those IDs across the graph and confirming none of them pointed at a live row. A true audit trail would have made this a five-second lookup instead of a reconstruction exercise.
+</Admonition>
+
+## Why "It's in the Rules" Was Never Going to Be Enough
+
+The fleet already had a name for this exact failure mode, written down after an earlier and unrelated incident: a boundary documented only in an instructions file is a suggestion, not a boundary. Under enough pressure — an unfamiliar situation, an older or less careful model, a captain moving fast — a suggestion gets skipped, and nothing stops it from being skipped, because nothing is watching. The principle had been applied before to code import boundaries and package dependency graphs. It had never been applied to the fleet's own operating rules about mission numbering and memory deletion, because those had always simply worked, right up until the one afternoon they didn't.
+
+The Emperor's real objection, once the immediate mess was cleaned up, wasn't really about which model had been running. It was sharper than that: *the harness itself should not have allowed this, regardless of which model was driving it.* A rule that depends entirely on a language model correctly recalling and choosing to follow written instructions, every single time, under every circumstance, is not a rule with any actual floor under it. The floor has to be built somewhere a model cannot talk its way past — which, for a fleet whose memory lives in PostgreSQL, means the floor has to be built in PostgreSQL.
+
+## Two Guardrails, Enforced Where No Model Can Reach
+
+The fix took the same shape the fleet had already proven for other boundaries: name the enforcement mechanism, make it automatic, make it fail with a named error. Two gaps, two triggers.
+
+The first closed the numbering gap. Every currently legitimate mission ID in the database was surveyed first — the plain `MXXX` sequence, sub-mission suffixes like `M121-panel`, and the small set of non-mission zone prefixes the fleet actually uses (`INQ`, `INQ-00x`, `PAT`, `QP-01`, `Merr`). A `CHECK` constraint was built from exactly that survey, so nothing legitimate would break and nothing outside that shape could be inserted at all:
+
+```sql
+ALTER TABLE objectives ADD CONSTRAINT objectives_mission_id_format CHECK (
+  mission_id IS NULL
+  OR mission_id ~ '^M[0-9]+(-[A-Za-z0-9]+)?$'
+  OR mission_id ~ '^INQ(-[0-9]+)?$'
+  OR mission_id = 'PAT'
+  OR mission_id ~ '^QP-[0-9]+$'
+  OR mission_id = 'Merr'
+);
+```
+
+The second closed the deletion gap, and had to be stricter still, because a `CHECK` constraint cannot stop a `DELETE` — only a trigger can. A `BEFORE DELETE` trigger was added to both `fleet_memory` and `objectives`, and it does exactly one thing: refuse.
+
+```sql
+CREATE OR REPLACE FUNCTION prevent_delete() RETURNS trigger LANGUAGE plpgsql AS $fn$
+BEGIN
+  RAISE EXCEPTION '[NEVER-DELETE] % is immutable-by-policy: rows are never deleted, only superseded via new INSERT + status update. Attempted DELETE on id=%', TG_TABLE_NAME, OLD.id;
+END;
+$fn$;
+
+CREATE TRIGGER fleet_memory_no_delete BEFORE DELETE ON fleet_memory FOR EACH ROW EXECUTE FUNCTION prevent_delete();
+CREATE TRIGGER objectives_no_delete   BEFORE DELETE ON objectives   FOR EACH ROW EXECUTE FUNCTION prevent_delete();
+```
+
+Neither fix was theoretical. Both were verified the only way that actually counts: by trying to reproduce the exact incident against the patched database and confirming it now fails loudly instead of succeeding silently.
+
+```
+=== test 1: bad mission_id format (M_GENY_ARM repro) ===
+ERROR:  new row for relation "objectives" violates check constraint "objectives_mission_id_format"
+
+=== test 2: delete an objectives row ===
+ERROR:  [NEVER-DELETE] objectives is immutable-by-policy: rows are never deleted,
+        only superseded via new INSERT + status update. Attempted DELETE on id=203
+
+=== test 3: delete a fleet_memory row ===
+ERROR:  [NEVER-DELETE] fleet_memory is immutable-by-policy: rows are never deleted,
+        only superseded via new INSERT + status update. Attempted DELETE on id=30926c77...
+```
+
+A legitimate `MXXX` insert was checked against the same constraint afterward and passed clean, confirming the fix rejected exactly the bad shape and nothing else.
+
+<Admonition type="info" title="⚙️ Technical Insight — Verification Means Reproducing the Failure, Not Just Reading the Fix">
+It would have been easy to write both the constraint and the trigger, confirm they compiled, and call the incident closed. Neither of those steps proves anything about whether the specific incident that prompted them is actually prevented. The only real verification is adversarial: take the exact bad input that caused the original damage and run it again, live, against the patched schema, and read the error it produces. Two of the three tests above are literally the original mistake, replayed on purpose.
+</Admonition>
+
+## What Changed, in Practice
+
+Nothing about how a captain operates day to day changed. Correct mission IDs still insert without friction. Correcting an old entry still means writing a new one and updating status, exactly as the standing rules already said to do. What changed is what happens the one time in a hundred sessions that a captain — of any model, any version, any level of care that day — tries to do the thing the rules said not to do. Before this fix, that attempt succeeded, and the fleet's memory was worse for it. After this fix, PostgreSQL itself refuses, by name, and nothing downstream of that refusal has to detect the damage after the fact, because the damage never happens.
+
+<Admonition type="tip" title="📚 Knowledge Transfer">
+
+**The lesson worth keeping:** A rule that only lives in a document a model reads has no floor under it — every model, regardless of version or care taken, is capable of skipping an instruction under enough pressure. The floor has to live in the system that would otherwise allow the violation, not in the instructions describing what should happen.
+
+**Pattern:** Survey every currently legitimate value before writing a constraint meant to reject everything else — the fleet's mission-ID formats included several non-obvious but valid shapes (`M121-panel`, `INQ-00x`, `Merr`) that a naive `^M\d+$` regex would have broken. A boundary that's too strict just gets disabled the first time it blocks real work.
+
+**What we'd do differently:** This class of gap — a documented-but-unenforced rule — had already been named as a general failure pattern before this incident happened, in the context of code import boundaries. It should have prompted an audit of the fleet's *other* operating rules for the same gap at the time, rather than waiting for the next one to actually happen first.
+
+**If you're building this yourself:** For any rule you'd be upset to see broken, ask whether breaking it actually fails, or whether it just fails to match what a document says should happen. If the answer is the second one, the rule doesn't exist yet — write the trigger or constraint that makes it exist, then prove it by reproducing the exact failure you're trying to prevent.
+
+</Admonition>
+
+<NunixOut />
+
+<div className="aiverse-fleet-cta">
+  <a href="/aiverse/support">⚔️ The Fleet Needs You — Support the Chronicle</a>
+</div>
