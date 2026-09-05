@@ -1,0 +1,99 @@
+---
+id: what-we-took-from-another-forge
+title: "What We Took From Another Forge"
+sidebar_label: "I. What We Took From Another Forge"
+description: "Omarchy is an opinionated Arch desktop. The fleet runs openSUSE. Taking the first and putting it on the second is not a copy — it is a fork with obligations, and the obligations start the moment you realise which assumptions the original author never had to write down."
+tags: [aiverse, era-xii, omaweed, omarchy, tumbleweed, hyprland, porting, m60, m171]
+pagination_prev: 'aiverse/era-xii-grafted-forge/aiverse-era-xii-grafted-forge'
+pagination_next: 'aiverse/era-xii-grafted-forge/the-shim-that-spoke-pacman'
+---
+
+import Admonition from '@theme/Admonition';
+
+<Admonition type="note" title="📜 Remembrancer's Note">
+
+The fleet has built a great many things from nothing. This chronicle is about the rarer discipline: wanting something that already exists, admiring it honestly, and then discovering that admiration is the cheapest part of the transaction.
+
+</Admonition>
+
+---
+
+> *"In AIverse, there is only Knowledge."*
+
+---
+
+# What We Took From Another Forge
+
+There is a particular kind of envy that afflicts anyone who has spent an evening configuring a tiling window manager. You get it working. It is fast, it is yours, and it is held together by four hundred lines of configuration that only you understand. Six months later you rebuild the machine and discover you no longer understand them either.
+
+Omarchy is the answer someone else wrote to that problem. It is an opinionated Arch Linux desktop built on Hyprland — not a framework, not a starting point, but a finished set of decisions. Fonts chosen. Keybindings chosen. A theme system, a menu, a shell bar, an update path. You install it and you have a desktop, not a project.
+
+The fleet wanted that. The fleet does not run Arch.
+
+## Two philosophies that disagree about everything except the goal
+
+Arch and openSUSE Tumbleweed both ship software the day it is ready. That is the only thing they agree on.
+
+Arch's rolling release is a stream. Packages land when maintainers push them, the user is the integration test, and the Arch Wiki exists because the system assumes you will need it. This is not a criticism — it is a design, and it produces a system with almost no distance between upstream and you.
+
+Tumbleweed's rolling release is a series of snapshots. Every proposed change goes through openQA, an automated test suite that boots the distribution and drives it like a user before anything ships. When a snapshot is released, it has been shown to install, boot, and run a desktop. The distance between upstream and you is a test farm.
+
+The interesting part is what each buys. Arch buys immediacy and a culture of building things yourself. Tumbleweed buys the ability to run `zypper dup` on a workstation you depend on and expect it to still be there afterwards — plus Btrfs snapshots with boot-menu rollback when it isn't.
+
+For a fleet machine that sits in a cupboard and gets reached over the network, the second trade is the right one. But the desktop experience on that machine should still be the good one. Hence the graft: Omarchy's opinions, Tumbleweed's substrate. **Omaweed.**
+
+<Admonition type="info" title="⚙️ Technical Insight — Opinionated Is a Property of the Defaults, Not the Code">
+The valuable part of Omarchy is not any single program it installs — waybar, hypridle and grim are all a `zypper install` away on any distribution. The value is the set of decisions: which of them, configured how, wired to which keys, themed consistently, updated together. That payload is almost entirely distribution-independent. What is *not* portable is the thin layer that assumes how software gets onto the machine. Recognising that the ratio is roughly 95% portable payload to 5% packaging assumptions is what makes a port worth attempting instead of a rewrite.
+</Admonition>
+
+## The assumptions nobody writes down
+
+A project built for one distribution encodes that distribution in places its author never thought of as choices. Porting is the process of finding them. In Omarchy's case they came in three layers.
+
+**The obvious layer: package names.** `networkmanager` on Arch is `NetworkManager` on openSUSE. `imagemagick` is `ImageMagick`. `noto-fonts-cjk` is `google-noto-sans-cjk-fonts`. `libvips` is `libvips42`. None of these are hard; all of them are invisible until something fails. They form a translation table, and the table is never finished — you find new entries every time a code path you have not exercised finally runs.
+
+**The structural layer: the package manager itself.** Omarchy does not call `pacman` once during installation. It calls it from installers, from menu actions, from update scripts, from helpers that check whether a package is present before offering to install it. That is the subject of the next chronicle, and it is where the port stops being a translation exercise.
+
+**The philosophical layer: the AUR.** Arch has a community repository where anyone can publish a build recipe, and Omarchy leans on it for the things distributions don't ship — browsers with proprietary bits, editors, desktop applications from single vendors. openSUSE's nearest equivalent is the Open Build Service, reachable through `opi`. "Nearest" is doing real work in that sentence. OBS is a build farm with project namespaces and review, not a free-for-all of user recipes. Most things you want are there. Some are not, and never will be.
+
+That last category forced the first genuine product decision of the port. Omarchy's menu offers to install a set of desktop AI applications — ChatGPT Desktop, LM Studio and friends — all packaged as Arch-only binaries with no OBS counterpart. The options were to fake it, to leave menu entries that fail, or to remove them. Omaweed removes them, and replaces the underlying scripts with ones that explain why:
+
+```bash
+echo "$(basename "$0") is unsupported on Omaweed (openSUSE Tumbleweed): it packages an" >&2
+echo "Arch-binary-only app with no OBS/RPM equivalent. Removed from the Install/Remove > AI menu." >&2
+exit 1
+```
+
+The CLI agents were unaffected — those install through `mise`, which does not care what distribution it is running on. Only the desktop apps died, and only because they were shipped as Arch binaries rather than as software.
+
+<Admonition type="info" title="⚙️ Technical Insight — A Port's Honesty Budget Is Spent Early">
+Every port faces the same fork: emulate the missing capability badly, or remove it and say so. Emulation is tempting because it keeps the feature list intact. It is also how you end up with a menu entry that appears to work, fails silently, and costs a user an hour of debugging your abstraction instead of five seconds reading an error. The first version of the AUR shim in this port returned fabricated package listings to keep callers happy; it was replaced with one that returns empty and prints why. A shim that lies is worse than a missing feature, because a missing feature is discoverable.
+</Admonition>
+
+## When a port becomes a fork
+
+There is a moment in every port where you stop being a consumer of the upstream project and start being responsible for a divergent thing. For Omaweed, it arrived with the compatibility patches.
+
+The bootstrap installer clones the Omarchy tree and then edits it in place — patching a Snapper call that assumes Btrfs, an `rfkill` call that assumes the device exists, a reachability probe that pings the AUR. Each patch is small. Collectively they are a statement: this tree is no longer upstream's tree, and every upstream change now has to be re-reconciled against a set of local edits that live in a shell script rather than in version control.
+
+That is a real cost, and it is worth naming rather than discovering later. The alternative — maintaining a genuine fork with the patches committed — trades the reconciliation cost for a merge cost. Neither is free. The port chose in-place patching because it keeps the delta visible in one file that a person can read in a sitting, which matters more early in a project's life than merge ergonomics do.
+
+The obligations that come with a fork are not technical. They are that someone now has to care when upstream moves. Era XII exists because upstream moved almost immediately — from a `.conf` configuration format to Lua, mid-port — and the migration that started then is still running.
+
+<Admonition type="tip" title="📚 Knowledge Transfer">
+
+**The lesson worth keeping:** The hard part of porting is never the code you can see. It is the assumptions the original author never had to write down, because on their system those assumptions were simply true. You cannot grep for them. You find them by running the thing and watching where it breaks.
+
+**Pattern:** Before porting, sort the target into portable payload and platform assumptions, and estimate the ratio. A high ratio — most of the value being platform-independent configuration and decisions — means a port is worth it. A low ratio means you are about to rewrite the project while pretending you are porting it.
+
+**What we'd do differently:** The compatibility patches went into the installer as inline `sed` commands because that was fastest. They now form an undocumented contract with upstream's file layout, and any upstream rename breaks them silently. A patch series applied with `git apply`, failing loudly when it no longer applies, would have cost an afternoon and bought a warning system.
+
+**If you're building this yourself:** Decide early what you will do about capabilities the target platform genuinely lacks, and write the decision down. "We emulate it" and "we remove it and explain" are both defensible. Deciding case by case, under time pressure, is how you end up with three inconsistent answers and a shim that returns fake data.
+
+</Admonition>
+
+<NunixOut />
+
+<div className="aiverse-fleet-cta">
+  <a href="/aiverse/support">⚔️ The Fleet Needs You — Support the Chronicle</a>
+</div>

@@ -1,0 +1,48 @@
+---
+id: aiverse-era-xii-grafted-forge
+sidebar_label: "Era XII Overview"
+sidebar_position: 1
+title: "Era XII — The Grafted Forge"
+description: "Era XII: a desktop built for one distribution is grafted onto another. Omarchy's Hyprland experience, rebuilt on openSUSE Tumbleweed as Omaweed — a package manager taught to answer to a foreign name, a migration still in flight, and an old Quadro that took 7.5 seconds to draw a single frame. Missions M60, M170–M171."
+tags: [aiverse, era-xii, omaweed, omarchy, tumbleweed, hyprland, wayvnc, porting]
+pagination_prev: 'aiverse/era-xi-lost-worlds/the-boundary-that-was-only-a-suggestion'
+---
+
+import Admonition from '@theme/Admonition';
+
+<Admonition type="note" title="📜 REMEMBRANCER'S NOTE — Era XII">
+
+Eleven eras of this chronicle were written about software the fleet built for itself. This one begins with something the fleet did not build at all.
+
+Omarchy is another forge's work — an opinionated Arch Linux desktop, Hyprland shaped into something you can hand to a person who has never tiled a window in their life. The fleet wanted it. The fleet does not run Arch. What follows is the record of taking a machine spirit built for one forge world and teaching it to breathe another's air: a package manager that answers to a name it was never given, a configuration format that changed underneath the port halfway through, and a workstation whose graphics card spent a year lying about how fast it could draw.
+
+Nothing in this era is finished. That is deliberate. The migration is still running as this is written.
+
+*— The Remembrancer of the AIverse*
+*Engrams M60, M170–M171*
+
+</Admonition>
+
+---
+
+> *"In AIverse, there is only Knowledge."*
+
+---
+
+# Era XII — The Grafted Forge
+
+<Admonition type="info" title="⚙️ What Era XII Is About">
+Every prior era asked what the fleet should build. This one asks a narrower and more awkward question: what do you do when the thing you want already exists, and it was built for someone else's system? Porting is not copying. It is a long argument with every assumption the original author never had to write down.
+
+*[Return to the Cosmic Map](/cosmos) to see all eras.*
+</Admonition>
+
+## The Chronicles
+
+**[I. What We Took From Another Forge](./what-we-took-from-another-forge)** — M60, M171 · Two projects with opposite philosophies — Arch's hand-assembled minimalism and Tumbleweed's tested rolling snapshots — and the argument for taking the desktop from one and the substrate from the other. Why the fleet wanted Omarchy's opinions but not Omarchy's distribution, what "opinionated" actually buys a user, and the moment a port stops being a copy and starts being a fork with obligations.
+
+**[II. The Shim That Spoke Pacman](./the-shim-that-spoke-pacman)** — M171 · A desktop that calls `pacman` several hundred times cannot be ported by rewriting every call site. The alternative is to make `pacman` exist. Covers the translation shim, the AUR that has no Tumbleweed equivalent and the OBS that almost does, why the shims moved out of `/usr/bin`, and the difference between an installer that works on the author's machine and one that survives `curl | bash` on a stranger's.
+
+**[III. The Migration That Is Still Running](./the-migration-that-is-still-running)** — M60, M171 · Upstream changed its configuration language from `.conf` to Lua in the middle of the port, and a half-migrated desktop looks exactly like a working one until it doesn't. Covers the v3 files that shadowed their v4 replacements, the config error that painted a red bar across a running desktop for hours, and why a migration you can't tell is unfinished is the most expensive kind.
+
+**[IV. Seven and a Half Seconds a Frame](./seven-and-a-half-seconds-a-frame)** — M170 · A remote desktop that four rounds of tuning could not fix, because none of the tuning touched the thing that was broken. Covers the measurement that ended the argument, why a 10-gigabit switch was irrelevant, the split-package trap that made a driver look impossible to install, and a 236× speedup that no configuration file could have delivered.

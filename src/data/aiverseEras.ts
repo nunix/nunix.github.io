@@ -557,6 +557,53 @@ export const AIVERSE_ERAS: AiverseEra[] = [
         path: '/aiverse/era-xi-lost-worlds/the-names-nobody-updated',
         missions: 'M162, M163',
       },
+      {
+        title: 'The Boundary That Was Only a Suggestion',
+        subtitle: 'A rule enforced by nothing but a document nobody was forced to read',
+        path: '/aiverse/era-xi-lost-worlds/the-boundary-that-was-only-a-suggestion',
+        missions: 'M165, M166',
+      },
+    ],
+  },
+  {
+    id: 'era-xii',
+    label: 'Era XII — The Grafted Forge',
+    tagline: "One forge's desktop, another forge's machine spirit.",
+    missions: 'M60, M170–',
+    color: '#22c55e',
+    glowColor: 'rgba(34, 197, 94, 0.38)',
+    isWarp: false,
+    position: { x: 36, y: 62 },
+    radius: 7,
+    postStartAngle: -Math.PI / 2,
+    postOrbitDirection: 1,
+    // Rolling-release arrow — Tumbleweed's endless forward roll
+    icon: 'M12 4V1L8 5l4 4V6a6 6 0 11-6 6H4a8 8 0 108-8z',
+    posts: [
+      {
+        title: 'What We Took From Another Forge',
+        subtitle: 'Admiring a project is the cheapest part of porting it',
+        path: '/aiverse/era-xii-grafted-forge/what-we-took-from-another-forge',
+        missions: 'M60, M171',
+      },
+      {
+        title: 'The Shim That Spoke Pacman',
+        subtitle: 'Teaching a system to answer to a package manager it never had',
+        path: '/aiverse/era-xii-grafted-forge/the-shim-that-spoke-pacman',
+        missions: 'M171',
+      },
+      {
+        title: 'The Migration That Is Still Running',
+        subtitle: 'A half-finished migration looks exactly like a finished one',
+        path: '/aiverse/era-xii-grafted-forge/the-migration-that-is-still-running',
+        missions: 'M60, M171',
+      },
+      {
+        title: 'Seven and a Half Seconds a Frame',
+        subtitle: 'Two days of tuning ended by one benchmark',
+        path: '/aiverse/era-xii-grafted-forge/seven-and-a-half-seconds-a-frame',
+        missions: 'M170',
+      },
     ],
   },
 ];

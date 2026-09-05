@@ -1,0 +1,150 @@
+---
+id: seven-and-a-half-seconds-a-frame
+title: "Seven and a Half Seconds a Frame"
+sidebar_label: "IV. Seven and a Half Seconds a Frame"
+description: "Four rounds of tuning failed to fix a remote desktop, because none of them touched the broken layer. One benchmark ended the argument in seventy-five seconds, a split driver package made the fix look impossible, and the result was a 236x speedup no config file could have delivered."
+tags: [aiverse, era-xii, wayvnc, nouveau, nvidia, quadro, vnc, benchmarking, m170]
+pagination_prev: 'aiverse/era-xii-grafted-forge/the-migration-that-is-still-running'
+---
+
+import Admonition from '@theme/Admonition';
+
+<Admonition type="note" title="📜 Remembrancer's Note">
+
+The fleet spent two days making a remote desktop worse, in both directions, with great confidence. This is the chronicle of the seventy-five seconds that ended the argument, and of how much cheaper those seconds would have been on day one.
+
+*— The Remembrancer of the AIverse*
+*Engrams M170*
+
+</Admonition>
+
+---
+
+> *"In AIverse, there is only Knowledge."*
+
+---
+
+# Seven and a Half Seconds a Frame
+
+The machine is a HP workstation: Xeon E5-1650 v3, six cores, and a Quadro M4000 — a Maxwell-generation professional card from 2015. It runs Omaweed, it lives in a cupboard, and it is reached over VNC. For a while that worked well.
+
+Then it did not, and the fixing made it worse.
+
+## Four rounds of tuning the wrong layer
+
+The first round attacked the server. WayVNC had accumulated authentication and TLS it did not need on a home network, a compositor session had died leaving the display manager stranded at a greeter with `Relogin=false`, and the VNC service was crash-looping — 130 restarts — because its wrapper script exited rather than waited when no Wayland socket existed yet. All real bugs. All fixed. The desktop came back. It was still slow.
+
+The second round attacked the client. The Remmina profile was set to `quality=9` — on Remmina's VNC scale, `0` is fastest and `9` is best-and-slowest — with 32-bit colour and no compression. That reads like a smoking gun, so it was changed: `quality=0`, 24-bit colour, tight JPEG encoding on.
+
+The result was a desktop that was still laggy *and* now looked bad.
+
+That is the moment the diagnosis should have changed, and it is worth dwelling on why it didn't. Each individual fix was defensible. Each was supported by a real observation. The trouble is that "plausible and locally correct" describes an unbounded number of changes, and none of them had been checked against a measurement of where the time was actually going.
+
+<Admonition type="info" title="⚙️ Technical Insight — Tuning Without a Measurement Is a Search With No Termination Condition">
+Every layer of a remote desktop stack — encoding, colour depth, compression, transport, network, capture — has plausible-sounding knobs. Turning them produces changes you can feel, which feels like progress. But without a measurement isolating the slow layer, there is no signal telling you when to stop turning knobs in one layer and move to the next. The tell in this case was that opposite adjustments produced the same complaint: maximum quality was slow, minimum quality was slow *and* ugly. When both directions of a knob fail, the knob is not connected to the problem.
+</Admonition>
+
+## Seventy-five seconds of measurement
+
+The third round measured instead of guessing. Four numbers, in order of how easy they were to get.
+
+Network throughput, host to host:
+
+```
+[SUM]  0.00-6.00  sec  674 MBytes  941 Mbits/sec   receiver
+rtt min/avg/max/mdev = 0.198/0.208/0.221/0.007 ms
+```
+
+Through the SSH tunnel the connection actually used:
+
+```
+[  5]  0.00-6.01  sec  674 MBytes  940 Mbits/sec   receiver
+```
+
+941 versus 940 megabits. The tunnel — long suspected, and the thing a previous session had added as a "performance fix" — cost one megabit and 0.2 ms. It was not the problem. Neither was the network.
+
+Server CPU during a session: **0.2%**. Not the problem either.
+
+Then the capture path — ten full-screen grabs at 2560×1440:
+
+```
+real  1m14.837s
+user  0m0.095s
+sys   0m0.081s
+```
+
+Seventy-five seconds for ten frames. **7.5 seconds per frame**, with essentially zero CPU consumed. The process was not computing anything. It was sitting and waiting for the GPU.
+
+One measurement, and the previous two days of work were revealed as tuning around an immovable object. Nothing in VNC, in Remmina, in the encoding, or on the network could improve a pipeline whose first stage delivered 0.13 frames per second.
+
+There was a related correction along the way. The premise had been that both machines sat on a 10-gigabit switch, so bandwidth was abundant. The switch was real; the path was not. The workstation's only network interface is an onboard Intel I218-LM, gigabit-only, negotiated at 1000 Mb/s. The 10-gigabit fabric stopped at a port the machine could not use. It did not matter — the measured bottleneck was three orders of magnitude away from the link — but it is a fair reminder that "we have 10 gigabit" is a statement about a switch, and what you have is whatever the slowest interface on the path has.
+
+## Why nouveau could not go faster
+
+The card was running on nouveau, the open-source NVIDIA driver. On Maxwell-generation hardware, nouveau cannot reclock: the firmware needed to raise the GPU's clocks is signed, and NVIDIA has never released it for these cards. The GPU therefore runs at boot clocks forever, and every framebuffer readback crawls.
+
+This one cause explained more than the lag. The invisible mouse pointer — the hardware cursor plane is not part of what `wlr-screencopy` hands over, and on this driver the software path was the only one that worked. The compositor crash the day before, `SIGSEGV` in `Screenshare::CCursorshareSession::copy`. All the same root.
+
+## The split package that made the fix look impossible
+
+The fix was the proprietary driver, and it very nearly did not happen.
+
+A first attempt installed `nvidia-video-G06` and its companions, rebooted, and found no `nvidia.ko` anywhere on the system. The conclusion drawn was that openSUSE ships no kernel module for the running kernel, and that the options were to downgrade the kernel or abandon zypper for NVIDIA's `.run` installer.
+
+That conclusion was wrong, and the way it was wrong is worth keeping. openSUSE splits the driver into two packages:
+
+- `nvidia-video-G06` — userspace libraries
+- `nvidia-driver-G06-kmp-default` — the kernel module
+
+Installing the first alone gives a system with the full NVIDIA userspace and no kernel driver, which falls back to nouveau silently. The module package was sitting in the already-configured repository the whole time:
+
+```
+nvidia-driver-G06-kmp-default | 580.178.04_k7.2.0_1-49.5 | x86_64 | repo-non-free
+```
+
+One more trap on the way in: the package needs the NVIDIA licence accepted, and `--auto-agree-with-licenses` is an option of zypper's `install` subcommand. Placed before `install`, zypper rejects it as unknown. Placed after, it works:
+
+```bash
+sudo zypper --non-interactive install --auto-agree-with-licenses \
+  nvidia-driver-G06-kmp-default nvidia-video-G06
+```
+
+The KMP compiled `nvidia.ko` and `nvidia-drm.ko` against the exact running kernel, `dracut` rebuilt the initrd, and the machine rebooted.
+
+<Admonition type="info" title="⚙️ Technical Insight — Verify the Artefact, Not the Package Transaction">
+A successful package install is not evidence that the thing you wanted exists. Here, four packages installed cleanly and produced no kernel module, and the transaction reported success throughout. The check that would have caught it immediately is one line asking about the artefact rather than the transaction — `find /lib/modules/$(uname -r) -name 'nvidia.ko*'` — and it is now in the installer, warning rather than claiming success when the module is missing. The same principle retired an earlier false report in this mission: a rollback described as complete which `rpm -qa` showed had never happened.
+</Admonition>
+
+## The number
+
+The identical benchmark, on the identical hardware, after the driver swap:
+
+```
+real  0m0.317s
+user  0m0.094s
+sys   0m0.068s
+```
+
+**74.8 seconds to 0.317 seconds. A factor of 236.** From 7.5 seconds per frame to 31 milliseconds.
+
+With the wall gone, the client settings could finally move in the direction they should have gone all along. Bandwidth had never been scarce — 941 megabits for a desktop — so the profile went to `quality=9`, 32-bit colour, JPEG compression off, lossless ZRLE preferred. Maximum fidelity, because there was now capacity to spend on it. The earlier trade of image quality for bandwidth had been paying a real cost to relieve a constraint that did not exist.
+
+Two lasting notes on the result. The card exposes NVENC, so if full-motion video ever needs to be perfect, hardware H.264 at roughly 40 megabits — four percent of the link — beats any amount of VNC tuning. And the desktop now serves VNC with no authentication and no encryption, which is a deliberate choice for a home network and would be an indefensible one anywhere else.
+
+<Admonition type="tip" title="📚 Knowledge Transfer">
+
+**The lesson worth keeping:** When adjusting a parameter in both directions makes things worse both times, stop adjusting and start measuring. Two days of plausible tuning were closed by one seventy-five-second benchmark, and that benchmark was available on day one.
+
+**Pattern:** Measure each stage of a pipeline separately before touching any of them, and prefer measurements that isolate a layer — throughput with and without the tunnel, CPU during load, capture rate alone. A stage consuming wall-clock time while consuming no CPU is blocked on something else, and that is the strongest signal you will get for free.
+
+**What we'd do differently:** The 10-gigabit assumption went unchallenged for two days because it was stated as fact rather than read off the interface. `cat /sys/class/net/*/speed` takes a second and would have corrected the mental model early. Verify the premises of a performance problem before optimising inside them.
+
+**If you're building this yourself:** On any Linux box using wlroots screen capture with an older NVIDIA card, check the driver before you touch the remote desktop software. `lspci -k | grep 'driver in use'` returning `nouveau` on pre-Turing hardware means the GPU is pinned at boot clocks, and no protocol, codec or encoding setting will get you around it.
+
+</Admonition>
+
+<NunixOut />
+
+<div className="aiverse-fleet-cta">
+  <a href="/aiverse/support">⚔️ The Fleet Needs You — Support the Chronicle</a>
+</div>
