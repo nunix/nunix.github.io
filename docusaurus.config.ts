@@ -105,6 +105,7 @@ const config: Config = {
           ],
         },
         { href: 'https://github.com/nunix', label: 'GitHub', position: 'right' },
+        { href: 'https://github.com/sponsors/nunix', label: '💜 Sponsor', position: 'right' },
       ],
     },
     tableOfContents: {
